@@ -74,8 +74,21 @@ Categories — body `{ name }`. Services — body (zod, `lib/validations/catalog
 | PUT    | `/api/services/:id`           | Update (404 if not in salón) |
 | DELETE | `/api/services/:id`           | Delete (404 if not in salón) |
 
+## Sales
+
+Body (zod, `lib/validations/sale.ts`): `clientId?` (null = walk-in), `notes?`,
+`items` (≥1) of `{ serviceId?, staffId?, description, unitPrice, quantity }`.
+Totals are computed server-side; tax rate is snapshotted from `salon_settings`.
+
+| Method | Path             | Description                              |
+| ------ | ---------------- | ---------------------------------------- |
+| GET    | `/api/sales`     | List sales (salón)                       |
+| POST   | `/api/sales`     | Create sale (201 → `{ id }`)             |
+| GET    | `/api/sales/:id` | Sale + items (404 if not in salón)       |
+| DELETE | `/api/sales/:id` | Soft-void (status → `void`); keeps record |
+
 ## Remaining domain endpoints
 
-Still to come in Phase 1: sales, payments, cash sessions, expenses,
-commissions, reports. Document each here as it lands per the Documentation
-Maintenance Rule in [AGENTS.md](../AGENTS.md).
+Still to come in Phase 1: payments, cash sessions, expenses, commissions,
+reports. Document each here as it lands per the Documentation Maintenance Rule
+in [AGENTS.md](../AGENTS.md).

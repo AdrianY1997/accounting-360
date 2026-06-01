@@ -4,3 +4,4 @@ export * from "./auth";
 export * from "./salon";
 export * from "./client";
 export * from "./catalog";
+export * from "./sale";

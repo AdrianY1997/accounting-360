@@ -92,6 +92,38 @@ Salon services. Scoped by `organization_id` + `salon_id`.
 | `active`           | boolean, default `true`       |                             |
 | `created_at` / `updated_at` | timestamp            | from `timestamps`           |
 
+### `sale`
+
+Sales (tickets). Scoped by `organization_id` + `salon_id`. Totals are stored
+(not derived) so historical records survive later price/tax changes.
+
+| Column            | Type                       | Notes                          |
+| ----------------- | -------------------------- | ------------------------------ |
+| `id`              | text (uuid)                | PK                             |
+| `organization_id` | text → `organization.id`   | cascade                        |
+| `salon_id`        | text → `team.id`           | cascade; indexed               |
+| `client_id`       | text → `client.id`         | nullable; on delete set null   |
+| `status`          | text, default `completed`  | `completed` \| `void`          |
+| `subtotal`        | numeric(12,2)              | sum of line totals             |
+| `tax_rate`        | numeric(5,4)               | snapshot from `salon_settings` |
+| `tax_amount`      | numeric(12,2)              | `subtotal * tax_rate`          |
+| `total`           | numeric(12,2)              | `subtotal + tax_amount`        |
+| `notes`           | text, nullable             |                                |
+| `created_at` / `updated_at` | timestamp        | from `timestamps`              |
+
+### `sale_item`
+
+| Column        | Type                     | Notes                          |
+| ------------- | ------------------------ | ------------------------------ |
+| `id`          | text (uuid)              | PK                             |
+| `sale_id`     | text → `sale.id`         | cascade; indexed               |
+| `service_id`  | text → `service.id`      | nullable; on delete set null   |
+| `staff_id`    | text → `user.id`         | nullable; on delete set null; commission basis; indexed |
+| `description` | text, not null           | name snapshot / free text      |
+| `unit_price`  | numeric(12,2)            |                                |
+| `quantity`    | integer, default `1`     |                                |
+| `line_total`  | numeric(12,2)            | `unit_price * quantity`        |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

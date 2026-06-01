@@ -2,6 +2,21 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Sales / tickets (in progress)
+
+- `sale` + `sale_item` tables (scoped by `organization_id` + `salon_id`). Sale
+  stores a tax-rate snapshot and computed `subtotal`/`tax_amount`/`total`
+  (numeric); items carry `service_id?`, per-item `staff_id?` (commission basis),
+  description, unit price, quantity, line total. Migration `0003`.
+- `services/sales.ts`: `createSale` (atomic `db.batch` — neon-http has no
+  transactions; totals computed in integer cents, tax snapshotted from
+  `salon_settings`), `listSales`, `getSale`, `voidSale` (soft-void keeps the
+  record), `listSalonStaff`. `lib/validations/sale.ts` (zod).
+- REST: `GET/POST /api/sales`, `GET/DELETE /api/sales/:id` (DELETE = soft-void).
+- UI: `/sales` list (status badge, currency), `/sales/new` (dynamic line items,
+  service autofill, per-item staff, live subtotal/tax/total preview),
+  `/sales/:id` detail with void. Header nav (Ventas).
+
 ## Phase 1 — Service catalog (in progress)
 
 - `service_category` + `service` tables (scoped by `organization_id` +

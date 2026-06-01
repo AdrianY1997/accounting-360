@@ -57,8 +57,10 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Sales / Tickets
 
-- [ ] API — create sale (line items, client, staff, tax from `salon_settings`)
-- [ ] UI — point-of-sale ticket entry
+- [x] API — create sale (line items, client, per-item staff, tax snapshot from
+  `salon_settings`); list, detail, soft-void (`/api/sales`, `/api/sales/:id`)
+- [x] UI — new sale (dynamic items, live totals), list, detail with void
+      (`/sales`, `/sales/new`, `/sales/:id`)
 
 ### Payments
 

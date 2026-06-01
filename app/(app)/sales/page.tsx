@@ -1,0 +1,90 @@
+import { eq } from "drizzle-orm";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { db } from "@/db";
+import { salonSettings } from "@/db/schema";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { listSales } from "@/services/sales";
+import { requireSalonContext } from "@/lib/tenant";
+
+export default async function SalesPage() {
+  const ctx = await requireSalonContext();
+  const [sales, settings] = await Promise.all([
+    listSales(ctx),
+    db.query.salonSettings.findFirst({
+      where: eq(salonSettings.teamId, ctx.salonId),
+    }),
+  ]);
+  const fmt = new Intl.NumberFormat("es", {
+    style: "currency",
+    currency: settings?.currency ?? "USD",
+  });
+  const dateFmt = new Intl.DateTimeFormat("es", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Ventas</h1>
+        <Button asChild>
+          <Link href="/sales/new">
+            <Plus className="size-4" />
+            Nueva venta
+          </Link>
+        </Button>
+      </div>
+
+      {sales.length === 0 ? (
+        <p className="text-muted-foreground py-12 text-center text-sm">
+          Aún no hay ventas.
+        </p>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sales.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell>
+                    <Link href={`/sales/${s.id}`} className="hover:underline">
+                      {dateFmt.format(new Date(s.createdAt))}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{s.clientName ?? "—"}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={s.status === "void" ? "destructive" : "secondary"}
+                    >
+                      {s.status === "void" ? "Anulada" : "Completada"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {fmt.format(Number(s.total))}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
