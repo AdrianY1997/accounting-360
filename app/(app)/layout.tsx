@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { requireSession } from "@/lib/session";
 
 export default async function AppLayout({
@@ -20,11 +21,20 @@ export default async function AppLayout({
             width={32}
             height={32}
             priority
-            className="size-8 w-auto"
+            className="size-8 w-auto dark:hidden"
+          />
+          <Image
+            src="/logo-icon-dark.png"
+            alt="salon360"
+            width={32}
+            height={32}
+            priority
+            className="size-8 w-auto hidden dark:block"
           />
         </Link>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{session.user.name}</span>
+          <ThemeToggle />
           <SignOutButton />
         </div>
       </header>

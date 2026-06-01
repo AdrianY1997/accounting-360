@@ -44,7 +44,15 @@ export function SignInForm() {
           width={180}
           height={48}
           priority
-          className="mb-2 h-12 w-auto"
+          className="mb-2 h-12 w-auto mx-auto dark:hidden"
+        />
+        <Image
+          src="/logo-full-dark.png"
+          alt="salon360"
+          width={180}
+          height={48}
+          priority
+          className="mb-2 h-12 w-auto mx-auto hidden dark:block size-auto"
         />
         <CardTitle>Iniciar sesión</CardTitle>
         <CardDescription>Sistema contable</CardDescription>

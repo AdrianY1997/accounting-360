@@ -4,6 +4,9 @@ All relevant project changes are recorded here (most recent first).
 
 ## Phase 1 — Auth foundation (in progress)
 
+- Light/dark theme: `next-themes` `ThemeProvider` in the root layout +
+  `ThemeToggle` (sun/moon) in the app header and sign-in page. Logos swap by
+  theme (`logo-*-dark.png` via `dark:` classes).
 - Applied the initial migration to Neon.
 - Added `pnpm db:seed` (`db/seed.ts`): bootstraps the first admin user (via
   Better Auth internals, bypassing disabled sign-up) plus one empresa

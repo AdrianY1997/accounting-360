@@ -42,3 +42,5 @@ installed.
 | --------- | ---- | --------------- |
 | `SignInForm` | `sign-in-form.tsx` | Client. Email/password sign-in via `authClient`, logo header, toast on error, redirects to `/dashboard`. No props. |
 | `SignOutButton` | `sign-out-button.tsx` | Client. Ghost button; `signOut()` then redirect to `/sign-in`. No props. |
+| `ThemeProvider` | `theme-provider.tsx` | Client. Wraps `next-themes` provider; mounted in root layout (`attribute="class"`, system default). |
+| `ThemeToggle` | `theme-toggle.tsx` | Client. Ghost icon button toggling light/dark via `next-themes` (sun/moon, hydration-safe). No props. In app header + sign-in page. |
