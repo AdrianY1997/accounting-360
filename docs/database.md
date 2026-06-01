@@ -66,4 +66,13 @@ pnpm db:studio     # browse data
 ```
 
 Current migration: `db/migrations/0000_*.sql` — 10 tables (9 auth + tenancy,
-1 domain). **Not yet applied** — requires a real Neon `DATABASE_URL`.
+1 domain). **Applied** to Neon.
+
+## Seeding
+
+`pnpm db:seed` (`db/seed.ts`) bootstraps the first admin (public sign-up is
+disabled): creates the user + credential account via Better Auth internals, then
+one `organization`, `member` (role `owner`), `team` (salón), `team_member`, and
+`salon_settings`. Idempotent (skips if the admin email exists). Override defaults
+with `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME`,
+`SEED_ORG_NAME`, `SEED_SALON_NAME`.

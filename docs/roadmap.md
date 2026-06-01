@@ -25,8 +25,9 @@ an income/expense model (Phase 1), add formal double-entry bookkeeping later
 - [x] Initial migration generated (`db/migrations/0000_*.sql`)
 - [x] Documentation (`AGENTS.md`, `docs/*`)
 
-> Not yet applied to a database — needs a real Neon `DATABASE_URL`, then
-> `pnpm db:migrate`.
+> Migration applied to Neon. Run `pnpm db:seed` to bootstrap the first admin
+> (`admin@salon360.local` / `changeme123` unless overridden) + one empresa and
+> salón.
 
 ## Phase 1 — MVP accounting (income/expense)
 
@@ -34,8 +35,9 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Auth & access
 
-- [ ] Sign-in page + auth-gated app shell (mobile-first)
-- [ ] Organization (empresa) + salón (team) creation/selection
+- [x] Sign-in page + auth-gated app shell (mobile-first) — `requireSession`
+- [x] First admin + empresa + salón bootstrap via `pnpm db:seed`
+- [ ] Organization (empresa) + salón (team) creation/selection from UI
 - [ ] Staff invitations + role assignment; per-salón assignment (`team_member`)
 - [ ] `requireMember()` / role guards; resource ownership checks
 

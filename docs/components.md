@@ -30,10 +30,15 @@ installed.
 
 | Component | File | Purpose / props |
 | --------- | ---- | --------------- |
-| _(none yet)_ | | Run `shadcn add` to install primitives, then list them here. |
+| `Button` | `ui/button.tsx` | shadcn button. `variant` (default/destructive/outline/secondary/ghost/link), `size` (default/sm/lg/icon), `asChild`. |
+| `Input` | `ui/input.tsx` | Text input. Standard `<input>` props. |
+| `Label` | `ui/label.tsx` | Form label (radix). `htmlFor`. |
+| `Card` | `ui/card.tsx` | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `CardAction`. |
+| `Toaster` | `ui/sonner.tsx` | Sonner toast host. Mounted once in root layout; fire with `toast()` from `sonner`. |
 
 ## App components (`components/`)
 
 | Component | File | Purpose / props |
 | --------- | ---- | --------------- |
-| _(none yet)_ | | |
+| `SignInForm` | `sign-in-form.tsx` | Client. Email/password sign-in via `authClient`, logo header, toast on error, redirects to `/dashboard`. No props. |
+| `SignOutButton` | `sign-out-button.tsx` | Client. Ghost button; `signOut()` then redirect to `/sign-in`. No props. |

@@ -215,16 +215,21 @@ organization/salón of every resource they touch. Never trust client validation.
 ```text
 app/                 routes — pages (UI) and route handlers (api/*)
   api/auth/[...all]/  Better Auth catch-all handler
+  sign-in/           public sign-in page
+  (app)/             auth-gated route group (layout calls requireSession)
 db/
   schema/            one file per concern (auth.ts generated, salon.ts, ...)
     index.ts         barrel — `import * as schema from "@/db/schema"`
     _shared.ts       shared column helpers (timestamps)
   migrations/        drizzle-kit SQL migrations (version controlled)
   index.ts           Drizzle client (neon-http)
+  seed.ts            first admin + empresa + salón bootstrap (pnpm db:seed)
 lib/
   env.ts             zod-validated environment access
   auth.ts            Better Auth server instance
   auth-client.ts     Better Auth browser client
+  session.ts         getSession / requireSession (server)
+  utils.ts           cn() class helper
 components/
   ui/                shadcn primitives
 docs/                see Documentation Maintenance Rule

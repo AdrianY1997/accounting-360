@@ -25,7 +25,9 @@ session, organization, teams, invitations, members).
 
 - **Email/password**, public **sign-up disabled** — accounts come from
   organization invitations.
-- Server: import `auth` from `@/lib/auth` (e.g. `auth.api.getSession(...)`).
+- Server: use `getSession()` / `requireSession()` from `@/lib/session` in
+  Server Components and route handlers (`requireSession` redirects to `/sign-in`).
+  Lower-level access via `auth` from `@/lib/auth`.
 - Browser: import `authClient` (or `signIn`, `signOut`, `useSession`) from
   `@/lib/auth-client`. Organization/team operations use the `organizationClient`
   plugin already wired in.
