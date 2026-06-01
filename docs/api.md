@@ -57,8 +57,25 @@ context — the salón is never taken from the request body.
 | PUT    | `/api/clients/:id` | Update a client (404 if not in salón) |
 | DELETE | `/api/clients/:id` | Delete a client (404 if not in salón) |
 
+## Service catalog
+
+Categories — body `{ name }`. Services — body (zod, `lib/validations/catalog.ts`):
+`name` (required), `categoryId?` (null = none), `price` (number ≥ 0, coerced),
+`durationMinutes` (int ≥ 0, coerced), `active?`.
+
+| Method | Path                          | Description                |
+| ------ | ----------------------------- | -------------------------- |
+| GET    | `/api/service-categories`     | List categories (salón)    |
+| POST   | `/api/service-categories`     | Create category (201)      |
+| PUT    | `/api/service-categories/:id` | Update (404 if not in salón) |
+| DELETE | `/api/service-categories/:id` | Delete (404 if not in salón) |
+| GET    | `/api/services`               | List services (salón)      |
+| POST   | `/api/services`               | Create service (201)       |
+| PUT    | `/api/services/:id`           | Update (404 if not in salón) |
+| DELETE | `/api/services/:id`           | Delete (404 if not in salón) |
+
 ## Remaining domain endpoints
 
-Still to come in Phase 1: services catalog, sales, payments, cash sessions,
-expenses, commissions, reports. Document each here as it lands per the
-Documentation Maintenance Rule in [AGENTS.md](../AGENTS.md).
+Still to come in Phase 1: sales, payments, cash sessions, expenses,
+commissions, reports. Document each here as it lands per the Documentation
+Maintenance Rule in [AGENTS.md](../AGENTS.md).

@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Service catalog (in progress)
+
+- `service_category` + `service` tables (scoped by `organization_id` +
+  `salon_id`; `service.price` numeric(12,2), `duration_minutes` int, optional
+  `category_id` on delete set null) + migration `0002`.
+- `services/catalog.ts`: CRUD for categories and services, all scoped to the
+  caller's salón. `lib/validations/catalog.ts` (zod; price/duration coerced).
+- REST: `GET/POST /api/service-categories` + `/:id`, `GET/POST /api/services` +
+  `/:id`.
+- UI `/catalog`: services table (price formatted by salón currency, category
+  badge) + categories list, create/edit dialogs, generic delete. Header nav
+  link (Servicios).
+- `ResourceDeleteButton` (generic delete confirm) + shadcn `select`.
+
 ## Phase 1 — Clients (in progress)
 
 - Tenant context helper `lib/tenant.ts` (`requireSalonContext`): resolves the

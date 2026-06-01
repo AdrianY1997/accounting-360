@@ -41,6 +41,7 @@ installed.
 | `DropdownMenu` | `ui/dropdown-menu.tsx` | `DropdownMenu*` parts (trigger/content/item/...). |
 | `Textarea` | `ui/textarea.tsx` | Multiline input. Standard `<textarea>` props. |
 | `Badge` | `ui/badge.tsx` | Status pill. `variant` (default/secondary/destructive/outline), `asChild`. |
+| `Select` | `ui/select.tsx` | `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`. Controlled via `value`/`onValueChange`. |
 
 ## App components (`components/`)
 
@@ -52,3 +53,6 @@ installed.
 | `ThemeToggle` | `theme-toggle.tsx` | Client. Ghost icon button toggling light/dark via `next-themes` (sun/moon, hydration-safe). No props. In app header + sign-in page. |
 | `ClientFormDialog` | `clients/client-form-dialog.tsx` | Client. Create/edit client dialog; `client?` (edit when set) + `trigger` node. POST/PUT `/api/clients`, toast + `router.refresh()`. |
 | `DeleteClientButton` | `clients/delete-client-button.tsx` | Client. Trash icon → AlertDialog confirm → DELETE `/api/clients/:id`. Props `id`, `name`. |
+| `ResourceDeleteButton` | `resource-delete-button.tsx` | Generic delete confirm. Props `endpoint`, `name`, `successMessage?`. DELETE + toast + refresh. Prefer this for new resources. |
+| `CategoryFormDialog` | `catalog/category-form-dialog.tsx` | Client. Create/edit service category. Props `category?`, `trigger`. POST/PUT `/api/service-categories`. |
+| `ServiceFormDialog` | `catalog/service-form-dialog.tsx` | Client. Create/edit service (name, category Select, price, duration). Props `service?`, `categories`, `trigger`. POST/PUT `/api/services`. |

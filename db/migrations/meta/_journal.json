@@ -15,6 +15,13 @@
       "when": 1780347831953,
       "tag": "0001_bouncy_stephen_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780348383875,
+      "tag": "0002_fine_centennial",
+      "breakpoints": true
     }
   ]
 }

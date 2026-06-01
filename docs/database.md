@@ -64,6 +64,34 @@ Salon customers. Scoped by `organization_id` + `salon_id` (`team`).
 | `created_at`      | timestamp                  | from `timestamps`           |
 | `updated_at`      | timestamp                  | auto-updates                |
 
+### `service_category`
+
+Service categories. Scoped by `organization_id` + `salon_id` (`team`).
+
+| Column            | Type                     | Notes             |
+| ----------------- | ------------------------ | ----------------- |
+| `id`              | text (uuid)              | PK                |
+| `organization_id` | text → `organization.id` | cascade           |
+| `salon_id`        | text → `team.id`         | cascade; indexed  |
+| `name`            | text, not null           |                   |
+| `created_at` / `updated_at` | timestamp      | from `timestamps` |
+
+### `service`
+
+Salon services. Scoped by `organization_id` + `salon_id`.
+
+| Column             | Type                          | Notes                       |
+| ------------------ | ----------------------------- | --------------------------- |
+| `id`               | text (uuid)                   | PK                          |
+| `organization_id`  | text → `organization.id`      | cascade                     |
+| `salon_id`         | text → `team.id`              | cascade; indexed            |
+| `category_id`      | text → `service_category.id`  | nullable; on delete set null; indexed |
+| `name`             | text, not null                |                             |
+| `price`            | numeric(12,2), default `0`    | salón currency (money, not float) |
+| `duration_minutes` | integer, default `0`          |                             |
+| `active`           | boolean, default `true`       |                             |
+| `created_at` / `updated_at` | timestamp            | from `timestamps`           |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

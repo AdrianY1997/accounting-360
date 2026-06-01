@@ -52,8 +52,8 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Service catalog
 
-- [ ] API — service categories + services (price, duration)
-- [ ] UI — manage categories and services
+- [x] API — service categories + services (price, duration), scoped by salón
+- [x] UI — manage categories and services (`/catalog`)
 
 ### Sales / Tickets
 
