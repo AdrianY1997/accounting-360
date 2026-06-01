@@ -47,6 +47,23 @@ Per-salón accounting configuration. One row per `team`.
 | `created_at`  | timestamp                 | from `timestamps` helper               |
 | `updated_at`  | timestamp                 | auto-updates on write                  |
 
+### `client`
+
+Salon customers. Scoped by `organization_id` + `salon_id` (`team`).
+
+| Column            | Type                       | Notes                       |
+| ----------------- | -------------------------- | --------------------------- |
+| `id`              | text (uuid)                | PK                          |
+| `organization_id` | text → `organization.id`   | cascade; indexed            |
+| `salon_id`        | text → `team.id`           | cascade; indexed            |
+| `full_name`       | text, not null             |                             |
+| `phone`           | text, nullable             |                             |
+| `email`           | text, nullable             |                             |
+| `notes`           | text, nullable             |                             |
+| `active`          | boolean, default `true`    |                             |
+| `created_at`      | timestamp                  | from `timestamps`           |
+| `updated_at`      | timestamp                  | auto-updates                |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

@@ -47,8 +47,8 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Clients
 
-- [ ] API — CRUD, scoped by salón
-- [ ] UI — list, create, edit, delete
+- [x] API — CRUD, scoped by salón (`/api/clients`, `/api/clients/:id`)
+- [x] UI — list, create, edit, delete (`/clients`)
 
 ### Service catalog
 

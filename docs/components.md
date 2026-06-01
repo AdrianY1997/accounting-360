@@ -35,6 +35,12 @@ installed.
 | `Label` | `ui/label.tsx` | Form label (radix). `htmlFor`. |
 | `Card` | `ui/card.tsx` | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `CardAction`. |
 | `Toaster` | `ui/sonner.tsx` | Sonner toast host. Mounted once in root layout; fire with `toast()` from `sonner`. |
+| `Table` | `ui/table.tsx` | `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`, `TableFooter`. |
+| `Dialog` | `ui/dialog.tsx` | `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`. Controlled via `open`/`onOpenChange`. |
+| `AlertDialog` | `ui/alert-dialog.tsx` | Confirm dialogs: `AlertDialog*` parts incl. `AlertDialogAction`, `AlertDialogCancel`. |
+| `DropdownMenu` | `ui/dropdown-menu.tsx` | `DropdownMenu*` parts (trigger/content/item/...). |
+| `Textarea` | `ui/textarea.tsx` | Multiline input. Standard `<textarea>` props. |
+| `Badge` | `ui/badge.tsx` | Status pill. `variant` (default/secondary/destructive/outline), `asChild`. |
 
 ## App components (`components/`)
 
@@ -44,3 +50,5 @@ installed.
 | `SignOutButton` | `sign-out-button.tsx` | Client. Ghost button; `signOut()` then redirect to `/sign-in`. No props. |
 | `ThemeProvider` | `theme-provider.tsx` | Client. Wraps `next-themes` provider; mounted in root layout (`attribute="class"`, system default). |
 | `ThemeToggle` | `theme-toggle.tsx` | Client. Ghost icon button toggling light/dark via `next-themes` (sun/moon, hydration-safe). No props. In app header + sign-in page. |
+| `ClientFormDialog` | `clients/client-form-dialog.tsx` | Client. Create/edit client dialog; `client?` (edit when set) + `trigger` node. POST/PUT `/api/clients`, toast + `router.refresh()`. |
+| `DeleteClientButton` | `clients/delete-client-button.tsx` | Client. Trash icon → AlertDialog confirm → DELETE `/api/clients/:id`. Props `id`, `name`. |

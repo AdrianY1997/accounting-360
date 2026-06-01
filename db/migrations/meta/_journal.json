@@ -8,6 +8,13 @@
       "when": 1780345909516,
       "tag": "0000_green_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780347831953,
+      "tag": "0001_bouncy_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

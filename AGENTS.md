@@ -229,9 +229,13 @@ lib/
   auth.ts            Better Auth server instance
   auth-client.ts     Better Auth browser client
   session.ts         getSession / requireSession (server)
+  tenant.ts          requireSalonContext (active org + salón + role)
   utils.ts           cn() class helper
+  validations/       zod input schemas (one file per resource)
+services/            business logic per resource (consumed by route handlers)
 components/
   ui/                shadcn primitives
+  <feature>/         feature components (e.g. clients/)
 docs/                see Documentation Maintenance Rule
 ```
 

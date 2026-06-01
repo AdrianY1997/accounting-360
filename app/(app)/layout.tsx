@@ -32,6 +32,20 @@ export default async function AppLayout({
             className="size-8 w-auto hidden dark:block"
           />
         </Link>
+        <nav className="ml-6 mr-auto flex items-center gap-4 text-sm">
+          <Link
+            href="/dashboard"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Panel
+          </Link>
+          <Link
+            href="/clients"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Clientes
+          </Link>
+        </nav>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{session.user.name}</span>
           <ThemeToggle />

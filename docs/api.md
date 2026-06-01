@@ -39,9 +39,26 @@ session, organization, teams, invitations, members).
 - Invite staff → `organization.inviteMember` (optionally with `teamId`).
 - Active context → `session.activeOrganizationId` / `session.activeTeamId`.
 
-## Domain endpoints
+## Tenant scope
 
-None yet — Phase 1 introduces clients, services, sales, payments, cash sessions,
-expenses, commissions, and reports. Document each here as it lands (path,
-method, auth/role required, request/response shape) per the Documentation
-Maintenance Rule in [AGENTS.md](../AGENTS.md).
+Domain route handlers call `requireSalonContext()` from `@/lib/tenant` to get
+`{ userId, organizationId, salonId, role }`. Services filter every query by that
+context — the salón is never taken from the request body.
+
+## Clients
+
+`client` body (zod, `lib/validations/client.ts`): `fullName` (required), `phone?`,
+`email?`, `notes?`, `active?`.
+
+| Method | Path               | Description                  |
+| ------ | ------------------ | ---------------------------- |
+| GET    | `/api/clients`     | List clients for the salón   |
+| POST   | `/api/clients`     | Create a client (201)        |
+| PUT    | `/api/clients/:id` | Update a client (404 if not in salón) |
+| DELETE | `/api/clients/:id` | Delete a client (404 if not in salón) |
+
+## Remaining domain endpoints
+
+Still to come in Phase 1: services catalog, sales, payments, cash sessions,
+expenses, commissions, reports. Document each here as it lands per the
+Documentation Maintenance Rule in [AGENTS.md](../AGENTS.md).

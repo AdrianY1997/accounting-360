@@ -2,7 +2,21 @@
 
 All relevant project changes are recorded here (most recent first).
 
-## Phase 1 — Auth foundation (in progress)
+## Phase 1 — Clients (in progress)
+
+- Tenant context helper `lib/tenant.ts` (`requireSalonContext`): resolves the
+  acting user's active organization + salón + role (Better Auth active org/team,
+  falling back to first membership / first assigned salón).
+- `client` table (scoped by `organization_id` + `salon_id`) + migration `0001`.
+- `services/clients.ts`: list/create/update/delete, all scoped to the caller's
+  salón (never trusts a salonId from the body). `lib/validations/client.ts` (zod).
+- REST: `GET/POST /api/clients`, `PUT/DELETE /api/clients/:id`.
+- UI `/clients`: table, create/edit dialog (`ClientFormDialog`), delete
+  confirmation (`DeleteClientButton`). Header nav links (Panel, Clientes).
+- shadcn primitives added: table, dialog, dropdown-menu, textarea, alert-dialog,
+  badge.
+
+## Phase 1 — Auth foundation
 
 - Light/dark theme: `next-themes` `ThemeProvider` in the root layout +
   `ThemeToggle` (sun/moon) in the app header and sign-in page. Logos swap by

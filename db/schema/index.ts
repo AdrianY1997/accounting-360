@@ -2,3 +2,4 @@
 // `import * as schema from "@/db/schema"` stays the single source.
 export * from "./auth";
 export * from "./salon";
+export * from "./client";
