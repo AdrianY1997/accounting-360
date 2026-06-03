@@ -2,6 +2,13 @@
 
 export type Range = { from: Date; to: Date };
 
+/** Single day [start, end]. */
+export function dayRange(now = new Date()): Range {
+  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  return { from, to };
+}
+
 /** Current calendar month [start, end]. */
 export function monthRange(now = new Date()): Range {
   const from = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
