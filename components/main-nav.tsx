@@ -1,0 +1,73 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+type NavLink = { href: string; label: string; admin?: boolean };
+
+const LINKS: NavLink[] = [
+  { href: "/dashboard", label: "Panel" },
+  { href: "/clients", label: "Clientes" },
+  { href: "/catalog", label: "Servicios" },
+  { href: "/sales", label: "Ventas" },
+  { href: "/cash", label: "Caja" },
+  { href: "/expenses", label: "Gastos" },
+  { href: "/commissions", label: "Comisiones" },
+  { href: "/reports", label: "Reportes" },
+  { href: "/staff", label: "Personal", admin: true },
+  { href: "/settings", label: "Configuración", admin: true },
+];
+
+export function MainNav({ admin }: { admin: boolean }) {
+  const pathname = usePathname();
+  const links = LINKS.filter((l) => !l.admin || admin);
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
+
+  return (
+    <>
+      {/* Desktop */}
+      <nav className="ml-6 mr-auto hidden items-center gap-4 text-sm lg:flex">
+        {links.map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className={cn(
+              "hover:text-foreground transition-colors",
+              isActive(l.href) ? "text-foreground font-medium" : "text-muted-foreground",
+            )}
+          >
+            {l.label}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Mobile */}
+      <div className="mr-auto ml-2 lg:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Menú">
+              <Menu className="size-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {links.map((l) => (
+              <DropdownMenuItem key={l.href} asChild>
+                <Link href={l.href}>{l.label}</Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </>
+  );
+}

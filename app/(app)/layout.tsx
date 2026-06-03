@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MainNav } from "@/components/main-nav";
 import { SalonSwitcher } from "@/components/salon-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -39,72 +40,7 @@ export default async function AppLayout({
             className="size-8 w-auto hidden dark:block"
           />
         </Link>
-        <nav className="ml-6 mr-auto flex items-center gap-4 text-sm">
-          <Link
-            href="/dashboard"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Panel
-          </Link>
-          <Link
-            href="/clients"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Clientes
-          </Link>
-          <Link
-            href="/catalog"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Servicios
-          </Link>
-          <Link
-            href="/sales"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Ventas
-          </Link>
-          <Link
-            href="/cash"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Caja
-          </Link>
-          <Link
-            href="/expenses"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Gastos
-          </Link>
-          <Link
-            href="/commissions"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Comisiones
-          </Link>
-          <Link
-            href="/reports"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Reportes
-          </Link>
-          {admin && (
-            <>
-              <Link
-                href="/staff"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Personal
-              </Link>
-              <Link
-                href="/settings"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Configuración
-              </Link>
-            </>
-          )}
-        </nav>
+        <MainNav admin={admin} />
         <div className="flex items-center gap-3 text-sm">
           <SalonSwitcher salons={salons} activeId={ctx.salonId} />
           <span className="text-muted-foreground">{session.user.name}</span>
