@@ -2,6 +2,23 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Cash sessions / caja (in progress)
+
+- `cash_session` + `cash_movement` tables (scoped by `organization_id` +
+  `salon_id`). Session: opening balance, openedBy/At, status open/closed, and at
+  close a snapshot of expected/counted/difference. Movement: in/out, amount,
+  description. Migration `0005`.
+- `services/cash.ts`: `openSession` (one open per salón), `getOpenSession`,
+  `addMovement`/`deleteMovement` (open sessions only), `closeSession`,
+  `listSessions`, `getSession`, and `sessionSummary` — expected cash = opening +
+  cash payments in the session window + cash-in − cash-out. `lib/validations/
+  cash.ts` (zod).
+- REST: `GET/POST /api/cash-sessions`, `POST /api/cash-sessions/:id/close`,
+  `POST /api/cash-sessions/:id/movements`, `DELETE /api/cash-movements/:id`.
+- UI `/cash`: open form, live breakdown of the open session, movements table
+  (add/remove), close dialog with live difference, closed-session history.
+  `/cash/:id` shows a closed session summary. Header nav (Caja).
+
 ## Phase 1 — Payments (in progress)
 
 - `payment` table (scoped by `organization_id` + `salon_id`, FK `sale_id`):

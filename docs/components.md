@@ -58,3 +58,6 @@ installed.
 | `ServiceFormDialog` | `catalog/service-form-dialog.tsx` | Client. Create/edit service (name, category Select, price, duration). Props `service?`, `categories`, `trigger`. POST/PUT `/api/services`. |
 | `SaleForm` | `sales/sale-form.tsx` | Client. New-sale form: dynamic line items (service autofill, price, qty, per-item staff), client Select, live subtotal/tax/total, optional payment (method + amount, "pagar total", 0 = pending). Props `clients`, `services`, `staff`, `taxRate`, `currency`. POST `/api/sales` → redirect to detail. |
 | `PaymentDialog` | `sales/payment-dialog.tsx` | Client. Add a payment to a sale (method Select + amount, prefilled with balance). Props `saleId`, `defaultAmount`. POST `/api/sales/:id/payments`. |
+| `OpenSessionForm` | `cash/open-session-form.tsx` | Client. Opens a cash session (opening balance). No props. POST `/api/cash-sessions`. |
+| `MovementDialog` | `cash/movement-dialog.tsx` | Client. Add cash in/out movement (type, amount, description). Prop `sessionId`. POST `/api/cash-sessions/:id/movements`. |
+| `CloseSessionDialog` | `cash/close-session-dialog.tsx` | Client. Close caja: counted amount (prefilled expected) + notes, live difference. Props `sessionId`, `expected`, `currency`. POST `/api/cash-sessions/:id/close`. |

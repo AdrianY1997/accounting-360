@@ -101,8 +101,23 @@ via the `payment` field.
 | POST   | `/api/sales/:id/payments`  | Add a payment (404 if sale void/missing) |
 | DELETE | `/api/payments/:id`        | Delete a payment                     |
 
+## Cash sessions (caja)
+
+One open session per salón. Expected cash = opening balance + cash payments in
+the session window + cash-in − cash-out movements; the close stores expected,
+counted, and difference. Bodies (zod, `lib/validations/cash.ts`): open
+`{ openingBalance }`, close `{ countedAmount, notes? }`, movement
+`{ type: in|out, amount, description }`.
+
+| Method | Path                              | Description                       |
+| ------ | --------------------------------- | --------------------------------- |
+| GET    | `/api/cash-sessions`              | List sessions (salón)             |
+| POST   | `/api/cash-sessions`              | Open a session (409 if one open)  |
+| POST   | `/api/cash-sessions/:id/close`    | Close (404 if missing/closed)     |
+| POST   | `/api/cash-sessions/:id/movements`| Add cash movement (404 if closed) |
+| DELETE | `/api/cash-movements/:id`         | Remove movement (open session)    |
+
 ## Remaining domain endpoints
 
-Still to come in Phase 1: cash sessions, expenses, commissions, reports.
-Document each here as it lands per the Documentation Maintenance Rule in
-[AGENTS.md](../AGENTS.md).
+Still to come in Phase 1: expenses, commissions, reports. Document each here as
+it lands per the Documentation Maintenance Rule in [AGENTS.md](../AGENTS.md).

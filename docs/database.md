@@ -141,6 +141,44 @@ Payments against a sale (split / partial allowed). Scoped by `organization_id` +
 | `paid_at`         | timestamp, default now   |                                |
 | `created_at` / `updated_at` | timestamp      | from `timestamps`              |
 
+### `cash_session`
+
+Cash register sessions (caja). At most one `open` per salón. Scoped by org +
+salón. Expected/counted/difference are snapshotted at close.
+
+| Column            | Type                     | Notes                          |
+| ----------------- | ------------------------ | ------------------------------ |
+| `id`              | text (uuid)              | PK                             |
+| `organization_id` | text → `organization.id` | cascade                        |
+| `salon_id`        | text → `team.id`         | cascade; indexed with status   |
+| `status`          | text, default `open`     | `open` \| `closed`             |
+| `opening_balance` | numeric(12,2)            |                                |
+| `opened_by`       | text → `user.id`         | set null                       |
+| `opened_at`       | timestamp, default now   |                                |
+| `closed_by`       | text → `user.id`         | nullable; set null             |
+| `closed_at`       | timestamp, nullable      |                                |
+| `expected_amount` | numeric(12,2), nullable  | snapshot at close              |
+| `counted_amount`  | numeric(12,2), nullable  |                                |
+| `difference`      | numeric(12,2), nullable  | counted − expected             |
+| `notes`           | text, nullable           |                                |
+| `created_at` / `updated_at` | timestamp      | from `timestamps`              |
+
+### `cash_movement`
+
+Manual cash in/out within a session.
+
+| Column            | Type                     | Notes                          |
+| ----------------- | ------------------------ | ------------------------------ |
+| `id`              | text (uuid)              | PK                             |
+| `session_id`      | text → `cash_session.id` | cascade; indexed               |
+| `organization_id` | text → `organization.id` | cascade                        |
+| `salon_id`        | text → `team.id`         | cascade                        |
+| `type`            | text                     | `in` \| `out`                  |
+| `amount`          | numeric(12,2)            |                                |
+| `description`     | text, not null           |                                |
+| `created_by`      | text → `user.id`         | nullable; set null             |
+| `created_at` / `updated_at` | timestamp      | from `timestamps`              |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

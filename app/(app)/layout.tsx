@@ -57,6 +57,12 @@ export default async function AppLayout({
           >
             Ventas
           </Link>
+          <Link
+            href="/cash"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Caja
+          </Link>
         </nav>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{session.user.name}</span>

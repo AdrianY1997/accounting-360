@@ -72,8 +72,10 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Cash sessions (caja)
 
-- [ ] API — open/close session, record movements, expected vs counted
-- [ ] UI — open/close caja, daily movements
+- [x] API — open/close session, cash movements (in/out), expected (opening +
+  cash payments in window + movements) vs counted, difference
+- [x] UI — `/cash`: open form, current session breakdown, movements (add/remove),
+  close dialog (live difference), history; `/cash/:id` closed session summary
 
 ### Expenses
 
