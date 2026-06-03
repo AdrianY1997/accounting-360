@@ -30,7 +30,12 @@ async function seed() {
     where: eq(user.email, email),
   });
   if (existing) {
-    console.log(`Admin ${email} already exists — nothing to do.`);
+    // Ensure the bootstrap admin is a platform super admin.
+    await db
+      .update(user)
+      .set({ platformAdmin: true })
+      .where(eq(user.id, existing.id));
+    console.log(`Admin ${email} already exists — ensured platformAdmin.`);
     return;
   }
 
@@ -41,6 +46,7 @@ async function seed() {
     email,
     name,
     emailVerified: true,
+    platformAdmin: true,
   });
   await ctx.internalAdapter.createAccount({
     userId: created.id,

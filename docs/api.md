@@ -151,6 +151,17 @@ fixed per unit.
 | DELETE | `/api/commission-rules/:id` | Delete (404 if not in salón)         |
 | GET    | `/api/commissions`          | Earnings by staff; `?from=&to=` (YYYY-MM-DD), defaults to current month |
 
+## Platform (super admin)
+
+Gated by `user.platformAdmin` (platform-level, above all organizations). Lets the
+platform owner onboard client companies. Body: `{ companyName, salonName?,
+ownerName, ownerEmail, ownerPassword }`.
+
+| Method | Path                      | Description                              |
+| ------ | ------------------------- | ---------------------------------------- |
+| GET    | `/api/platform/companies` | List all organizations (counts)          |
+| POST   | `/api/platform/companies` | Create company + owner + first salón (201; 409 if email exists) |
+
 ## Roles & access
 
 Roles (`lib/roles.ts`): `owner`, `admin`, `manager`, `cashier`, `staff`.

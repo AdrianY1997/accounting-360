@@ -18,6 +18,17 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, { provider: "pg" }),
+  user: {
+    additionalFields: {
+      // Platform-level super admin (above all organizations). Set server-side
+      // only (seed / by another platform admin); never accepted from input.
+      platformAdmin: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     disableSignUp: true,

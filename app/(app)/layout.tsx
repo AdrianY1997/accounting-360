@@ -17,6 +17,9 @@ export default async function AppLayout({
   const session = await requireSession();
   const ctx = await requireSalonContext();
   const admin = isAdmin(ctx.role);
+  const platformAdmin = Boolean(
+    (session.user as { platformAdmin?: boolean }).platformAdmin,
+  );
   const salons = await listSalons(ctx);
 
   return (
@@ -40,7 +43,7 @@ export default async function AppLayout({
             className="size-8 w-auto hidden dark:block"
           />
         </Link>
-        <MainNav admin={admin} />
+        <MainNav admin={admin} platformAdmin={platformAdmin} />
         <div className="flex items-center gap-3 text-sm">
           <SalonSwitcher salons={salons} activeId={ctx.salonId} />
           <span className="text-muted-foreground">{session.user.name}</span>

@@ -12,7 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-type NavLink = { href: string; label: string; admin?: boolean };
+type NavLink = {
+  href: string;
+  label: string;
+  admin?: boolean;
+  platform?: boolean;
+};
 
 const LINKS: NavLink[] = [
   { href: "/dashboard", label: "Panel" },
@@ -25,11 +30,20 @@ const LINKS: NavLink[] = [
   { href: "/reports", label: "Reportes" },
   { href: "/staff", label: "Personal", admin: true },
   { href: "/settings", label: "Configuración", admin: true },
+  { href: "/platform", label: "Plataforma", platform: true },
 ];
 
-export function MainNav({ admin }: { admin: boolean }) {
+export function MainNav({
+  admin,
+  platformAdmin,
+}: {
+  admin: boolean;
+  platformAdmin: boolean;
+}) {
   const pathname = usePathname();
-  const links = LINKS.filter((l) => !l.admin || admin);
+  const links = LINKS.filter(
+    (l) => (!l.admin || admin) && (!l.platform || platformAdmin),
+  );
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
 

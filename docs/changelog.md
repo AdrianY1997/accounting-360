@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Platform — multi-company onboarding
+
+- `user.platform_admin` boolean (Better Auth additional field; migration `0008`).
+  Set server-side only; the seed marks the bootstrap admin as platform admin.
+- `services/platform.ts`: `getPlatformSession` (gate), `listAllOrganizations`
+  (cross-org, with salón/member counts), `createCompany` (organization + owner
+  user + owner membership + first salón + settings; unique slug). Admin onboards
+  new client companies — public sign-up stays disabled.
+- REST: `GET/POST /api/platform/companies` (platform-admin only). UI `/platform`:
+  companies table + `CreateCompanyDialog`. Nav link shown only to platform admins.
+- The data model was already multi-tenant (organization = empresa, fully scoped);
+  this adds the platform-level capability to provision companies. Company
+  switching for multi-org logins remains a later enhancement.
+
 ## Phase 1 — UX polish (demo-ready)
 
 - **Dashboard**: real KPIs (today/month sales, month profit, outstanding
