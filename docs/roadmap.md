@@ -119,7 +119,9 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 - [x] `user.platform_admin` + `/platform` onboarding (org + owner + first salón)
 - [x] Organization switcher (multi-org login); active org/salón via cookies
-- [ ] Org impersonation by platform admin (enter a client org to support)
+- [x] Org impersonation by platform admin — "Entrar" from `/platform` sets the
+  active org cookie; `requireSalonContext` lets a platform admin operate any org
+  as `admin` (banner + Salir to exit)
 - [ ] Billing / plans / per-company limits
 
 ### Permissions & correctness (complete)

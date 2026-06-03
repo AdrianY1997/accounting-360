@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { CreateCompanyDialog } from "@/components/platform/create-company-dialog";
+import { EnterCompanyButton } from "@/components/platform/enter-company-button";
 import { EmptyState } from "@/components/empty-state";
 import {
   Table,
@@ -43,6 +44,7 @@ export default async function PlatformPage() {
                 <TableHead className="text-right">Salones</TableHead>
                 <TableHead className="text-right">Miembros</TableHead>
                 <TableHead>Creada</TableHead>
+                <TableHead className="w-24 text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -54,6 +56,9 @@ export default async function PlatformPage() {
                     {Number(o.members)}
                   </TableCell>
                   <TableCell>{dateFmt.format(new Date(o.createdAt))}</TableCell>
+                  <TableCell className="text-right">
+                    <EnterCompanyButton organizationId={o.id} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

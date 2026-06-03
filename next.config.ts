@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   // Don't serve dynamic pages from the client Router Cache: a mutation in one
   // module must be reflected when navigating to another (no manual reload).
   experimental: {
-    staleTimes: { dynamic: 0, static: 0 },
+    staleTimes: { dynamic: 30, static: 30 },
   },
 };
 

@@ -75,6 +75,8 @@ installed.
 | `MainNav` | `main-nav.tsx` | Client. App header navigation: inline links on desktop, hamburger dropdown on mobile, active highlight. Prop `admin` (shows Personal/Configuración). |
 | `EmptyState` | `empty-state.tsx` | Empty-list block. Props `title`, `description?`, `action?` (CTA node). |
 | `CreateCompanyDialog` | `platform/create-company-dialog.tsx` | Client (platform admin). Onboards a company (company, salón, owner name/email/password). POST `/api/platform/companies`. |
+| `EnterCompanyButton` | `platform/enter-company-button.tsx` | Client (platform admin). Impersonate a company. Prop `organizationId`. POST `/api/active-org` → `/dashboard`. |
+| `ImpersonationBanner` | `impersonation-banner.tsx` | Client. Banner shown while impersonating; Salir → DELETE `/api/active-org` → `/platform`. |
 | `SettingsForm` | `settings/settings-form.tsx` | Client. Edit salón settings (currency, tax %, timezone, address, phone). Prop `settings?`. PUT `/api/salon-settings`. |
 | `CreateSalonDialog` | `settings/create-salon-dialog.tsx` | Client. Admin creates a salón (name). POST `/api/salons`. |
 | `StaffFormDialog` | `staff/staff-form-dialog.tsx` | Client. Admin creates staff (name, email, password, role). POST `/api/staff`. |

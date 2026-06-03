@@ -208,7 +208,8 @@ sign-up stays disabled); the new user is assigned the current salón.
 | GET    | `/api/salons`       | Salones the user is assigned to           |
 | POST   | `/api/salons`       | Create salón (admin)                       |
 | POST   | `/api/active-salon` | Set active salón (`activeSalonId` cookie); body `{ salonId }`, must be assigned |
-| POST   | `/api/active-org`   | Set active empresa (`activeOrgId` cookie; clears active salón); body `{ organizationId }`, must be a member |
+| POST   | `/api/active-org`   | Set active empresa (`activeOrgId` cookie; clears active salón); body `{ organizationId }`. Must be a member, **or** a platform admin entering any org (impersonation) |
+| DELETE | `/api/active-org`   | Clear active org/salón cookies (exit impersonation) |
 
 ## Salón settings
 

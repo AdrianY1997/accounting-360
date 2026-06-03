@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { MainNav } from "@/components/main-nav";
 import { OrgSwitcher } from "@/components/org-switcher";
 import { SalonSwitcher } from "@/components/salon-switcher";
@@ -29,6 +30,7 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-svh flex-col">
+      {ctx.impersonating && <ImpersonationBanner />}
       <header className="flex items-center justify-between border-b px-4 py-3">
         <Link href="/dashboard" className="flex items-center">
           <Image

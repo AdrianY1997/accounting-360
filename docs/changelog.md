@@ -2,6 +2,17 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Platform — org impersonation
+
+- Platform admins can **enter a client company** from `/platform`
+  (`EnterCompanyButton` → `POST /api/active-org`, now allowing platform admins to
+  set any existing org, not only their memberships). `requireSalonContext`
+  resolves an impersonated org (role `admin`, salones from the org directly) and
+  returns `impersonating: true`.
+- `ImpersonationBanner` shows while operating a client company, with **Salir**
+  (`DELETE /api/active-org` clears the org/salón cookies). `SalonContext` gains
+  an `impersonating` flag.
+
 ## Phase 1 — Daily close view
 
 - `/reports/daily`: dedicated cierre diario — day picker (`DayFilter`), stat
