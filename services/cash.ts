@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { cashMovement, cashSession, expense, payment } from "@/db/schema";
+import { cashMovement, cashSession, expense, payment, sale } from "@/db/schema";
 import { centsToString, toCents } from "@/lib/money";
 import type { SalonContext } from "@/lib/tenant";
 import type {
@@ -21,15 +21,17 @@ export async function getOpenSession(ctx: SalonContext) {
   });
 }
 
-/** Sum of cash payments (cents) in a time window for the salón. */
+/** Sum of cash payments (cents) in a time window, excluding voided sales. */
 async function cashPaymentsCents(ctx: SalonContext, from: Date, to: Date) {
   const [row] = await db
     .select({ sum: sql<string>`coalesce(sum(${payment.amount}), 0)` })
     .from(payment)
+    .innerJoin(sale, eq(sale.id, payment.saleId))
     .where(
       and(
         eq(payment.salonId, ctx.salonId),
         eq(payment.method, "cash"),
+        ne(sale.status, "void"),
         gte(payment.paidAt, from),
         lte(payment.paidAt, to),
       ),

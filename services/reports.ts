@@ -78,8 +78,13 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
         total: sql<string>`coalesce(sum(${payment.amount}), 0)`,
       })
       .from(payment)
+      .innerJoin(sale, eq(sale.id, payment.saleId))
       .where(
-        and(eq(payment.salonId, ctx.salonId), between(payment.paidAt, from, to)),
+        and(
+          eq(payment.salonId, ctx.salonId),
+          ne(sale.status, "void"),
+          between(payment.paidAt, from, to),
+        ),
       )
       .groupBy(payment.method),
     computeCommissions(ctx, from, to),

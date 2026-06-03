@@ -2,6 +2,15 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Money-flow correctness fix
+
+- Payments belonging to **voided sales** are now excluded everywhere money is
+  totalled: the cash session's expected amount (`cashPaymentsCents`) and the
+  reports "collected by method" (`byMethod`) both inner-join `sale` and filter
+  `status != void`. Previously a voided sale's payments still inflated caja and
+  collected totals, while income/commissions already excluded them — now all
+  money views are consistent.
+
 ## Phase 1 — MVP module connections
 
 - **Salón settings**: `services/settings.ts` + `GET/PUT /api/salon-settings` +
