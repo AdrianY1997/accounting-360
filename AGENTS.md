@@ -116,8 +116,10 @@ salon, one user, or one currency. Every accounting record is scoped by
 ## Authentication
 
 - **Better Auth** with the `organization` plugin (teams enabled).
-- Email/password, **public sign-up disabled** — accounts are provisioned via
-  organization invitations.
+- Email/password, **public sign-up disabled** — accounts are **admin-provisioned**
+  (no self sign-up / invitation emails). Org admins create staff at `/staff`; the
+  platform admin (`user.platform_admin`) onboards client companies at `/platform`.
+- Active org/salón persisted in `activeOrgId` / `activeSalonId` cookies.
 - See [docs/api.md](./docs/api.md#authentication).
 
 ## Validation
@@ -136,13 +138,14 @@ salon360 maps its domain onto Better Auth's organization primitives:
 | Salón (sede)          | `team`             | A team **is** a salón                  |
 | Staff (in empresa)    | `member`           | User + role within an organization     |
 | Staff assigned a salón| `team_member`      | Links a user to a specific salón       |
-| Invitation            | `invitation`       | How accounts are provisioned           |
+| Plataforma (SaaS)     | `user.platform_admin` | Super admin above all orgs; onboards companies |
 
-Per-salón accounting config (currency, tax rate, timezone, address) lives in
-`salon_settings` (one row per `team`). See [docs/database.md](./docs/database.md).
+Per-salón accounting config (currency, tax rate, timezone, address, logo) lives
+in `salon_settings` (one row per `team`). See [docs/database.md](./docs/database.md).
 
-**Roles** (organization roles, refined later via access control): `owner`,
-`admin`, `manager` (per salón), `cashier`, `staff` (stylist).
+**Roles** (`lib/roles.ts`): `owner`, `admin`, `manager` (per salón), `cashier`,
+`staff` (stylist). `isAdmin` (`owner`|`admin`) gates config / staff / destructive
+actions; finer per-role permissions are a Phase 2 item (`docs/notes.md`).
 
 ---
 

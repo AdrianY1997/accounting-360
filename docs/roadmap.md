@@ -108,10 +108,27 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 - [ ] Daily close (cierre diario) as a dedicated view — pending (current report
   works for a single day via the period filter)
 
+### Demo polish (complete)
+
+- [x] Dashboard with real KPIs (today/month sales, profit, receivables, caja, top services)
+- [x] Responsive nav (mobile menu), empty states + loading skeletons, inline form errors
+- [x] Search on clients/services/expenses; sales status + date filters
+- [x] Printable sale receipt (`/print/sales/:id`) + company logo/branding in settings
+
+## Platform — multi-company (SaaS)
+
+- [x] `user.platform_admin` + `/platform` onboarding (org + owner + first salón)
+- [x] Organization switcher (multi-org login); active org/salón via cookies
+- [ ] Org impersonation by platform admin (enter a client org to support)
+- [ ] Billing / plans / per-company limits
+
 ## Phase 2 — Multi-salón advanced
 
 - [ ] Consolidated chain reports across salones
-- [ ] Fine-grained permissions per salón (access control)
+- [ ] Fine-grained permissions per role/salón (current guard is `isAdmin` only;
+  see `docs/notes.md` — e.g. staff should not edit the catalog)
+- [ ] Live cross-module UI updates (avoid manual refresh)
+- [ ] Refunds / returns flow (reverse payments + caja)
 - [ ] Password recovery (admin-initiated and/or email)
 
 ## Phase 3 — Inventory / products

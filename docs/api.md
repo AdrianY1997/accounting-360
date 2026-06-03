@@ -23,21 +23,21 @@ app/api/auth/[...all]/route.ts  →  toNextJsHandler(auth)
 This exposes all Better Auth endpoints under `/api/auth/*` (sign-in, sign-out,
 session, organization, teams, invitations, members).
 
-- **Email/password**, public **sign-up disabled** — accounts come from
-  organization invitations.
+- **Email/password**, public **sign-up disabled** — accounts are
+  **admin-provisioned** through the app's own endpoints (not invitation emails).
 - Server: use `getSession()` / `requireSession()` from `@/lib/session` in
   Server Components and route handlers (`requireSession` redirects to `/sign-in`).
   Lower-level access via `auth` from `@/lib/auth`.
 - Browser: import `authClient` (or `signIn`, `signOut`, `useSession`) from
-  `@/lib/auth-client`. Organization/team operations use the `organizationClient`
-  plugin already wired in.
+  `@/lib/auth-client`.
 
-### Multi-tenant operations (via Better Auth)
+### Multi-tenant operations (app endpoints)
 
-- Create empresa → `authClient.organization.create(...)`.
-- Create salón → teams API (`organization.createTeam`, since teams are enabled).
-- Invite staff → `organization.inviteMember` (optionally with `teamId`).
-- Active context → `session.activeOrganizationId` / `session.activeTeamId`.
+- Onboard empresa → `POST /api/platform/companies` (platform admin).
+- Create salón → `POST /api/salons` (org admin).
+- Create staff → `POST /api/staff` (org admin; user + member + team assignment).
+- Active context → `POST /api/active-org` / `POST /api/active-salon` (cookies),
+  resolved by `requireSalonContext`.
 
 ## List filtering
 

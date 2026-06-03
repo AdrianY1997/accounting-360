@@ -44,6 +44,7 @@ Per-salón accounting configuration. One row per `team`.
 | `timezone`    | text, default `UTC`       | IANA timezone                          |
 | `address`     | text, nullable            |                                        |
 | `phone`       | text, nullable            |                                        |
+| `logo_url`    | text, nullable            | Shown on the printed receipt           |
 | `created_at`  | timestamp                 | from `timestamps` helper               |
 | `updated_at`  | timestamp                 | auto-updates on write                  |
 
@@ -245,8 +246,11 @@ pnpm db:push       # push schema without a migration (dev only)
 pnpm db:studio     # browse data
 ```
 
-Current migration: `db/migrations/0000_*.sql` — 10 tables (9 auth + tenancy,
-1 domain). **Applied** to Neon.
+Migrations `0000`–`0009` applied to Neon. Tables: auth + tenancy (`user` with
+`platform_admin`, `session`, `account`, `verification`, `organization`, `team`,
+`team_member`, `member`, `invitation`) plus domain (`salon_settings`, `client`,
+`service_category`, `service`, `sale`, `sale_item`, `payment`, `cash_session`,
+`cash_movement`, `expense_category`, `expense`, `commission_rule`).
 
 ## Seeding
 
