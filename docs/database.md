@@ -124,6 +124,23 @@ Sales (tickets). Scoped by `organization_id` + `salon_id`. Totals are stored
 | `quantity`    | integer, default `1`     |                                |
 | `line_total`  | numeric(12,2)            | `unit_price * quantity`        |
 
+### `payment`
+
+Payments against a sale (split / partial allowed). Scoped by `organization_id` +
+`salon_id`. Payment status is derived (not stored): sum of payments vs
+`sale.total`.
+
+| Column            | Type                     | Notes                          |
+| ----------------- | ------------------------ | ------------------------------ |
+| `id`              | text (uuid)              | PK                             |
+| `organization_id` | text → `organization.id` | cascade                        |
+| `salon_id`        | text → `team.id`         | cascade; indexed               |
+| `sale_id`         | text → `sale.id`         | cascade; indexed               |
+| `method`          | text, not null           | `cash`\|`card`\|`transfer`\|`other` |
+| `amount`          | numeric(12,2), not null  |                                |
+| `paid_at`         | timestamp, default now   |                                |
+| `created_at` / `updated_at` | timestamp      | from `timestamps`              |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

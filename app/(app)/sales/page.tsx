@@ -16,6 +16,22 @@ import {
 import { listSales } from "@/services/sales";
 import { requireSalonContext } from "@/lib/tenant";
 
+const statusLabel: Record<string, string> = {
+  pending: "Pendiente",
+  partial: "Parcial",
+  paid: "Pagada",
+  void: "Anulada",
+};
+const statusVariant: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  pending: "outline",
+  partial: "secondary",
+  paid: "default",
+  void: "destructive",
+};
+
 export default async function SalesPage() {
   const ctx = await requireSalonContext();
   const [sales, settings] = await Promise.all([
@@ -70,10 +86,8 @@ export default async function SalesPage() {
                   </TableCell>
                   <TableCell>{s.clientName ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={s.status === "void" ? "destructive" : "secondary"}
-                    >
-                      {s.status === "void" ? "Anulada" : "Completada"}
+                    <Badge variant={statusVariant[s.paymentStatus]}>
+                      {statusLabel[s.paymentStatus]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

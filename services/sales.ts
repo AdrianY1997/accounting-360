@@ -2,21 +2,20 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   client,
+  payment,
   sale,
   saleItem,
   salonSettings,
-  service,
   teamMember,
   user,
 } from "@/db/schema";
+import { centsToString as toMoney, toCents } from "@/lib/money";
+import { listPayments, paidCentsBySale, paymentStatus } from "@/services/payments";
 import type { SalonContext } from "@/lib/tenant";
 import type { SaleInput } from "@/lib/validations/sale";
 
 export type Sale = typeof sale.$inferSelect;
 export type SaleItem = typeof saleItem.$inferSelect;
-
-const toMoney = (cents: number) => (cents / 100).toFixed(2);
-const toCents = (n: number) => Math.round(n * 100);
 
 /** Staff (users) assigned to the caller's salón — for item attribution. */
 export async function listSalonStaff(ctx: SalonContext) {
@@ -28,20 +27,38 @@ export async function listSalonStaff(ctx: SalonContext) {
 }
 
 export async function listSales(ctx: SalonContext) {
-  return db
-    .select({
-      id: sale.id,
-      status: sale.status,
-      total: sale.total,
-      createdAt: sale.createdAt,
-      clientName: client.fullName,
-    })
-    .from(sale)
-    .leftJoin(client, eq(client.id, sale.clientId))
-    .where(
-      and(eq(sale.organizationId, ctx.organizationId), eq(sale.salonId, ctx.salonId)),
-    )
-    .orderBy(desc(sale.createdAt));
+  const [rows, paidMap] = await Promise.all([
+    db
+      .select({
+        id: sale.id,
+        status: sale.status,
+        total: sale.total,
+        createdAt: sale.createdAt,
+        clientName: client.fullName,
+      })
+      .from(sale)
+      .leftJoin(client, eq(client.id, sale.clientId))
+      .where(
+        and(
+          eq(sale.organizationId, ctx.organizationId),
+          eq(sale.salonId, ctx.salonId),
+        ),
+      )
+      .orderBy(desc(sale.createdAt)),
+    paidCentsBySale(ctx),
+  ]);
+
+  return rows.map((r) => {
+    const paidCents = paidMap.get(r.id) ?? 0;
+    return {
+      ...r,
+      paid: toMoney(paidCents),
+      paymentStatus:
+        r.status === "void"
+          ? ("void" as const)
+          : paymentStatus(toCents(Number(r.total)), paidCents),
+    };
+  });
 }
 
 export async function getSale(ctx: SalonContext, id: string) {
@@ -65,7 +82,21 @@ export async function getSale(ctx: SalonContext, id: string) {
     .from(saleItem)
     .leftJoin(user, eq(user.id, saleItem.staffId))
     .where(eq(saleItem.saleId, id));
-  return { sale: found, items };
+
+  const payments = await listPayments(ctx, id);
+  const paidCents = payments.reduce((acc, p) => acc + toCents(Number(p.amount)), 0);
+  const totalCents = toCents(Number(found.total));
+  return {
+    sale: found,
+    items,
+    payments,
+    paid: toMoney(paidCents),
+    balance: toMoney(totalCents - paidCents),
+    paymentStatus:
+      found.status === "void"
+        ? ("void" as const)
+        : paymentStatus(totalCents, paidCents),
+  };
 }
 
 /**
@@ -98,6 +129,20 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
   const taxCents = Math.round(subtotalCents * taxRate);
   const totalCents = subtotalCents + taxCents;
 
+  // Optional payment captured at sale time (POS flow).
+  const paymentOps =
+    input.payment && input.payment.amount > 0
+      ? [
+          db.insert(payment).values({
+            organizationId: ctx.organizationId,
+            salonId: ctx.salonId,
+            saleId,
+            method: input.payment.method,
+            amount: toMoney(toCents(input.payment.amount)),
+          }),
+        ]
+      : [];
+
   await db.batch([
     db.insert(sale).values({
       id: saleId,
@@ -112,6 +157,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       notes: (input.notes ?? "").trim() || null,
     }),
     db.insert(saleItem).values(itemRows),
+    ...paymentOps,
   ]);
 
   return { id: saleId };

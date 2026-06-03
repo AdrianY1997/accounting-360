@@ -2,6 +2,23 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Payments (in progress)
+
+- `payment` table (scoped by `organization_id` + `salon_id`, FK `sale_id`):
+  method (cash/card/transfer/other), amount numeric, paid_at. Migration `0004`.
+- `lib/money.ts` shared cents helpers (`toCents`, `centsToString`); sales service
+  refactored to use them.
+- `services/payments.ts`: `addPayment` (rejects unknown/voided sales),
+  `listPayments`, `deletePayment`, `paidCentsBySale`, derived `paymentStatus`
+  (pending/partial/paid). `lib/validations/payment.ts` (methods + labels).
+- `createSale` accepts an optional initial payment (added in the same `db.batch`).
+  `listSales`/`getSale` now return paid amount, balance, and payment status.
+- REST: `GET/POST /api/sales/:id/payments`, `DELETE /api/payments/:id`.
+- UI: payment fields (method + amount, "pagar total", leave 0 = pending) on the
+  new-sale form; sale detail shows payments table, balance, status badge,
+  `PaymentDialog` to add and delete payments. Sales list badge now reflects
+  payment status.
+
 ## Phase 1 — Sales / tickets (in progress)
 
 - `sale` + `sale_item` tables (scoped by `organization_id` + `salon_id`). Sale

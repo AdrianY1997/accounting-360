@@ -87,8 +87,22 @@ Totals are computed server-side; tax rate is snapshotted from `salon_settings`.
 | GET    | `/api/sales/:id` | Sale + items (404 if not in salón)       |
 | DELETE | `/api/sales/:id` | Soft-void (status → `void`); keeps record |
 
+## Payments
+
+A sale may have many payments (split / partial / abonos). Payment status is
+derived: `pending` (0 paid), `partial` (0 < paid < total), `paid` (≥ total).
+Body (zod, `lib/validations/payment.ts`): `method` (`cash`|`card`|`transfer`|
+`other`), `amount` (> 0). A payment may also be sent inline on `POST /api/sales`
+via the `payment` field.
+
+| Method | Path                       | Description                          |
+| ------ | -------------------------- | ------------------------------------ |
+| GET    | `/api/sales/:id/payments`  | List payments for a sale             |
+| POST   | `/api/sales/:id/payments`  | Add a payment (404 if sale void/missing) |
+| DELETE | `/api/payments/:id`        | Delete a payment                     |
+
 ## Remaining domain endpoints
 
-Still to come in Phase 1: payments, cash sessions, expenses, commissions,
-reports. Document each here as it lands per the Documentation Maintenance Rule
-in [AGENTS.md](../AGENTS.md).
+Still to come in Phase 1: cash sessions, expenses, commissions, reports.
+Document each here as it lands per the Documentation Maintenance Rule in
+[AGENTS.md](../AGENTS.md).

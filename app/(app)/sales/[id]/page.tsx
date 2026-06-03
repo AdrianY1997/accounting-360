@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { client as clientTable, salonSettings } from "@/db/schema";
+import { PaymentDialog } from "@/components/sales/payment-dialog";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,6 +15,23 @@ import {
 } from "@/components/ui/table";
 import { getSale } from "@/services/sales";
 import { requireSalonContext } from "@/lib/tenant";
+import { paymentMethodLabels, type PaymentMethod } from "@/lib/validations/payment";
+
+const statusLabel: Record<string, string> = {
+  pending: "Pendiente",
+  partial: "Parcial",
+  paid: "Pagada",
+  void: "Anulada",
+};
+const statusVariant: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  pending: "outline",
+  partial: "secondary",
+  paid: "default",
+  void: "destructive",
+};
 
 export default async function SaleDetailPage({
   params,
@@ -24,7 +42,7 @@ export default async function SaleDetailPage({
   const { id } = await params;
   const data = await getSale(ctx, id);
   if (!data) notFound();
-  const { sale, items } = data;
+  const { sale, items, payments, paid, balance, paymentStatus } = data;
 
   const [settings, saleClient] = await Promise.all([
     db.query.salonSettings.findFirst({
@@ -54,8 +72,8 @@ export default async function SaleDetailPage({
           <p className="text-sm">Cliente: {saleClient?.fullName ?? "—"}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={sale.status === "void" ? "destructive" : "secondary"}>
-            {sale.status === "void" ? "Anulada" : "Completada"}
+          <Badge variant={statusVariant[paymentStatus]}>
+            {statusLabel[paymentStatus]}
           </Badge>
           {sale.status !== "void" && (
             <ResourceDeleteButton
@@ -111,7 +129,63 @@ export default async function SaleDetailPage({
           <span>Total</span>
           <span>{fmt.format(Number(sale.total))}</span>
         </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Pagado</span>
+          <span>{fmt.format(Number(paid))}</span>
+        </div>
+        <div className="flex justify-between font-medium">
+          <span>Saldo</span>
+          <span>{fmt.format(Number(balance))}</span>
+        </div>
       </div>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Pagos</h2>
+          {sale.status !== "void" && Number(balance) > 0 && (
+            <PaymentDialog saleId={sale.id} defaultAmount={balance} />
+          )}
+        </div>
+        {payments.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Sin pagos registrados.</p>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead className="w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>
+                      {dateFmt.format(new Date(p.paidAt))}
+                    </TableCell>
+                    <TableCell>
+                      {paymentMethodLabels[p.method as PaymentMethod] ??
+                        p.method}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {fmt.format(Number(p.amount))}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <ResourceDeleteButton
+                        endpoint={`/api/payments/${p.id}`}
+                        name="este pago"
+                        successMessage="Pago eliminado"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </section>
 
       {sale.notes && (
         <p className="text-muted-foreground text-sm">Notas: {sale.notes}</p>

@@ -56,4 +56,5 @@ installed.
 | `ResourceDeleteButton` | `resource-delete-button.tsx` | Generic delete confirm. Props `endpoint`, `name`, `successMessage?`. DELETE + toast + refresh. Prefer this for new resources. |
 | `CategoryFormDialog` | `catalog/category-form-dialog.tsx` | Client. Create/edit service category. Props `category?`, `trigger`. POST/PUT `/api/service-categories`. |
 | `ServiceFormDialog` | `catalog/service-form-dialog.tsx` | Client. Create/edit service (name, category Select, price, duration). Props `service?`, `categories`, `trigger`. POST/PUT `/api/services`. |
-| `SaleForm` | `sales/sale-form.tsx` | Client. New-sale form: dynamic line items (service autofill, price, qty, per-item staff), client Select, live subtotal/tax/total. Props `clients`, `services`, `staff`, `taxRate`, `currency`. POST `/api/sales` → redirect to detail. |
+| `SaleForm` | `sales/sale-form.tsx` | Client. New-sale form: dynamic line items (service autofill, price, qty, per-item staff), client Select, live subtotal/tax/total, optional payment (method + amount, "pagar total", 0 = pending). Props `clients`, `services`, `staff`, `taxRate`, `currency`. POST `/api/sales` → redirect to detail. |
+| `PaymentDialog` | `sales/payment-dialog.tsx` | Client. Add a payment to a sale (method Select + amount, prefilled with balance). Props `saleId`, `defaultAmount`. POST `/api/sales/:id/payments`. |

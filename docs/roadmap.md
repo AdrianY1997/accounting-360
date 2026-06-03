@@ -64,8 +64,11 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Payments
 
-- [ ] API — register payment(s) per sale (cash/card/transfer, split)
-- [ ] UI — payment capture on a ticket
+- [x] API — register payment(s) per sale (cash/card/transfer/other, split,
+  partial; payment status derived) — `/api/sales/:id/payments`,
+  `/api/payments/:id`
+- [x] UI — payment at sale time (POS) + add/remove payments in sale detail;
+  pending/partial/paid status, balance
 
 ### Cash sessions (caja)
 

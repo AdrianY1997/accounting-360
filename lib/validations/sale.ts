@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paymentInputSchema } from "./payment";
 
 export const saleItemInputSchema = z.object({
   serviceId: z.string().trim().min(1).nullable().optional(),
@@ -12,6 +13,8 @@ export const saleInputSchema = z.object({
   clientId: z.string().trim().min(1).nullable().optional(),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
   items: z.array(saleItemInputSchema).min(1, "Agrega al menos un ítem"),
+  // Optional payment captured at sale time (POS flow). Omit to leave pending.
+  payment: paymentInputSchema.nullable().optional(),
 });
 
 export type SaleItemInput = z.infer<typeof saleItemInputSchema>;

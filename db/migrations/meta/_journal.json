@@ -29,6 +29,13 @@
       "when": 1780348795495,
       "tag": "0003_jittery_spitfire",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780351369695,
+      "tag": "0004_small_korath",
+      "breakpoints": true
     }
   ]
 }

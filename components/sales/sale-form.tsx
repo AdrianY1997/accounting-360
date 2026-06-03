@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { paymentMethods, paymentMethodLabels } from "@/lib/validations/payment";
 
 type ClientOpt = { id: string; fullName: string };
 type ServiceOpt = { id: string; name: string; price: string };
@@ -54,6 +55,8 @@ export function SaleForm({
   const [clientId, setClientId] = useState(NONE);
   const [notes, setNotes] = useState("");
   const [rows, setRows] = useState<Row[]>([emptyRow()]);
+  const [payMethod, setPayMethod] = useState<string>("cash");
+  const [payAmount, setPayAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fmt = useMemo(
@@ -100,6 +103,10 @@ export function SaleForm({
         unitPrice: r.unitPrice,
         quantity: r.quantity,
       })),
+      payment:
+        Number(payAmount) > 0
+          ? { method: payMethod, amount: payAmount }
+          : null,
     };
     const res = await fetch("/api/sales", {
       method: "POST",
@@ -261,6 +268,44 @@ export function SaleForm({
           <span>Total</span>
           <span>{fmt.format(total)}</span>
         </div>
+      </div>
+
+      <div className="ml-auto w-full max-w-xs space-y-2 rounded-md border p-3">
+        <Label className="text-sm">Pago (opcional)</Label>
+        <div className="flex gap-2">
+          <Select value={payMethod} onValueChange={setPayMethod}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {paymentMethods.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {paymentMethodLabels[m]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0.00"
+            value={payAmount}
+            onChange={(e) => setPayAmount(e.target.value)}
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => setPayAmount(total.toFixed(2))}
+        >
+          Pagar total ({fmt.format(total)})
+        </Button>
+        <p className="text-muted-foreground text-xs">
+          Deja el monto en 0 para registrar la venta como pendiente.
+        </p>
       </div>
 
       <div className="flex justify-end">
