@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
+import { EmptyState } from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,9 +63,18 @@ export default async function SalesPage() {
       </div>
 
       {sales.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
-          Aún no hay ventas.
-        </p>
+        <EmptyState
+          title="Aún no hay ventas"
+          description="Registra tu primera venta para empezar a facturar."
+          action={
+            <Button asChild>
+              <Link href="/sales/new">
+                <Plus className="size-4" />
+                Nueva venta
+              </Link>
+            </Button>
+          }
+        />
       ) : (
         <div className="rounded-md border">
           <Table>

@@ -1,6 +1,7 @@
 import { Pencil, Plus } from "lucide-react";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { DeleteClientButton } from "@/components/clients/delete-client-button";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,9 +33,20 @@ export default async function ClientsPage() {
       </div>
 
       {clients.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
-          Aún no hay clientes. Crea el primero.
-        </p>
+        <EmptyState
+          title="Aún no hay clientes"
+          description="Registra tu primer cliente para asociarlo a las ventas."
+          action={
+            <ClientFormDialog
+              trigger={
+                <Button>
+                  <Plus className="size-4" />
+                  Nuevo cliente
+                </Button>
+              }
+            />
+          }
+        />
       ) : (
         <div className="rounded-md border">
           <Table>

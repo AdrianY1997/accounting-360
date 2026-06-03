@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { ExpenseCategoryFormDialog } from "@/components/expenses/expense-category-form-dialog";
 import { ExpenseFormDialog } from "@/components/expenses/expense-form-dialog";
+import { EmptyState } from "@/components/empty-state";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,9 +55,10 @@ export default async function ExpensesPage() {
         </div>
 
         {expenses.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">
-            Aún no hay gastos.
-          </p>
+          <EmptyState
+            title="Aún no hay gastos"
+            description="Registra los gastos del salón para reflejarlos en el P&L."
+          />
         ) : (
           <div className="rounded-md border">
             <Table>

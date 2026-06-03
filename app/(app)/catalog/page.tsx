@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { CategoryFormDialog } from "@/components/catalog/category-form-dialog";
 import { ServiceFormDialog } from "@/components/catalog/service-form-dialog";
+import { EmptyState } from "@/components/empty-state";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,9 +50,10 @@ export default async function CatalogPage() {
         </div>
 
         {services.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">
-            Aún no hay servicios.
-          </p>
+          <EmptyState
+            title="Aún no hay servicios"
+            description="Crea servicios con su precio para venderlos en los tickets."
+          />
         ) : (
           <div className="rounded-md border">
             <Table>
