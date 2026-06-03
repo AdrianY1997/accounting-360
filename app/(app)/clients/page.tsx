@@ -12,7 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { redirect } from "next/navigation";
 import { listClients } from "@/services/clients";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
 export default async function ClientsPage({
@@ -21,6 +23,7 @@ export default async function ClientsPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "clients:write")) redirect("/dashboard");
   const { q } = await searchParams;
   const clients = await listClients(ctx, q);
 

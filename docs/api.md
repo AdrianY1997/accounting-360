@@ -171,11 +171,21 @@ ownerName, ownerEmail, ownerPassword }`.
 
 ## Roles & access
 
-Roles (`lib/roles.ts`): `owner`, `admin`, `manager`, `cashier`, `staff`.
-`isAdmin` = `owner`|`admin`. Admin-only endpoints return `403` otherwise:
-salón settings PUT, commission-rule writes, all `/api/staff`, salón create.
-Operational endpoints (clients, catalog, sales, payments, cash, expenses) are
-open to any member of the salón.
+Roles (`lib/roles.ts`): `owner`, `admin`, `manager`, `cashier`, `staff`. Access
+is a capability matrix `can(role, permission)` enforced on every mutating route
+(`403` otherwise) and mirrored in the UI (nav, page redirects, hidden actions).
+
+| Permission        | Roles                          | Gates                          |
+| ----------------- | ------------------------------ | ------------------------------ |
+| `clients:write`   | owner, admin, manager, cashier | clients create/edit/delete     |
+| `catalog:write`   | owner, admin, manager          | services + categories writes   |
+| `sales:write`     | all roles                      | create sale                    |
+| `payments:write`  | all roles                      | add/delete payments            |
+| `sales:void`      | owner, admin, manager          | void a sale                    |
+| `cash:manage`     | owner, admin, manager, cashier | open/close caja, movements     |
+| `expenses:write`  | owner, admin, manager          | expenses + categories writes   |
+| `reports:view`    | owner, admin, manager          | `/api/reports`, `/api/commissions` |
+| `commissions:manage` / settings / staff / salón create | owner, admin (`isAdmin`) | config + commission rules |
 
 ## Staff (admin only)
 

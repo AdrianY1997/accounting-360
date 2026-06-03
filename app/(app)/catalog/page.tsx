@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
@@ -18,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listCategories, listServices } from "@/services/catalog";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
 export default async function CatalogPage({
@@ -26,6 +28,7 @@ export default async function CatalogPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "catalog:write")) redirect("/dashboard");
   const { q } = await searchParams;
   const [categories, services, settings] = await Promise.all([
     listCategories(ctx),

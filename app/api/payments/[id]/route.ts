@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deletePayment } from "@/services/payments";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
 export async function DELETE(
@@ -7,6 +8,9 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "payments:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const deleted = await deletePayment(salon, id);
   if (!deleted) {

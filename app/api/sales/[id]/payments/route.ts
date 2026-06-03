@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { addPayment, listPayments } from "@/services/payments";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { paymentInputSchema } from "@/lib/validations/payment";
 
@@ -17,6 +18,9 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "payments:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const parsed = paymentInputSchema.safeParse(await req.json());
   if (!parsed.success) {

@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { PeriodFilter } from "@/components/period-filter";
@@ -17,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { salonReport } from "@/services/reports";
+import { can } from "@/lib/roles";
 import { monthRange, parseRange, toDateInput } from "@/lib/period";
 import { requireSalonContext } from "@/lib/tenant";
 import {
@@ -30,6 +32,7 @@ export default async function ReportsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "reports:view")) redirect("/dashboard");
   const sp = await searchParams;
   const { from, to } = parseRange(sp.from ?? null, sp.to ?? null) ?? monthRange();
 

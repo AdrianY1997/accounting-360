@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getSession } from "@/services/cash";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { movementTypeLabels, type MovementType } from "@/lib/validations/cash";
 
@@ -27,6 +28,7 @@ export default async function CashSessionPage({
   params: Promise<{ id: string }>;
 }) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "cash:manage")) redirect("/dashboard");
   const { id } = await params;
   const data = await getSession(ctx, id);
   if (!data) notFound();

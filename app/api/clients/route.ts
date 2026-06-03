@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, listClients } from "@/services/clients";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { clientInputSchema } from "@/lib/validations/client";
 
@@ -11,6 +12,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "clients:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const parsed = clientInputSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(

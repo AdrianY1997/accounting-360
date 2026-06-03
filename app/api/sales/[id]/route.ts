@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSale, voidSale } from "@/services/sales";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
 export async function GET(
@@ -21,6 +22,9 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "sales:void")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const voided = await voidSale(salon, id);
   if (!voided) {

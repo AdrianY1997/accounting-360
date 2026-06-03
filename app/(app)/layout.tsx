@@ -48,7 +48,7 @@ export default async function AppLayout({
             className="size-8 w-auto hidden dark:block"
           />
         </Link>
-        <MainNav admin={admin} platformAdmin={platformAdmin} />
+        <MainNav role={ctx.role} admin={admin} platformAdmin={platformAdmin} />
         <div className="flex items-center gap-3 text-sm">
           <OrgSwitcher orgs={orgs} activeId={ctx.organizationId} />
           <SalonSwitcher salons={salons} activeId={ctx.salonId} />

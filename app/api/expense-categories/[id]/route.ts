@@ -3,6 +3,7 @@ import {
   deleteExpenseCategory,
   updateExpenseCategory,
 } from "@/services/expenses";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { expenseCategoryInputSchema } from "@/lib/validations/expense";
 
@@ -11,6 +12,9 @@ export async function PUT(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "expenses:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const parsed = expenseCategoryInputSchema.safeParse(await req.json());
   if (!parsed.success) {
@@ -34,6 +38,9 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "expenses:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const deleted = await deleteExpenseCategory(salon, id);
   if (!deleted) {

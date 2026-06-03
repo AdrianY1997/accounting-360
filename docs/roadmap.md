@@ -122,12 +122,18 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 - [ ] Org impersonation by platform admin (enter a client org to support)
 - [ ] Billing / plans / per-company limits
 
+### Permissions & correctness (complete)
+
+- [x] Fine-grained role permissions (`lib/roles.ts` `can()` matrix): per-capability
+  gates on every operational route (clients/catalog/sales/payments/cash/expenses)
+  plus reports view; admin-only config/staff/commission rules. UI follows: nav,
+  page redirects, and write buttons hidden per permission.
+- [x] Live cross-module UI updates: `staleTimes { dynamic: 0 }` so navigating
+  between modules always refetches (no manual reload).
+
 ## Phase 2 — Multi-salón advanced
 
 - [ ] Consolidated chain reports across salones
-- [ ] Fine-grained permissions per role/salón (current guard is `isAdmin` only;
-  see `docs/notes.md` — e.g. staff should not edit the catalog)
-- [ ] Live cross-module UI updates (avoid manual refresh)
 - [ ] Refunds / returns flow (reverse payments + caja)
 - [ ] Password recovery (admin-initiated and/or email)
 

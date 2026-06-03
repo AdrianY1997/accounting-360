@@ -144,8 +144,11 @@ Per-salón accounting config (currency, tax rate, timezone, address, logo) lives
 in `salon_settings` (one row per `team`). See [docs/database.md](./docs/database.md).
 
 **Roles** (`lib/roles.ts`): `owner`, `admin`, `manager` (per salón), `cashier`,
-`staff` (stylist). `isAdmin` (`owner`|`admin`) gates config / staff / destructive
-actions; finer per-role permissions are a Phase 2 item (`docs/notes.md`).
+`staff` (stylist). Access is checked with a capability matrix `can(role,
+permission)` (e.g. `catalog:write`, `sales:void`, `cash:manage`, `reports:view`);
+`isAdmin` (`owner`|`admin`) covers config / staff / commission rules. Every
+operational route enforces a permission server-side; the UI mirrors it (nav,
+page redirects, hidden write actions).
 
 ---
 

@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
@@ -18,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listExpenseCategories, listExpenses } from "@/services/expenses";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import {
   paymentMethodLabels,
@@ -30,6 +32,7 @@ export default async function ExpensesPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "expenses:write")) redirect("/dashboard");
   const { q } = await searchParams;
   const [categories, expenses, settings] = await Promise.all([
     listExpenseCategories(ctx),

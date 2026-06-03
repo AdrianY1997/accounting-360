@@ -2,6 +2,18 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Role permissions + live updates
+
+- **Permissions**: capability matrix `can(role, permission)` in `lib/roles.ts`
+  (clients/catalog/sales/payments/cash/expenses writes, `sales:void`,
+  `reports:view`; admin keeps config/staff/commission rules). Enforced
+  server-side on every operational route (403) and mirrored in the UI: nav
+  filtered by permission, page redirects for gated routes, hidden write/void
+  actions and the commissions rules section. Fixes `notes.md` #3 (e.g. staff can
+  no longer edit the catalog).
+- **Live cross-module updates**: `experimental.staleTimes { dynamic: 0 }` so
+  navigating between modules always refetches — no manual reload (`notes.md` #2).
+
 ## Phase 1 — Demo polish (search, receipt, branding)
 
 - **Search/filters**: `SearchInput` (pushes `?q=`); server-side `ilike` filters

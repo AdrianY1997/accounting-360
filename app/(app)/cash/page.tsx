@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { CloseSessionDialog } from "@/components/cash/close-session-dialog";
@@ -27,11 +28,13 @@ import {
   listSessions,
   sessionSummary,
 } from "@/services/cash";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { movementTypeLabels, type MovementType } from "@/lib/validations/cash";
 
 export default async function CashPage() {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "cash:manage")) redirect("/dashboard");
   const [open, sessions, settings] = await Promise.all([
     getOpenSession(ctx),
     listSessions(ctx),

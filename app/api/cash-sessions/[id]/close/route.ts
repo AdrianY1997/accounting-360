@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { closeSession } from "@/services/cash";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { closeSessionSchema } from "@/lib/validations/cash";
 
@@ -8,6 +9,9 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "cash:manage")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const parsed = closeSessionSchema.safeParse(await req.json());
   if (!parsed.success) {

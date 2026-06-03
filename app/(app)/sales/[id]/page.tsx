@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getSale } from "@/services/sales";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { paymentMethodLabels, type PaymentMethod } from "@/lib/validations/payment";
 
@@ -84,7 +85,7 @@ export default async function SaleDetailPage({
           <Badge variant={statusVariant[paymentStatus]}>
             {statusLabel[paymentStatus]}
           </Badge>
-          {sale.status !== "void" && (
+          {sale.status !== "void" && can(ctx.role, "sales:void") && (
             <ResourceDeleteButton
               endpoint={`/api/sales/${sale.id}`}
               name="esta venta"

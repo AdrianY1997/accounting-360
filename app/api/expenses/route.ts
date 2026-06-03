@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createExpense, listExpenses } from "@/services/expenses";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { expenseInputSchema } from "@/lib/validations/expense";
 
@@ -10,6 +11,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "expenses:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const parsed = expenseInputSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(

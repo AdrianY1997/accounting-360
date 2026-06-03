@@ -28,3 +28,56 @@ const ADMIN_ROLES: readonly string[] = ["owner", "admin"];
 export function isAdmin(role: string): boolean {
   return ADMIN_ROLES.includes(role);
 }
+
+/** Granular capabilities, checked on the server and used to gate UI. */
+export type Permission =
+  | "clients:write"
+  | "catalog:write"
+  | "sales:write"
+  | "sales:void"
+  | "payments:write"
+  | "expenses:write"
+  | "cash:manage"
+  | "commissions:manage"
+  | "reports:view"
+  | "settings:manage"
+  | "staff:manage"
+  | "salon:manage";
+
+const ALL: Permission[] = [
+  "clients:write",
+  "catalog:write",
+  "sales:write",
+  "sales:void",
+  "payments:write",
+  "expenses:write",
+  "cash:manage",
+  "commissions:manage",
+  "reports:view",
+  "settings:manage",
+  "staff:manage",
+  "salon:manage",
+];
+
+const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
+  owner: ALL,
+  admin: ALL,
+  manager: [
+    "clients:write",
+    "catalog:write",
+    "sales:write",
+    "sales:void",
+    "payments:write",
+    "expenses:write",
+    "cash:manage",
+    "reports:view",
+  ],
+  cashier: ["clients:write", "sales:write", "payments:write", "cash:manage"],
+  staff: ["sales:write", "payments:write"],
+};
+
+/** Whether a role may perform a capability. Unknown roles get nothing. */
+export function can(role: string, permission: Permission): boolean {
+  const perms = ROLE_PERMISSIONS[role as Role];
+  return perms ? perms.includes(permission) : false;
+}

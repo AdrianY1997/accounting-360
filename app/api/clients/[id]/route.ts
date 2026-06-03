@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteClient, updateClient } from "@/services/clients";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { clientInputSchema } from "@/lib/validations/client";
 
@@ -8,6 +9,9 @@ export async function PUT(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "clients:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const parsed = clientInputSchema.safeParse(await req.json());
   if (!parsed.success) {
@@ -28,6 +32,9 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
+  if (!can(salon.role, "clients:write")) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const { id } = await ctx.params;
   const deleted = await deleteClient(salon, id);
   if (!deleted) {

@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { can, type Permission } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 type NavLink = {
@@ -17,32 +18,38 @@ type NavLink = {
   label: string;
   admin?: boolean;
   platform?: boolean;
+  perm?: Permission;
 };
 
 const LINKS: NavLink[] = [
   { href: "/dashboard", label: "Panel" },
-  { href: "/clients", label: "Clientes" },
-  { href: "/catalog", label: "Servicios" },
-  { href: "/sales", label: "Ventas" },
-  { href: "/cash", label: "Caja" },
-  { href: "/expenses", label: "Gastos" },
-  { href: "/commissions", label: "Comisiones" },
-  { href: "/reports", label: "Reportes" },
+  { href: "/clients", label: "Clientes", perm: "clients:write" },
+  { href: "/catalog", label: "Servicios", perm: "catalog:write" },
+  { href: "/sales", label: "Ventas", perm: "sales:write" },
+  { href: "/cash", label: "Caja", perm: "cash:manage" },
+  { href: "/expenses", label: "Gastos", perm: "expenses:write" },
+  { href: "/commissions", label: "Comisiones", perm: "reports:view" },
+  { href: "/reports", label: "Reportes", perm: "reports:view" },
   { href: "/staff", label: "Personal", admin: true },
   { href: "/settings", label: "Configuración", admin: true },
   { href: "/platform", label: "Plataforma", platform: true },
 ];
 
 export function MainNav({
+  role,
   admin,
   platformAdmin,
 }: {
+  role: string;
   admin: boolean;
   platformAdmin: boolean;
 }) {
   const pathname = usePathname();
   const links = LINKS.filter(
-    (l) => (!l.admin || admin) && (!l.platform || platformAdmin),
+    (l) =>
+      (!l.admin || admin) &&
+      (!l.platform || platformAdmin) &&
+      (!l.perm || can(role, l.perm)),
   );
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);

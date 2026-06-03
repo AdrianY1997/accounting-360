@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
@@ -18,6 +19,8 @@ import {
 import { listServices } from "@/services/catalog";
 import { computeCommissions, listRules } from "@/services/commissions";
 import { listSalonStaff } from "@/services/sales";
+import { isAdmin } from "@/lib/roles";
+import { can } from "@/lib/roles";
 import { monthRange, parseRange, toDateInput } from "@/lib/period";
 import { requireSalonContext } from "@/lib/tenant";
 import {
@@ -31,6 +34,8 @@ export default async function CommissionsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const ctx = await requireSalonContext();
+  if (!can(ctx.role, "reports:view")) redirect("/dashboard");
+  const manageRules = isAdmin(ctx.role);
   const sp = await searchParams;
   const { from, to } = parseRange(sp.from ?? null, sp.to ?? null) ?? monthRange();
 
@@ -101,6 +106,7 @@ export default async function CommissionsPage({
         )}
       </section>
 
+      {manageRules && (
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Reglas</h2>
@@ -169,6 +175,7 @@ export default async function CommissionsPage({
           </div>
         )}
       </section>
+      )}
     </div>
   );
 }
