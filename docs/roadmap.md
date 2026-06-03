@@ -79,8 +79,9 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Expenses
 
-- [ ] API — expense categories + expenses (vendor, amount, salón)
-- [ ] UI — register and list expenses
+- [x] API — expense categories + expenses (category, vendor, amount, payment
+  method, date), scoped by salón
+- [x] UI — `/expenses`: register/edit/list expenses + manage categories
 
 ### Commissions
 

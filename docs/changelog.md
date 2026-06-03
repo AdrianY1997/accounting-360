@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Expenses (in progress)
+
+- `expense_category` + `expense` tables (scoped by `organization_id` +
+  `salon_id`; expense has optional category on delete set null, vendor,
+  description, amount numeric, optional payment method, expense date, createdBy).
+  Migration `0006`.
+- `services/expenses.ts`: salón-scoped CRUD for categories and expenses.
+  `lib/validations/expense.ts` (zod; reuses payment methods).
+- REST: `GET/POST /api/expense-categories` + `/:id`, `GET/POST /api/expenses` +
+  `/:id`.
+- UI `/expenses`: expenses table (date, category badge, vendor, method, amount)
+  with create/edit dialog (amount, date, category, vendor, method, description)
+  plus categories management. Header nav (Gastos).
+
 ## Phase 1 — Cash sessions / caja (in progress)
 
 - `cash_session` + `cash_movement` tables (scoped by `organization_id` +

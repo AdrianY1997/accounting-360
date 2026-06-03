@@ -63,6 +63,12 @@ export default async function AppLayout({
           >
             Caja
           </Link>
+          <Link
+            href="/expenses"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Gastos
+          </Link>
         </nav>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{session.user.name}</span>

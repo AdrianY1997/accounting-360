@@ -61,3 +61,5 @@ installed.
 | `OpenSessionForm` | `cash/open-session-form.tsx` | Client. Opens a cash session (opening balance). No props. POST `/api/cash-sessions`. |
 | `MovementDialog` | `cash/movement-dialog.tsx` | Client. Add cash in/out movement (type, amount, description). Prop `sessionId`. POST `/api/cash-sessions/:id/movements`. |
 | `CloseSessionDialog` | `cash/close-session-dialog.tsx` | Client. Close caja: counted amount (prefilled expected) + notes, live difference. Props `sessionId`, `expected`, `currency`. POST `/api/cash-sessions/:id/close`. |
+| `ExpenseFormDialog` | `expenses/expense-form-dialog.tsx` | Client. Create/edit expense (amount, date, category Select, vendor, payment method, description). Props `expense?` (minimal shape), `categories`, `trigger`. POST/PUT `/api/expenses`. |
+| `ExpenseCategoryFormDialog` | `expenses/expense-category-form-dialog.tsx` | Client. Create/edit expense category. Props `category?`, `trigger`. POST/PUT `/api/expense-categories`. |

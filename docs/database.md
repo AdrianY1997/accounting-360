@@ -179,6 +179,36 @@ Manual cash in/out within a session.
 | `created_by`      | text → `user.id`         | nullable; set null             |
 | `created_at` / `updated_at` | timestamp      | from `timestamps`              |
 
+### `expense_category`
+
+Expense categories. Scoped by `organization_id` + `salon_id`.
+
+| Column            | Type                     | Notes             |
+| ----------------- | ------------------------ | ----------------- |
+| `id`              | text (uuid)              | PK                |
+| `organization_id` | text → `organization.id` | cascade           |
+| `salon_id`        | text → `team.id`         | cascade; indexed  |
+| `name`            | text, not null           |                   |
+| `created_at` / `updated_at` | timestamp      | from `timestamps` |
+
+### `expense`
+
+Expenses. Scoped by `organization_id` + `salon_id`.
+
+| Column            | Type                          | Notes                        |
+| ----------------- | ----------------------------- | ---------------------------- |
+| `id`              | text (uuid)                   | PK                           |
+| `organization_id` | text → `organization.id`      | cascade                      |
+| `salon_id`        | text → `team.id`              | cascade; indexed             |
+| `category_id`     | text → `expense_category.id`  | nullable; on delete set null |
+| `vendor`          | text, nullable                |                              |
+| `description`     | text, nullable                |                              |
+| `amount`          | numeric(12,2), default `0`    |                              |
+| `payment_method`  | text, nullable                | `cash`\|`card`\|`transfer`\|`other` |
+| `expense_date`    | timestamp, default now        | indexed                      |
+| `created_by`      | text → `user.id`              | nullable; set null           |
+| `created_at` / `updated_at` | timestamp           | from `timestamps`            |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

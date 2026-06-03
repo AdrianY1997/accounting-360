@@ -117,7 +117,25 @@ counted, and difference. Bodies (zod, `lib/validations/cash.ts`): open
 | POST   | `/api/cash-sessions/:id/movements`| Add cash movement (404 if closed) |
 | DELETE | `/api/cash-movements/:id`         | Remove movement (open session)    |
 
+## Expenses
+
+Categories — body `{ name }`. Expenses — body (zod, `lib/validations/
+expense.ts`): `categoryId?`, `vendor?`, `description?`, `amount` (≥ 0),
+`paymentMethod?` (`cash`|`card`|`transfer`|`other`), `expenseDate?` (YYYY-MM-DD,
+omitted = now).
+
+| Method | Path                          | Description                |
+| ------ | ----------------------------- | -------------------------- |
+| GET    | `/api/expense-categories`     | List categories (salón)    |
+| POST   | `/api/expense-categories`     | Create category (201)      |
+| PUT    | `/api/expense-categories/:id` | Update (404 if not in salón) |
+| DELETE | `/api/expense-categories/:id` | Delete (404 if not in salón) |
+| GET    | `/api/expenses`               | List expenses (salón)      |
+| POST   | `/api/expenses`               | Create expense (201)       |
+| PUT    | `/api/expenses/:id`           | Update (404 if not in salón) |
+| DELETE | `/api/expenses/:id`           | Delete (404 if not in salón) |
+
 ## Remaining domain endpoints
 
-Still to come in Phase 1: expenses, commissions, reports. Document each here as
-it lands per the Documentation Maintenance Rule in [AGENTS.md](../AGENTS.md).
+Still to come in Phase 1: commissions, reports. Document each here as it lands
+per the Documentation Maintenance Rule in [AGENTS.md](../AGENTS.md).
