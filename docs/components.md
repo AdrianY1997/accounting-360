@@ -68,6 +68,9 @@ installed.
 | `PeriodFilter` | `period-filter.tsx` | Client. Date-range (from/to) filter; pushes `?from=&to=` to the current route. Props `from`, `to`. Used by `/commissions` and `/reports`. |
 | `SalonSwitcher` | `salon-switcher.tsx` | Client. Active-salón Select (hidden if <2). Props `salons`, `activeId`. POST `/api/active-salon` then refresh. In app header. |
 | `OrgSwitcher` | `org-switcher.tsx` | Client. Active-empresa Select (hidden if <2). Props `orgs`, `activeId`. POST `/api/active-org` then refresh. In app header. |
+| `SearchInput` | `search-input.tsx` | Client. Search box; pushes `?<param>=` (merges params). Props `param?` (def `q`), `placeholder?`. |
+| `SalesFilters` | `sales/sales-filters.tsx` | Client. Payment-status Select; pushes `?status=`. Prop `status?`. |
+| `PrintButton` | `print-button.tsx` | Client. Calls `window.print()`; `print:hidden`. |
 | `MainNav` | `main-nav.tsx` | Client. App header navigation: inline links on desktop, hamburger dropdown on mobile, active highlight. Prop `admin` (shows Personal/Configuración). |
 | `EmptyState` | `empty-state.tsx` | Empty-list block. Props `title`, `description?`, `action?` (CTA node). |
 | `CreateCompanyDialog` | `platform/create-company-dialog.tsx` | Client (platform admin). Onboards a company (company, salón, owner name/email/password). POST `/api/platform/companies`. |

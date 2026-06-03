@@ -32,6 +32,7 @@ export function SalonSwitcher({
       toast.error("No se pudo cambiar de salón");
       return;
     }
+    toast.success("Salón cambiado");
     router.refresh();
   }
 

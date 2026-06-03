@@ -39,6 +39,13 @@ session, organization, teams, invitations, members).
 - Invite staff → `organization.inviteMember` (optionally with `teamId`).
 - Active context → `session.activeOrganizationId` / `session.activeTeamId`.
 
+## List filtering
+
+`GET /api/clients`, `/api/services`, `/api/expenses` accept `?q=` (case-insensitive
+substring). `GET /api/sales` accepts `?status=` (pending|partial|paid|void) and
+optional `?from=&to=`. The list pages use these via `SearchInput` / `SalesFilters`.
+A printable receipt is rendered at `/print/sales/:id` (page, not an API).
+
 ## Tenant scope
 
 Domain route handlers call `requireSalonContext()` from `@/lib/tenant` to get

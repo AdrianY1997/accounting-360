@@ -32,6 +32,7 @@ export function OrgSwitcher({
       toast.error("No se pudo cambiar de empresa");
       return;
     }
+    toast.success("Empresa cambiada");
     router.refresh();
   }
 

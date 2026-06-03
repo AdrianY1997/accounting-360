@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Demo polish (search, receipt, branding)
+
+- **Search/filters**: `SearchInput` (pushes `?q=`); server-side `ilike` filters
+  on clients (name/phone/email), services (name), expenses (vendor/description).
+  Sales gain a payment-status filter (`SalesFilters`) + optional date range in
+  `listSales`.
+- **Printable receipt**: `/print/sales/[id]` (outside the app chrome) — company +
+  salón header with optional logo, items, totals, payments, balance; `PrintButton`.
+  "Recibo" link from the sale detail.
+- **Branding**: `salon_settings.logo_url` (migration 0009) editable in settings;
+  shown on the receipt.
+- **Consistency**: success toasts on the org/salón switchers; all destructive
+  actions already confirm via AlertDialog and toast.
+
 ## Platform — organization switcher
 
 - `requireSalonContext` now resolves the active organization from an
