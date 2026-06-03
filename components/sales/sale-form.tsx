@@ -58,6 +58,7 @@ export function SaleForm({
   const [payMethod, setPayMethod] = useState<string>("cash");
   const [payAmount, setPayAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fmt = useMemo(
     () => new Intl.NumberFormat("es", { style: "currency", currency }),
@@ -92,6 +93,22 @@ export function SaleForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+
+    // Client-side guards before hitting the API.
+    if (rows.some((r) => !r.description.trim())) {
+      setError("Cada ítem necesita una descripción.");
+      return;
+    }
+    if (subtotal <= 0) {
+      setError("El total debe ser mayor a 0.");
+      return;
+    }
+    if (Number(payAmount) > total) {
+      setError("El pago no puede ser mayor al total.");
+      return;
+    }
+
     setLoading(true);
     const body = {
       clientId: clientId === NONE ? null : clientId,
@@ -116,7 +133,9 @@ export function SaleForm({
     setLoading(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      toast.error(data.error ?? "No se pudo registrar la venta");
+      const msg = data.error ?? "No se pudo registrar la venta";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     const { id } = await res.json();
@@ -308,6 +327,11 @@ export function SaleForm({
         </p>
       </div>
 
+      {error && (
+        <p className="text-destructive text-right text-sm" role="alert">
+          {error}
+        </p>
+      )}
       <div className="flex justify-end">
         <Button type="submit" disabled={loading}>
           {loading ? "Guardando…" : "Registrar venta"}

@@ -2,6 +2,18 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — UX polish (demo-ready)
+
+- **Dashboard**: real KPIs (today/month sales, month profit, outstanding
+  receivables, open cash expected, top services) replacing the placeholder.
+- **Responsive nav**: `MainNav` client component — inline on desktop, hamburger
+  dropdown on mobile, active-route highlight.
+- **Empty/loading**: reusable `EmptyState` (with CTA on clients/sales) + app
+  route-group `loading.tsx` skeleton; shadcn `skeleton` added.
+- **Form errors**: persistent inline error messages on sign-in, settings, and
+  the sale form (plus client-side guards on the sale form: every item needs a
+  description, total > 0, payment ≤ total).
+
 ## Phase 1 — Roles, staff & multi-salón (completes Phase 1)
 
 - **Roles** (`lib/roles.ts`): `owner`/`admin`/`manager`/`cashier`/`staff`;

@@ -42,6 +42,7 @@ installed.
 | `Textarea` | `ui/textarea.tsx` | Multiline input. Standard `<textarea>` props. |
 | `Badge` | `ui/badge.tsx` | Status pill. `variant` (default/secondary/destructive/outline), `asChild`. |
 | `Select` | `ui/select.tsx` | `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`. Controlled via `value`/`onValueChange`. |
+| `Skeleton` | `ui/skeleton.tsx` | Loading placeholder block. Used by `(app)/loading.tsx`. |
 
 ## App components (`components/`)
 
@@ -66,6 +67,8 @@ installed.
 | `RuleFormDialog` | `commissions/rule-form-dialog.tsx` | Client. Create/edit commission rule (staff/service wildcards, type, value). Props `rule?`, `staff`, `services`, `trigger`. POST/PUT `/api/commission-rules`. |
 | `PeriodFilter` | `period-filter.tsx` | Client. Date-range (from/to) filter; pushes `?from=&to=` to the current route. Props `from`, `to`. Used by `/commissions` and `/reports`. |
 | `SalonSwitcher` | `salon-switcher.tsx` | Client. Active-salón Select (hidden if <2). Props `salons`, `activeId`. POST `/api/active-salon` then refresh. In app header. |
+| `MainNav` | `main-nav.tsx` | Client. App header navigation: inline links on desktop, hamburger dropdown on mobile, active highlight. Prop `admin` (shows Personal/Configuración). |
+| `EmptyState` | `empty-state.tsx` | Empty-list block. Props `title`, `description?`, `action?` (CTA node). |
 | `SettingsForm` | `settings/settings-form.tsx` | Client. Edit salón settings (currency, tax %, timezone, address, phone). Prop `settings?`. PUT `/api/salon-settings`. |
 | `CreateSalonDialog` | `settings/create-salon-dialog.tsx` | Client. Admin creates a salón (name). POST `/api/salons`. |
 | `StaffFormDialog` | `staff/staff-form-dialog.tsx` | Client. Admin creates staff (name, email, password, role). POST `/api/staff`. |

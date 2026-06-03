@@ -21,14 +21,18 @@ export function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    const { error } = await signIn.email({ email, password });
+    const { error: signInError } = await signIn.email({ email, password });
     setLoading(false);
-    if (error) {
-      toast.error(error.message ?? "No se pudo iniciar sesión");
+    if (signInError) {
+      const msg = signInError.message ?? "Correo o contraseña inválidos";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     router.push("/dashboard");
@@ -81,6 +85,11 @@ export function SignInForm() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          {error && (
+            <p className="text-destructive text-sm" role="alert">
+              {error}
+            </p>
+          )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Entrando…" : "Entrar"}
           </Button>

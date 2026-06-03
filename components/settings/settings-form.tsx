@@ -18,9 +18,11 @@ import { Label } from "@/components/ui/label";
 export function SettingsForm({ settings }: { settings?: SalonSettings }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     const form = new FormData(e.currentTarget);
     const body = {
       currency: String(form.get("currency") ?? ""),
@@ -38,7 +40,9 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
     setLoading(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      toast.error(data.error ?? "No se pudo guardar");
+      const msg = data.error ?? "No se pudo guardar";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     toast.success("Configuración guardada");
@@ -103,6 +107,11 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
             <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" name="phone" defaultValue={settings?.phone ?? ""} />
           </div>
+          {error && (
+            <p className="text-destructive text-sm" role="alert">
+              {error}
+            </p>
+          )}
           <div>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}
