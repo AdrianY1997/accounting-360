@@ -2,6 +2,7 @@ import { Pencil, Plus } from "lucide-react";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { DeleteClientButton } from "@/components/clients/delete-client-button";
 import { EmptyState } from "@/components/empty-state";
+import { SearchInput } from "@/components/search-input";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -14,9 +15,14 @@ import {
 import { listClients } from "@/services/clients";
 import { requireSalonContext } from "@/lib/tenant";
 
-export default async function ClientsPage() {
+export default async function ClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const ctx = await requireSalonContext();
-  const clients = await listClients(ctx);
+  const { q } = await searchParams;
+  const clients = await listClients(ctx, q);
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -31,6 +37,7 @@ export default async function ClientsPage() {
           }
         />
       </div>
+      <SearchInput placeholder="Buscar por nombre, teléfono o correo" />
 
       {clients.length === 0 ? (
         <EmptyState

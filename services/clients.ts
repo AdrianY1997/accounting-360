@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
 import { client } from "@/db/schema";
 import type { SalonContext } from "@/lib/tenant";
@@ -21,7 +21,8 @@ function normalize(input: ClientInput) {
   };
 }
 
-export async function listClients(ctx: SalonContext) {
+export async function listClients(ctx: SalonContext, q?: string) {
+  const search = q?.trim();
   return db
     .select()
     .from(client)
@@ -29,6 +30,13 @@ export async function listClients(ctx: SalonContext) {
       and(
         eq(client.organizationId, ctx.organizationId),
         eq(client.salonId, ctx.salonId),
+        search
+          ? or(
+              ilike(client.fullName, `%${search}%`),
+              ilike(client.phone, `%${search}%`),
+              ilike(client.email, `%${search}%`),
+            )
+          : undefined,
       ),
     )
     .orderBy(desc(client.createdAt));

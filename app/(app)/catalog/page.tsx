@@ -5,6 +5,7 @@ import { salonSettings } from "@/db/schema";
 import { CategoryFormDialog } from "@/components/catalog/category-form-dialog";
 import { ServiceFormDialog } from "@/components/catalog/service-form-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { SearchInput } from "@/components/search-input";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,11 +20,16 @@ import {
 import { listCategories, listServices } from "@/services/catalog";
 import { requireSalonContext } from "@/lib/tenant";
 
-export default async function CatalogPage() {
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const ctx = await requireSalonContext();
+  const { q } = await searchParams;
   const [categories, services, settings] = await Promise.all([
     listCategories(ctx),
-    listServices(ctx),
+    listServices(ctx, q),
     db.query.salonSettings.findFirst({
       where: eq(salonSettings.teamId, ctx.salonId),
     }),
@@ -48,6 +54,7 @@ export default async function CatalogPage() {
             }
           />
         </div>
+        <SearchInput placeholder="Buscar servicio" />
 
         {services.length === 0 ? (
           <EmptyState

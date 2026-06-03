@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, between, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   client,
@@ -26,7 +26,10 @@ export async function listSalonStaff(ctx: SalonContext) {
     .where(eq(teamMember.teamId, ctx.salonId));
 }
 
-export async function listSales(ctx: SalonContext) {
+export async function listSales(
+  ctx: SalonContext,
+  opts?: { from?: Date; to?: Date; status?: string },
+) {
   const [rows, paidMap] = await Promise.all([
     db
       .select({
@@ -42,13 +45,16 @@ export async function listSales(ctx: SalonContext) {
         and(
           eq(sale.organizationId, ctx.organizationId),
           eq(sale.salonId, ctx.salonId),
+          opts?.from && opts?.to
+            ? between(sale.createdAt, opts.from, opts.to)
+            : undefined,
         ),
       )
       .orderBy(desc(sale.createdAt)),
     paidCentsBySale(ctx),
   ]);
 
-  return rows.map((r) => {
+  const mapped = rows.map((r) => {
     const paidCents = paidMap.get(r.id) ?? 0;
     return {
       ...r,
@@ -59,6 +65,11 @@ export async function listSales(ctx: SalonContext) {
           : paymentStatus(toCents(Number(r.total)), paidCents),
     };
   });
+
+  // Payment status is derived, so filter it after computing.
+  return opts?.status
+    ? mapped.filter((s) => s.paymentStatus === opts.status)
+    : mapped;
 }
 
 export async function getSale(ctx: SalonContext, id: string) {

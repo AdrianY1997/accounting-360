@@ -5,6 +5,7 @@ import { salonSettings } from "@/db/schema";
 import { ExpenseCategoryFormDialog } from "@/components/expenses/expense-category-form-dialog";
 import { ExpenseFormDialog } from "@/components/expenses/expense-form-dialog";
 import { EmptyState } from "@/components/empty-state";
+import { SearchInput } from "@/components/search-input";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,11 +24,16 @@ import {
   type PaymentMethod,
 } from "@/lib/validations/payment";
 
-export default async function ExpensesPage() {
+export default async function ExpensesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const ctx = await requireSalonContext();
+  const { q } = await searchParams;
   const [categories, expenses, settings] = await Promise.all([
     listExpenseCategories(ctx),
-    listExpenses(ctx),
+    listExpenses(ctx, q),
     db.query.salonSettings.findFirst({
       where: eq(salonSettings.teamId, ctx.salonId),
     }),
@@ -53,6 +59,7 @@ export default async function ExpensesPage() {
             }
           />
         </div>
+        <SearchInput placeholder="Buscar por proveedor o descripción" />
 
         {expenses.length === 0 ? (
           <EmptyState

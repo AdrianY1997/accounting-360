@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { EmptyState } from "@/components/empty-state";
+import { SalesFilters } from "@/components/sales/sales-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,10 +34,15 @@ const statusVariant: Record<
   void: "destructive",
 };
 
-export default async function SalesPage() {
+export default async function SalesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   const ctx = await requireSalonContext();
+  const { status } = await searchParams;
   const [sales, settings] = await Promise.all([
-    listSales(ctx),
+    listSales(ctx, { status }),
     db.query.salonSettings.findFirst({
       where: eq(salonSettings.teamId, ctx.salonId),
     }),
@@ -61,6 +67,7 @@ export default async function SalesPage() {
           </Link>
         </Button>
       </div>
+      <SalesFilters status={status} />
 
       {sales.length === 0 ? (
         <EmptyState

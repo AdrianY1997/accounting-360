@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/db";
 import { expense, expenseCategory } from "@/db/schema";
 import { centsToString, toCents } from "@/lib/money";
@@ -87,7 +87,8 @@ function normalize(input: ExpenseInput) {
   };
 }
 
-export async function listExpenses(ctx: SalonContext) {
+export async function listExpenses(ctx: SalonContext, q?: string) {
+  const search = q?.trim();
   return db
     .select({
       id: expense.id,
@@ -105,6 +106,12 @@ export async function listExpenses(ctx: SalonContext) {
       and(
         eq(expense.organizationId, ctx.organizationId),
         eq(expense.salonId, ctx.salonId),
+        search
+          ? or(
+              ilike(expense.vendor, `%${search}%`),
+              ilike(expense.description, `%${search}%`),
+            )
+          : undefined,
       ),
     )
     .orderBy(desc(expense.expenseDate));
