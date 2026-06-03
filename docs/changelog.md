@@ -2,6 +2,14 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Platform — organization switcher
+
+- `requireSalonContext` now resolves the active organization from an
+  `activeOrgId` cookie (cookie > Better Auth active org > first membership);
+  switching org clears `activeSalonId` so the salón re-resolves in-scope.
+- `services/organizations.ts` (`listUserOrganizations`, `isOrgMember`); REST
+  `POST /api/active-org`; header `OrgSwitcher` (shown only for multi-org users).
+
 ## Platform — multi-company onboarding
 
 - `user.platform_admin` boolean (Better Auth additional field; migration `0008`).

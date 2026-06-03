@@ -67,6 +67,7 @@ installed.
 | `RuleFormDialog` | `commissions/rule-form-dialog.tsx` | Client. Create/edit commission rule (staff/service wildcards, type, value). Props `rule?`, `staff`, `services`, `trigger`. POST/PUT `/api/commission-rules`. |
 | `PeriodFilter` | `period-filter.tsx` | Client. Date-range (from/to) filter; pushes `?from=&to=` to the current route. Props `from`, `to`. Used by `/commissions` and `/reports`. |
 | `SalonSwitcher` | `salon-switcher.tsx` | Client. Active-salón Select (hidden if <2). Props `salons`, `activeId`. POST `/api/active-salon` then refresh. In app header. |
+| `OrgSwitcher` | `org-switcher.tsx` | Client. Active-empresa Select (hidden if <2). Props `orgs`, `activeId`. POST `/api/active-org` then refresh. In app header. |
 | `MainNav` | `main-nav.tsx` | Client. App header navigation: inline links on desktop, hamburger dropdown on mobile, active highlight. Prop `admin` (shows Personal/Configuración). |
 | `EmptyState` | `empty-state.tsx` | Empty-list block. Props `title`, `description?`, `action?` (CTA node). |
 | `CreateCompanyDialog` | `platform/create-company-dialog.tsx` | Client (platform admin). Onboards a company (company, salón, owner name/email/password). POST `/api/platform/companies`. |

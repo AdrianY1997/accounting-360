@@ -5,6 +5,7 @@ import { member, team, teamMember } from "@/db/schema";
 import { requireSession } from "@/lib/session";
 
 export const ACTIVE_SALON_COOKIE = "activeSalonId";
+export const ACTIVE_ORG_COOKIE = "activeOrgId";
 
 export type SalonContext = {
   userId: string;
@@ -23,15 +24,21 @@ export type SalonContext = {
  */
 export async function requireSalonContext(): Promise<SalonContext> {
   const { user, session } = await requireSession();
+  const cookieStore = await cookies();
 
+  // Active organization: explicit cookie > Better Auth active org > first.
+  const findMembership = (orgId: string) =>
+    db.query.member.findFirst({
+      where: and(
+        eq(member.userId, user.id),
+        eq(member.organizationId, orgId),
+      ),
+    });
+  const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE)?.value;
   const membership =
+    (cookieOrg ? await findMembership(cookieOrg) : undefined) ??
     (session.activeOrganizationId
-      ? await db.query.member.findFirst({
-          where: and(
-            eq(member.userId, user.id),
-            eq(member.organizationId, session.activeOrganizationId),
-          ),
-        })
+      ? await findMembership(session.activeOrganizationId)
       : undefined) ??
     (await db.query.member.findFirst({ where: eq(member.userId, user.id) }));
 
@@ -53,7 +60,7 @@ export async function requireSalonContext(): Promise<SalonContext> {
     );
 
   // Active salón: explicit cookie selection > Better Auth active team > first.
-  const cookieSalon = (await cookies()).get(ACTIVE_SALON_COOKIE)?.value;
+  const cookieSalon = cookieStore.get(ACTIVE_SALON_COOKIE)?.value;
   const salonId =
     assigned.find((a) => a.teamId === cookieSalon)?.teamId ??
     assigned.find((a) => a.teamId === session.activeTeamId)?.teamId ??

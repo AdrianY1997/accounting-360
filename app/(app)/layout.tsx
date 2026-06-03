@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MainNav } from "@/components/main-nav";
+import { OrgSwitcher } from "@/components/org-switcher";
 import { SalonSwitcher } from "@/components/salon-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { listUserOrganizations } from "@/services/organizations";
 import { listSalons } from "@/services/salons";
 import { isAdmin } from "@/lib/roles";
 import { requireSession } from "@/lib/session";
@@ -20,7 +22,10 @@ export default async function AppLayout({
   const platformAdmin = Boolean(
     (session.user as { platformAdmin?: boolean }).platformAdmin,
   );
-  const salons = await listSalons(ctx);
+  const [salons, orgs] = await Promise.all([
+    listSalons(ctx),
+    listUserOrganizations(ctx),
+  ]);
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -45,6 +50,7 @@ export default async function AppLayout({
         </Link>
         <MainNav admin={admin} platformAdmin={platformAdmin} />
         <div className="flex items-center gap-3 text-sm">
+          <OrgSwitcher orgs={orgs} activeId={ctx.organizationId} />
           <SalonSwitcher salons={salons} activeId={ctx.salonId} />
           <span className="text-muted-foreground">{session.user.name}</span>
           <ThemeToggle />
