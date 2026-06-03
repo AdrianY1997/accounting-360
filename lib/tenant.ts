@@ -1,7 +1,10 @@
+import { cookies } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { member, team, teamMember } from "@/db/schema";
 import { requireSession } from "@/lib/session";
+
+export const ACTIVE_SALON_COOKIE = "activeSalonId";
 
 export type SalonContext = {
   userId: string;
@@ -49,7 +52,10 @@ export async function requireSalonContext(): Promise<SalonContext> {
       ),
     );
 
+  // Active salón: explicit cookie selection > Better Auth active team > first.
+  const cookieSalon = (await cookies()).get(ACTIVE_SALON_COOKIE)?.value;
   const salonId =
+    assigned.find((a) => a.teamId === cookieSalon)?.teamId ??
     assigned.find((a) => a.teamId === session.activeTeamId)?.teamId ??
     assigned[0]?.teamId;
 

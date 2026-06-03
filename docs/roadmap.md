@@ -29,7 +29,7 @@ an income/expense model (Phase 1), add formal double-entry bookkeeping later
 > (`admin@salon360.local` / `changeme123` unless overridden) + one empresa and
 > salón.
 
-## Phase 1 — MVP accounting (income/expense)
+## Phase 1 — MVP accounting (income/expense) — complete
 
 Each feature splits into **API** (services + route handlers) and **UI** (screens).
 
@@ -37,9 +37,12 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 - [x] Sign-in page + auth-gated app shell (mobile-first) — `requireSession`
 - [x] First admin + empresa + salón bootstrap via `pnpm db:seed`
-- [ ] Organization (empresa) + salón (team) creation/selection from UI
-- [ ] Staff invitations + role assignment; per-salón assignment (`team_member`)
-- [ ] `requireMember()` / role guards; resource ownership checks
+- [x] Salón creation (admin) + active-salón selector (cookie) — `/api/salons`,
+  `/api/active-salon`, header `SalonSwitcher`
+- [x] Staff provisioning (admin creates users — sign-up stays disabled) + role
+  assignment + per-salón assignment (`team_member`) — `/staff`, `/api/staff`
+- [x] Role guards (`isAdmin`): config, staff, commission rules, settings are
+  admin-only (403 otherwise); admin-only nav/pages hidden + redirected
 
 ### Salón settings
 

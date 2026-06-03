@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SalonSwitcher } from "@/components/salon-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { listSalons } from "@/services/salons";
+import { isAdmin } from "@/lib/roles";
 import { requireSession } from "@/lib/session";
+import { requireSalonContext } from "@/lib/tenant";
 
 export default async function AppLayout({
   children,
@@ -10,6 +14,9 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+  const ctx = await requireSalonContext();
+  const admin = isAdmin(ctx.role);
+  const salons = await listSalons(ctx);
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -81,14 +88,25 @@ export default async function AppLayout({
           >
             Reportes
           </Link>
-          <Link
-            href="/settings"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            Configuración
-          </Link>
+          {admin && (
+            <>
+              <Link
+                href="/staff"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Personal
+              </Link>
+              <Link
+                href="/settings"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Configuración
+              </Link>
+            </>
+          )}
         </nav>
         <div className="flex items-center gap-3 text-sm">
+          <SalonSwitcher salons={salons} activeId={ctx.salonId} />
           <span className="text-muted-foreground">{session.user.name}</span>
           <ThemeToggle />
           <SignOutButton />

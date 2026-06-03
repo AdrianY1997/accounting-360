@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRule, listRules } from "@/services/commissions";
+import { isAdmin } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { commissionRuleInputSchema } from "@/lib/validations/commission";
 
@@ -10,6 +11,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
+  if (!isAdmin(ctx.role)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
   const parsed = commissionRuleInputSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(

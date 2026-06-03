@@ -2,6 +2,23 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Roles, staff & multi-salón (completes Phase 1)
+
+- **Roles** (`lib/roles.ts`): `owner`/`admin`/`manager`/`cashier`/`staff`;
+  `isAdmin` (owner|admin) gates config/staff/destructive. Admin-only API routes
+  return 403 (salon-settings PUT, commission-rules writes, all `/api/staff`,
+  salón create); admin-only pages (`/staff`, `/settings`) redirect non-admins;
+  admin-only nav links hidden.
+- **Staff** (`services/staff.ts`, `/staff`, `/api/staff` + `/:id`): admins
+  provision users (Better Auth internals — public sign-up stays disabled), assign
+  a role + the current salón (`team_member`), edit role, reset password, remove
+  (not self, not owner). `StaffFormDialog`, `StaffEditDialog`.
+- **Multi-salón**: `services/salons.ts` (`listSalons`, `createSalon`,
+  `isAssigned`); admins create salones from `/settings`; active salón is chosen
+  via the header `SalonSwitcher` and persisted in the `activeSalonId` cookie,
+  which `requireSalonContext` now honors (cookie > Better Auth active team >
+  first). `/api/salons`, `/api/active-salon`.
+
 ## Phase 1 — Money-flow correctness fix
 
 - Payments belonging to **voided sales** are now excluded everywhere money is

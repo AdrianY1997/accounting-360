@@ -65,3 +65,8 @@ installed.
 | `ExpenseCategoryFormDialog` | `expenses/expense-category-form-dialog.tsx` | Client. Create/edit expense category. Props `category?`, `trigger`. POST/PUT `/api/expense-categories`. |
 | `RuleFormDialog` | `commissions/rule-form-dialog.tsx` | Client. Create/edit commission rule (staff/service wildcards, type, value). Props `rule?`, `staff`, `services`, `trigger`. POST/PUT `/api/commission-rules`. |
 | `PeriodFilter` | `period-filter.tsx` | Client. Date-range (from/to) filter; pushes `?from=&to=` to the current route. Props `from`, `to`. Used by `/commissions` and `/reports`. |
+| `SalonSwitcher` | `salon-switcher.tsx` | Client. Active-salón Select (hidden if <2). Props `salons`, `activeId`. POST `/api/active-salon` then refresh. In app header. |
+| `SettingsForm` | `settings/settings-form.tsx` | Client. Edit salón settings (currency, tax %, timezone, address, phone). Prop `settings?`. PUT `/api/salon-settings`. |
+| `CreateSalonDialog` | `settings/create-salon-dialog.tsx` | Client. Admin creates a salón (name). POST `/api/salons`. |
+| `StaffFormDialog` | `staff/staff-form-dialog.tsx` | Client. Admin creates staff (name, email, password, role). POST `/api/staff`. |
+| `StaffEditDialog` | `staff/staff-edit-dialog.tsx` | Client. Admin edits role / resets password. Prop `staff`. PATCH `/api/staff/:id`. Owner role locked. |

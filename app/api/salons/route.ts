@@ -1,25 +1,25 @@
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/services/settings";
+import { createSalon, listSalons } from "@/services/salons";
 import { isAdmin } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
-import { salonSettingsSchema } from "@/lib/validations/settings";
+import { createSalonSchema } from "@/lib/validations/salon";
 
 export async function GET() {
   const ctx = await requireSalonContext();
-  return NextResponse.json(await getSettings(ctx));
+  return NextResponse.json(await listSalons(ctx));
 }
 
-export async function PUT(req: Request) {
+export async function POST(req: Request) {
   const ctx = await requireSalonContext();
   if (!isAdmin(ctx.role)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
-  const parsed = salonSettingsSchema.safeParse(await req.json());
+  const parsed = createSalonSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
       { status: 400 },
     );
   }
-  return NextResponse.json(await updateSettings(ctx, parsed.data));
+  return NextResponse.json(await createSalon(ctx, parsed.data), { status: 201 });
 }

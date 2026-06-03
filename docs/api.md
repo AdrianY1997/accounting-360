@@ -151,6 +151,35 @@ fixed per unit.
 | DELETE | `/api/commission-rules/:id` | Delete (404 if not in salón)         |
 | GET    | `/api/commissions`          | Earnings by staff; `?from=&to=` (YYYY-MM-DD), defaults to current month |
 
+## Roles & access
+
+Roles (`lib/roles.ts`): `owner`, `admin`, `manager`, `cashier`, `staff`.
+`isAdmin` = `owner`|`admin`. Admin-only endpoints return `403` otherwise:
+salón settings PUT, commission-rule writes, all `/api/staff`, salón create.
+Operational endpoints (clients, catalog, sales, payments, cash, expenses) are
+open to any member of the salón.
+
+## Staff (admin only)
+
+Body — create: `{ name, email, password (≥8), role }` (role ∈ admin/manager/
+cashier/staff). Update: `{ role?, password? }`. Admins provision users (public
+sign-up stays disabled); the new user is assigned the current salón.
+
+| Method | Path             | Description                              |
+| ------ | ---------------- | ---------------------------------------- |
+| GET    | `/api/staff`     | List org members                         |
+| POST   | `/api/staff`     | Create staff (201; 409 if email exists)  |
+| PATCH  | `/api/staff/:id` | Update role / reset password (id = memberId) |
+| DELETE | `/api/staff/:id` | Remove member (not self, not owner)      |
+
+## Salones
+
+| Method | Path                | Description                               |
+| ------ | ------------------- | ----------------------------------------- |
+| GET    | `/api/salons`       | Salones the user is assigned to           |
+| POST   | `/api/salons`       | Create salón (admin)                       |
+| POST   | `/api/active-salon` | Set active salón (`activeSalonId` cookie); body `{ salonId }`, must be assigned |
+
 ## Salón settings
 
 Body (zod, `lib/validations/settings.ts`): `currency` (3-letter), `taxRatePercent`

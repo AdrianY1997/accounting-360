@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { deleteRule, updateRule } from "@/services/commissions";
+import { removeStaff, updateStaff } from "@/services/staff";
 import { isAdmin } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
-import { commissionRuleInputSchema } from "@/lib/validations/commission";
+import { updateStaffSchema } from "@/lib/validations/staff";
 
-export async function PUT(
+export async function PATCH(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
@@ -13,16 +13,16 @@ export async function PUT(
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;
-  const parsed = commissionRuleInputSchema.safeParse(await req.json());
+  const parsed = updateStaffSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
       { status: 400 },
     );
   }
-  const updated = await updateRule(salon, id, parsed.data);
+  const updated = await updateStaff(salon, id, parsed.data);
   if (!updated) {
-    return NextResponse.json({ error: "Regla no encontrada" }, { status: 404 });
+    return NextResponse.json({ error: "Staff no encontrado" }, { status: 404 });
   }
   return NextResponse.json(updated);
 }
@@ -36,9 +36,15 @@ export async function DELETE(
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;
-  const deleted = await deleteRule(salon, id);
-  if (!deleted) {
-    return NextResponse.json({ error: "Regla no encontrada" }, { status: 404 });
+  const res = await removeStaff(salon, id);
+  if (!res.ok) {
+    const map: Record<string, [string, number]> = {
+      not_found: ["Staff no encontrado", 404],
+      self: ["No puedes eliminarte a ti mismo", 400],
+      owner: ["No se puede eliminar al dueño", 400],
+    };
+    const [msg, status] = map[res.reason] ?? ["Error", 400];
+    return NextResponse.json({ error: msg }, { status });
   }
   return NextResponse.json({ ok: true });
 }
