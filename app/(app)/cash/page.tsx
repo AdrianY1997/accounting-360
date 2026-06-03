@@ -81,6 +81,10 @@ export default async function CashPage() {
               />
               <Row label="Ingresos" value={fmt.format(Number(summary.movementsIn))} />
               <Row label="Egresos" value={`-${fmt.format(Number(summary.movementsOut))}`} />
+              <Row
+                label="Gastos en efectivo"
+                value={`-${fmt.format(Number(summary.cashExpenses))}`}
+              />
               <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
                 <span>Esperado en caja</span>
                 <span>{fmt.format(Number(summary.expected))}</span>

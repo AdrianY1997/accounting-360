@@ -151,13 +151,24 @@ fixed per unit.
 | DELETE | `/api/commission-rules/:id` | Delete (404 if not in salón)         |
 | GET    | `/api/commissions`          | Earnings by staff; `?from=&to=` (YYYY-MM-DD), defaults to current month |
 
+## Salón settings
+
+Body (zod, `lib/validations/settings.ts`): `currency` (3-letter), `taxRatePercent`
+(0–100, stored as decimal), `timezone`, `address?`, `phone?`.
+
+| Method | Path                  | Description                       |
+| ------ | --------------------- | --------------------------------- |
+| GET    | `/api/salon-settings` | Current salón settings            |
+| PUT    | `/api/salon-settings` | Update (upsert) salón settings    |
+
 ## Reports
 
-Read-only aggregates over a window (derived from existing records).
+Read-only aggregates over a window (derived from existing records). `profit =
+income − expenses − commissions`.
 
 | Method | Path           | Description                                        |
 | ------ | -------------- | -------------------------------------------------- |
-| GET    | `/api/reports` | `?from=&to=` (YYYY-MM-DD, defaults to current month). Returns `totals` (income, subtotal, tax, expenses, profit, collected, salesCount), `byService`, `byStaff`, `byMethod`. |
+| GET    | `/api/reports` | `?from=&to=` (YYYY-MM-DD, defaults to current month). Returns `totals` (income, subtotal, tax, expenses, commissions, profit, collected, salesCount), `byService`, `byStaff`, `byMethod`. |
 
 ## Notes
 

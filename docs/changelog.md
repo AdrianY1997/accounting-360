@@ -2,6 +2,18 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — MVP module connections
+
+- **Salón settings**: `services/settings.ts` + `GET/PUT /api/salon-settings` +
+  `/settings` UI (`SettingsForm`). Edits currency, tax rate (entered as %, stored
+  as decimal), timezone, address, phone — activates tax on new sales (was 0).
+  Header nav (Configuración).
+- **Cash ↔ expenses**: `sessionSummary` now subtracts cash-paid expenses
+  (`payment_method = cash`) in the session window from expected cash (single
+  source, no duplicate movement). Caja breakdown shows "Gastos en efectivo".
+- **Commissions ↔ P&L**: `salonReport` includes the period's commissions; profit
+  = income − expenses − commissions. Reports adds a Comisiones stat card.
+
 ## Phase 1 — Reports (in progress)
 
 - `services/reports.ts` `salonReport(from,to)`: aggregates (read-only, derived)

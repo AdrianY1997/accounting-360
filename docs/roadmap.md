@@ -43,7 +43,15 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Salón settings
 
-- [ ] API + UI to edit `salon_settings` (currency, tax rate, timezone, address)
+- [x] API + UI to edit `salon_settings` (currency, tax rate, timezone, address,
+  phone) — `/settings`, `/api/salon-settings`. Activates tax on new sales.
+
+### Module connections (MVP)
+
+- [x] Cash expenses (`payment_method = cash`) reduce the cash session's expected
+  amount (no duplicate movement; single source).
+- [x] Commissions for the period are subtracted in the P&L
+  (profit = income − expenses − commissions).
 
 ### Clients
 

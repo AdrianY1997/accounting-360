@@ -1,6 +1,7 @@
 import { and, between, eq, isNotNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { expense, payment, sale, saleItem, service, user } from "@/db/schema";
+import { computeCommissions } from "@/services/commissions";
 import type { SalonContext } from "@/lib/tenant";
 
 const num = (v: unknown) => Number(v ?? 0);
@@ -23,6 +24,7 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
     byService,
     byStaff,
     byMethod,
+    commissions,
   ] = await Promise.all([
     db
       .select({
@@ -80,10 +82,12 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
         and(eq(payment.salonId, ctx.salonId), between(payment.paidAt, from, to)),
       )
       .groupBy(payment.method),
+    computeCommissions(ctx, from, to),
   ]);
 
   const income = num(salesAgg?.gross);
   const expenses = num(expensesAgg?.total);
+  const commissionsTotal = num(commissions.total);
 
   return {
     totals: {
@@ -92,7 +96,8 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
       subtotal: num(salesAgg?.subtotal),
       tax: num(salesAgg?.tax),
       expenses,
-      profit: income - expenses,
+      commissions: commissionsTotal,
+      profit: income - expenses - commissionsTotal,
       collected: byMethod.reduce((acc, m) => acc + num(m.total), 0),
     },
     byService: byService.map((r) => ({

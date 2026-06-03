@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { cashMovement, cashSession, payment } from "@/db/schema";
+import { cashMovement, cashSession, expense, payment } from "@/db/schema";
 import { centsToString, toCents } from "@/lib/money";
 import type { SalonContext } from "@/lib/tenant";
 import type {
@@ -37,6 +37,22 @@ async function cashPaymentsCents(ctx: SalonContext, from: Date, to: Date) {
   return toCents(Number(row?.sum ?? 0));
 }
 
+/** Sum of cash-paid expenses (cents) in a time window for the salón. */
+async function cashExpensesCents(ctx: SalonContext, from: Date, to: Date) {
+  const [row] = await db
+    .select({ sum: sql<string>`coalesce(sum(${expense.amount}), 0)` })
+    .from(expense)
+    .where(
+      and(
+        eq(expense.salonId, ctx.salonId),
+        eq(expense.paymentMethod, "cash"),
+        gte(expense.expenseDate, from),
+        lte(expense.expenseDate, to),
+      ),
+    );
+  return toCents(Number(row?.sum ?? 0));
+}
+
 async function movementTotalsCents(sessionId: string) {
   const rows = await db
     .select({
@@ -58,17 +74,20 @@ async function movementTotalsCents(sessionId: string) {
 /** Live breakdown + expected cash for a session (uses now() if still open). */
 export async function sessionSummary(ctx: SalonContext, session: CashSession) {
   const to = session.closedAt ?? new Date();
-  const [cashCents, { inCents, outCents }] = await Promise.all([
+  const [cashCents, { inCents, outCents }, expensesCents] = await Promise.all([
     cashPaymentsCents(ctx, session.openedAt, to),
     movementTotalsCents(session.id),
+    cashExpensesCents(ctx, session.openedAt, to),
   ]);
   const openingCents = toCents(Number(session.openingBalance));
-  const expectedCents = openingCents + cashCents + inCents - outCents;
+  const expectedCents =
+    openingCents + cashCents + inCents - outCents - expensesCents;
   return {
     opening: centsToString(openingCents),
     cashPayments: centsToString(cashCents),
     movementsIn: centsToString(inCents),
     movementsOut: centsToString(outCents),
+    cashExpenses: centsToString(expensesCents),
     expected: centsToString(expectedCents),
     expectedCents,
   };
