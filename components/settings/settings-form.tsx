@@ -30,6 +30,7 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
       timezone: String(form.get("timezone") ?? ""),
       address: String(form.get("address") ?? ""),
       phone: String(form.get("phone") ?? ""),
+      logoUrl: String(form.get("logoUrl") ?? ""),
     };
     setLoading(true);
     const res = await fetch("/api/salon-settings", {
@@ -106,6 +107,16 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
           <div className="grid gap-2">
             <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" name="phone" defaultValue={settings?.phone ?? ""} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="logoUrl">URL del logo (recibo)</Label>
+            <Input
+              id="logoUrl"
+              name="logoUrl"
+              type="url"
+              placeholder="https://…"
+              defaultValue={settings?.logoUrl ?? ""}
+            />
           </div>
           {error && (
             <p className="text-destructive text-sm" role="alert">

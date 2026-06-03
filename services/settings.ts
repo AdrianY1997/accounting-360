@@ -23,6 +23,7 @@ export async function updateSettings(
     timezone: input.timezone,
     address: input.address?.trim() || null,
     phone: input.phone?.trim() || null,
+    logoUrl: input.logoUrl?.trim() || null,
   };
 
   const existing = await getSettings(ctx);

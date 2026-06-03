@@ -11,6 +11,13 @@ export const salonSettingsSchema = z.object({
   timezone: z.string().trim().min(1, "Timezone requerido").max(64),
   address: z.string().trim().max(300).optional().or(z.literal("")),
   phone: z.string().trim().max(50).optional().or(z.literal("")),
+  logoUrl: z
+    .string()
+    .trim()
+    .url("URL inválida")
+    .max(500)
+    .optional()
+    .or(z.literal("")),
 });
 
 export type SalonSettingsInput = z.infer<typeof salonSettingsSchema>;
