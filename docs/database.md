@@ -209,6 +209,24 @@ Expenses. Scoped by `organization_id` + `salon_id`.
 | `created_by`      | text → `user.id`              | nullable; set null           |
 | `created_at` / `updated_at` | timestamp           | from `timestamps`            |
 
+### `commission_rule`
+
+Commission rules. Scoped by `organization_id` + `salon_id`. Earned commissions
+are derived (not stored): most-specific active rule per sale item wins
+(staff+service > staff > service > global).
+
+| Column            | Type                     | Notes                          |
+| ----------------- | ------------------------ | ------------------------------ |
+| `id`              | text (uuid)              | PK                             |
+| `organization_id` | text → `organization.id` | cascade                        |
+| `salon_id`        | text → `team.id`         | cascade; indexed               |
+| `staff_id`        | text → `user.id`         | nullable (wildcard); cascade   |
+| `service_id`      | text → `service.id`      | nullable (wildcard); cascade   |
+| `type`            | text                     | `percent` \| `fixed`           |
+| `value`           | numeric(12,2)            | percent (e.g. 10.00) or amount |
+| `active`          | boolean, default `true`  |                                |
+| `created_at` / `updated_at` | timestamp      | from `timestamps`              |
+
 ## Conventions
 
 - **Money**: never floats. Tax rate is `numeric`. Future amount columns use

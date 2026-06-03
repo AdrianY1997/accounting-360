@@ -69,6 +69,12 @@ export default async function AppLayout({
           >
             Gastos
           </Link>
+          <Link
+            href="/commissions"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Comisiones
+          </Link>
         </nav>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{session.user.name}</span>

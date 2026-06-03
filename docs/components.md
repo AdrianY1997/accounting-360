@@ -63,3 +63,5 @@ installed.
 | `CloseSessionDialog` | `cash/close-session-dialog.tsx` | Client. Close caja: counted amount (prefilled expected) + notes, live difference. Props `sessionId`, `expected`, `currency`. POST `/api/cash-sessions/:id/close`. |
 | `ExpenseFormDialog` | `expenses/expense-form-dialog.tsx` | Client. Create/edit expense (amount, date, category Select, vendor, payment method, description). Props `expense?` (minimal shape), `categories`, `trigger`. POST/PUT `/api/expenses`. |
 | `ExpenseCategoryFormDialog` | `expenses/expense-category-form-dialog.tsx` | Client. Create/edit expense category. Props `category?`, `trigger`. POST/PUT `/api/expense-categories`. |
+| `RuleFormDialog` | `commissions/rule-form-dialog.tsx` | Client. Create/edit commission rule (staff/service wildcards, type, value). Props `rule?`, `staff`, `services`, `trigger`. POST/PUT `/api/commission-rules`. |
+| `PeriodFilter` | `period-filter.tsx` | Client. Date-range (from/to) filter; pushes `?from=&to=` to the current route. Props `from`, `to`. Reusable for reports. |

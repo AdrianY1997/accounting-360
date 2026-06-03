@@ -85,8 +85,10 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Commissions
 
-- [ ] API — commission rules per staff/service; compute from sales
-- [ ] UI — configure rules, view earned commissions
+- [x] API — commission rules (per staff/service, percent/fixed, wildcards);
+  compute earned from sales (most-specific rule wins), `/api/commission-rules`,
+  `/api/commissions`
+- [x] UI — `/commissions`: rules CRUD + earnings by staff for a period
 
 ### Reports
 

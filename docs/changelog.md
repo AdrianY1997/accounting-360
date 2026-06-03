@@ -2,6 +2,21 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Commissions (in progress)
+
+- `commission_rule` table (scoped by `organization_id` + `salon_id`): optional
+  `staff_id` / `service_id` wildcards, `type` (percent/fixed), `value`, active.
+  Migration `0007`.
+- `services/commissions.ts`: rules CRUD + `computeCommissions(from,to)` — earned
+  per staff from non-void sale items; most-specific matching rule wins
+  (staff+service > staff > service > global); percent on line total, fixed per
+  unit. Derived on demand (nothing stored). `lib/validations/commission.ts`.
+- `lib/period.ts`: `monthRange`, `parseRange`, `toDateInput` (shared by reports).
+- REST: `GET/POST /api/commission-rules` + `/:id`, `GET /api/commissions`
+  (`?from=&to=`, defaults to current month).
+- UI `/commissions`: earnings-by-staff table for a period (`PeriodFilter`) +
+  rules management. Header nav (Comisiones). Reusable `PeriodFilter` component.
+
 ## Phase 1 — Expenses (in progress)
 
 - `expense_category` + `expense` tables (scoped by `organization_id` +

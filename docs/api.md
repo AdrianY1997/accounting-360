@@ -135,7 +135,24 @@ omitted = now).
 | PUT    | `/api/expenses/:id`           | Update (404 if not in salón) |
 | DELETE | `/api/expenses/:id`           | Delete (404 if not in salón) |
 
+## Commissions
+
+Rule body (zod, `lib/validations/commission.ts`): `staffId?` (null = all),
+`serviceId?` (null = all), `type` (`percent`|`fixed`), `value` (≥ 0), `active?`.
+Earnings are derived: the most specific active rule applies to each non-void
+sale item (staff+service > staff > service > global); percent on line total,
+fixed per unit.
+
+| Method | Path                        | Description                          |
+| ------ | --------------------------- | ------------------------------------ |
+| GET    | `/api/commission-rules`     | List rules (salón)                   |
+| POST   | `/api/commission-rules`     | Create rule (201)                    |
+| PUT    | `/api/commission-rules/:id` | Update (404 if not in salón)         |
+| DELETE | `/api/commission-rules/:id` | Delete (404 if not in salón)         |
+| GET    | `/api/commissions`          | Earnings by staff; `?from=&to=` (YYYY-MM-DD), defaults to current month |
+
 ## Remaining domain endpoints
 
-Still to come in Phase 1: commissions, reports. Document each here as it lands
-per the Documentation Maintenance Rule in [AGENTS.md](../AGENTS.md).
+Still to come in Phase 1: reports (daily close, P&L, tax summary). Document each
+here as it lands per the Documentation Maintenance Rule in
+[AGENTS.md](../AGENTS.md).
