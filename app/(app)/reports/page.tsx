@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { PeriodFilter } from "@/components/period-filter";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -51,7 +53,12 @@ export default async function ReportsPage({
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Reportes</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold">Reportes</h1>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/reports/daily">Cierre diario</Link>
+          </Button>
+        </div>
         <PeriodFilter from={toDateInput(from)} to={toDateInput(to)} />
       </div>
 

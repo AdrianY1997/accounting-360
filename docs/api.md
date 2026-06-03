@@ -44,7 +44,8 @@ session, organization, teams, invitations, members).
 `GET /api/clients`, `/api/services`, `/api/expenses` accept `?q=` (case-insensitive
 substring). `GET /api/sales` accepts `?status=` (pending|partial|paid|void) and
 optional `?from=&to=`. The list pages use these via `SearchInput` / `SalesFilters`.
-A printable receipt is rendered at `/print/sales/:id` (page, not an API).
+A printable receipt is rendered at `/print/sales/:id` and a daily close at
+`/reports/daily?date=` (pages, not APIs; both reuse `salonReport`).
 
 ## Tenant scope
 

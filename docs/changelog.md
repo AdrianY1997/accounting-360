@@ -2,6 +2,13 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Daily close view
+
+- `/reports/daily`: dedicated cierre diario — day picker (`DayFilter`), stat
+  cards (sales, collected, expenses, profit), payments by method, and the day's
+  cash sessions (expected/counted/difference). Linked from `/reports`. Gated by
+  `reports:view`. Completes the Phase 1 reports section.
+
 ## Phase 1 — Role permissions + live updates
 
 - **Permissions**: capability matrix `can(role, permission)` in `lib/roles.ts`
