@@ -92,8 +92,10 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 
 ### Reports
 
-- [ ] Daily close (cierre diario) — UI + API
-- [ ] P&L per salón / period; sales by staff/service; tax summary
+- [x] P&L per salón / period (income − expenses), sales by staff/service,
+  payments by method, tax summary — `/reports`, `/api/reports`
+- [ ] Daily close (cierre diario) as a dedicated view — pending (current report
+  works for a single day via the period filter)
 
 ## Phase 2 — Multi-salón advanced
 

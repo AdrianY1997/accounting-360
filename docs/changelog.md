@@ -2,6 +2,17 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Phase 1 — Reports (in progress)
+
+- `services/reports.ts` `salonReport(from,to)`: aggregates (read-only, derived)
+  for a window — totals (income = non-void sales, subtotal, tax, expenses,
+  profit = income − expenses, collected), sales by service, sales by staff,
+  payments by method. Reuses `lib/period`.
+- REST: `GET /api/reports` (`?from=&to=`, defaults to current month).
+- UI `/reports`: period filter, summary stat cards (income, expenses, profit,
+  tax) + breakdown tables (by service, by staff, by payment method). Header nav
+  (Reportes).
+
 ## Phase 1 — Commissions (in progress)
 
 - `commission_rule` table (scoped by `organization_id` + `salon_id`): optional

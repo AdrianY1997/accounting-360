@@ -75,6 +75,12 @@ export default async function AppLayout({
           >
             Comisiones
           </Link>
+          <Link
+            href="/reports"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            Reportes
+          </Link>
         </nav>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{session.user.name}</span>

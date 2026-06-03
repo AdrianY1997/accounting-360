@@ -151,8 +151,17 @@ fixed per unit.
 | DELETE | `/api/commission-rules/:id` | Delete (404 if not in salón)         |
 | GET    | `/api/commissions`          | Earnings by staff; `?from=&to=` (YYYY-MM-DD), defaults to current month |
 
-## Remaining domain endpoints
+## Reports
 
-Still to come in Phase 1: reports (daily close, P&L, tax summary). Document each
-here as it lands per the Documentation Maintenance Rule in
+Read-only aggregates over a window (derived from existing records).
+
+| Method | Path           | Description                                        |
+| ------ | -------------- | -------------------------------------------------- |
+| GET    | `/api/reports` | `?from=&to=` (YYYY-MM-DD, defaults to current month). Returns `totals` (income, subtotal, tax, expenses, profit, collected, salesCount), `byService`, `byStaff`, `byMethod`. |
+
+## Notes
+
+Phase 1 accounting endpoints are complete. A dedicated daily-close view is still
+pending (the report works per day via the period filter). Document new endpoints
+here as they land per the Documentation Maintenance Rule in
 [AGENTS.md](../AGENTS.md).
