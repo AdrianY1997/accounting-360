@@ -25,6 +25,7 @@ export const salonSettings = pgTable(
     timezone: text("timezone").notNull().default("UTC"),
     address: text("address"),
     phone: text("phone"),
+    logoUrl: text("logo_url"),
     ...timestamps,
   },
   (t) => [uniqueIndex("salon_settings_team_uidx").on(t.teamId)],

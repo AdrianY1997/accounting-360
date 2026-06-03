@@ -1,10 +1,13 @@
 import { eq } from "drizzle-orm";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Printer } from "lucide-react";
 import { db } from "@/db";
 import { client as clientTable, salonSettings } from "@/db/schema";
 import { PaymentDialog } from "@/components/sales/payment-dialog";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -72,6 +75,12 @@ export default async function SaleDetailPage({
           <p className="text-sm">Cliente: {saleClient?.fullName ?? "—"}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/print/sales/${sale.id}`}>
+              <Printer className="size-4" />
+              Recibo
+            </Link>
+          </Button>
           <Badge variant={statusVariant[paymentStatus]}>
             {statusLabel[paymentStatus]}
           </Badge>
