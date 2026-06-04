@@ -114,6 +114,7 @@ Each feature splits into **API** (services + route handlers) and **UI** (screens
 - [x] Responsive nav (mobile menu), empty states + loading skeletons, inline form errors
 - [x] Search on clients/services/expenses; sales status + date filters
 - [x] Printable sale receipt (`/print/sales/:id`) + company logo/branding in settings
+- [x] First-run interactive tour (driver.js), role-aware, once per user (`user.onboarded`)
 
 ## Platform — multi-company (SaaS)
 

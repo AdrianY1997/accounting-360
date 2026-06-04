@@ -3,12 +3,13 @@ import Link from "next/link";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { MainNav } from "@/components/main-nav";
 import { OrgSwitcher } from "@/components/org-switcher";
+import { ProductTour } from "@/components/product-tour";
 import { SalonSwitcher } from "@/components/salon-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { listUserOrganizations } from "@/services/organizations";
 import { listSalons } from "@/services/salons";
-import { isAdmin } from "@/lib/roles";
+import { can, isAdmin } from "@/lib/roles";
 import { requireSession } from "@/lib/session";
 import { requireSalonContext } from "@/lib/tenant";
 
@@ -27,6 +28,9 @@ export default async function AppLayout({
     listSalons(ctx),
     listUserOrganizations(ctx),
   ]);
+  const onboarded = Boolean(
+    (session.user as { onboarded?: boolean }).onboarded,
+  );
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -60,6 +64,20 @@ export default async function AppLayout({
         </div>
       </header>
       <main className="flex-1 p-4">{children}</main>
+      {!onboarded && (
+        <ProductTour
+          caps={{
+            sales: can(ctx.role, "sales:write"),
+            clients: can(ctx.role, "clients:write"),
+            catalog: can(ctx.role, "catalog:write"),
+            cash: can(ctx.role, "cash:manage"),
+            expenses: can(ctx.role, "expenses:write"),
+            reports: can(ctx.role, "reports:view"),
+            admin,
+            platformAdmin,
+          }}
+        />
+      )}
     </div>
   );
 }

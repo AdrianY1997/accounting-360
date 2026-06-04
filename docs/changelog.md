@@ -2,6 +2,15 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Onboarding — first-run interactive tour
+
+- `user.onboarded` boolean (Better Auth additional field; migration `0010`).
+- `ProductTour` (driver.js): role-aware spotlight tour that auto-starts once per
+  user. Steps cover only the modules the user can access (via `can()` + admin /
+  platform flags); nav links carry `data-tour` selectors and off-screen steps
+  are skipped. Marks the user onboarded on finish/skip via
+  `POST /api/onboarding/complete`. Mounted in the app layout when `!onboarded`.
+
 ## Platform — org impersonation
 
 - Platform admins can **enter a client company** from `/platform`

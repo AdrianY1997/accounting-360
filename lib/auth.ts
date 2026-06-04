@@ -27,6 +27,12 @@ export const auth = betterAuth({
         defaultValue: false,
         input: false,
       },
+      // First-run interactive tour completed (set via /api/onboarding/complete).
+      onboarded: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+      },
     },
   },
   emailAndPassword: {

@@ -62,6 +62,7 @@ export function MainNav({
           <Link
             key={l.href}
             href={l.href}
+            data-tour={l.href}
             className={cn(
               "hover:text-foreground transition-colors",
               isActive(l.href) ? "text-foreground font-medium" : "text-muted-foreground",
