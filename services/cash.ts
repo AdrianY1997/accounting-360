@@ -39,7 +39,12 @@ async function cashPaymentsCents(ctx: SalonContext, from: Date, to: Date) {
   return toCents(Number(row?.sum ?? 0));
 }
 
-/** Sum of cash-paid expenses (cents) in a time window for the salón. */
+/**
+ * Sum of cash-paid expenses (cents) recorded during the session window. Uses
+ * `createdAt` (when cash actually left the drawer), not `expenseDate` — the
+ * latter is a day-granular accounting date (midnight) that would fall outside an
+ * intraday session window.
+ */
 async function cashExpensesCents(ctx: SalonContext, from: Date, to: Date) {
   const [row] = await db
     .select({ sum: sql<string>`coalesce(sum(${expense.amount}), 0)` })
@@ -48,8 +53,8 @@ async function cashExpensesCents(ctx: SalonContext, from: Date, to: Date) {
       and(
         eq(expense.salonId, ctx.salonId),
         eq(expense.paymentMethod, "cash"),
-        gte(expense.expenseDate, from),
-        lte(expense.expenseDate, to),
+        gte(expense.createdAt, from),
+        lte(expense.createdAt, to),
       ),
     );
   return toCents(Number(row?.sum ?? 0));
