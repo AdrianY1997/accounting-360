@@ -7,7 +7,7 @@ import { ProductTour } from "@/components/product-tour";
 import { SalonSwitcher } from "@/components/salon-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { listUserOrganizations } from "@/services/organizations";
+import { listSwitchableOrganizations } from "@/services/organizations";
 import { listSalons } from "@/services/salons";
 import { can, isAdmin } from "@/lib/roles";
 import { requireSession } from "@/lib/session";
@@ -26,7 +26,7 @@ export default async function AppLayout({
   );
   const [salons, orgs] = await Promise.all([
     listSalons(ctx),
-    listUserOrganizations(ctx),
+    listSwitchableOrganizations(ctx, platformAdmin),
   ]);
   const onboarded = Boolean(
     (session.user as { onboarded?: boolean }).onboarded,

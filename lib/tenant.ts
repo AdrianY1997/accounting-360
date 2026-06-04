@@ -40,31 +40,40 @@ export async function requireSalonContext(): Promise<SalonContext> {
   const cookieOrg = cookieStore.get(ACTIVE_ORG_COOKIE)?.value;
   const cookieSalon = cookieStore.get(ACTIVE_SALON_COOKIE)?.value;
 
-  const membership =
-    (cookieOrg ? await findMembership(cookieOrg) : undefined) ??
-    (session.activeOrganizationId
-      ? await findMembership(session.activeOrganizationId)
-      : undefined) ??
-    (await db.query.member.findFirst({ where: eq(member.userId, user.id) }));
-
-  let organizationId: string;
-  let role: string;
+  let organizationId: string | undefined;
+  let role: string | undefined;
   let impersonating = false;
 
-  if (membership) {
-    organizationId = membership.organizationId;
-    role = membership.role;
-  } else if (platformAdmin && cookieOrg) {
-    // Impersonation: the org must exist; platform admin operates it as admin.
-    const org = await db.query.organization.findFirst({
-      where: eq(organization.id, cookieOrg),
-    });
-    if (!org) throw new Error("Empresa no encontrada");
-    organizationId = cookieOrg;
-    role = "admin";
-    impersonating = true;
-  } else {
-    throw new Error("El usuario no pertenece a ninguna empresa");
+  // An explicit org cookie wins: use the membership if any, else (platform
+  // admin) impersonate. Do NOT fall back to another org when a cookie is set —
+  // that would silently ignore the requested company.
+  if (cookieOrg) {
+    const m = await findMembership(cookieOrg);
+    if (m) {
+      organizationId = cookieOrg;
+      role = m.role;
+    } else if (platformAdmin) {
+      const org = await db.query.organization.findFirst({
+        where: eq(organization.id, cookieOrg),
+      });
+      if (org) {
+        organizationId = cookieOrg;
+        role = "admin";
+        impersonating = true;
+      }
+    }
+  }
+
+  // No (valid) cookie: Better Auth active org, then first membership.
+  if (!organizationId) {
+    const m =
+      (session.activeOrganizationId
+        ? await findMembership(session.activeOrganizationId)
+        : undefined) ??
+      (await db.query.member.findFirst({ where: eq(member.userId, user.id) }));
+    if (!m) throw new Error("El usuario no pertenece a ninguna empresa");
+    organizationId = m.organizationId;
+    role = m.role;
   }
 
   // Salón: assigned salones (normal) or all org salones (impersonation).
@@ -93,5 +102,5 @@ export async function requireSalonContext(): Promise<SalonContext> {
     throw new Error("El usuario no tiene ningún salón asignado");
   }
 
-  return { userId: user.id, organizationId, salonId, role, impersonating };
+  return { userId: user.id, organizationId, salonId, role: role!, impersonating };
 }

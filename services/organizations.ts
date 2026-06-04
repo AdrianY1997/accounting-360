@@ -17,6 +17,23 @@ export async function listUserOrganizations(
     .orderBy(organization.name);
 }
 
+/**
+ * Organizations the user can switch into from the header: their memberships,
+ * or every company for a platform admin (who switches via impersonation).
+ */
+export async function listSwitchableOrganizations(
+  ctx: SalonContext,
+  platformAdmin: boolean,
+): Promise<OrgOption[]> {
+  if (platformAdmin) {
+    return db
+      .select({ id: organization.id, name: organization.name })
+      .from(organization)
+      .orderBy(organization.name);
+  }
+  return listUserOrganizations(ctx);
+}
+
 export async function isOrgMember(ctx: SalonContext, organizationId: string) {
   const found = await db.query.member.findFirst({
     where: and(
