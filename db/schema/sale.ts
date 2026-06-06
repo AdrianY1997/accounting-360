@@ -4,7 +4,7 @@ import { timestamps } from "./_shared";
 import { user } from "./auth";
 import { organization, team } from "./auth";
 import { client } from "./client";
-import { service } from "./catalog";
+import { service, serviceVariant } from "./catalog";
 
 /**
  * Sales (tickets). A sale has line items (services or free-form), a tax
@@ -59,6 +59,9 @@ export const saleItem = pgTable(
       .notNull()
       .references(() => sale.id, { onDelete: "cascade" }),
     serviceId: text("service_id").references(() => service.id, {
+      onDelete: "set null",
+    }),
+    variantId: text("variant_id").references(() => serviceVariant.id, {
       onDelete: "set null",
     }),
     // Staff who performed this line — basis for future commissions.

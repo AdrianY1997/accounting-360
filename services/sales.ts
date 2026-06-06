@@ -1,4 +1,4 @@
-import { and, between, desc, eq, inArray } from "drizzle-orm";
+import { and, between, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   client,
@@ -7,6 +7,7 @@ import {
   saleItem,
   salonSettings,
   service,
+  serviceVariant,
   teamMember,
   user,
 } from "@/db/schema";
@@ -139,6 +140,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
           priceMode: service.priceMode,
           costPrice: service.costPrice,
           minPrice: service.minPrice,
+          tracksStock: service.tracksStock,
         })
         .from(service)
         .where(
@@ -146,6 +148,29 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
         )
     : [];
   const svcMap = new Map(svcRows.map((s) => [s.id, s]));
+
+  // Load referenced variants (stock items) to validate + decrement.
+  const variantIds = input.items
+    .map((it) => it.variantId)
+    .filter((v): v is string => Boolean(v));
+  const varRows = variantIds.length
+    ? await db
+        .select({
+          id: serviceVariant.id,
+          stock: serviceVariant.stock,
+          name: serviceVariant.name,
+        })
+        .from(serviceVariant)
+        .innerJoin(service, eq(service.id, serviceVariant.serviceId))
+        .where(
+          and(
+            eq(service.salonId, ctx.salonId),
+            inArray(serviceVariant.id, variantIds),
+          ),
+        )
+    : [];
+  const varMap = new Map(varRows.map((v) => [v.id, v]));
+  const decrement = new Map<string, number>(); // variantId → units sold
 
   let subtotalCents = 0;
   const saleId = crypto.randomUUID();
@@ -164,6 +189,18 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
           `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
         );
       }
+    }
+
+    // Stock-tracked items require a variant with enough stock.
+    let variantId: string | null = null;
+    if (svc?.tracksStock) {
+      const variant = it.variantId ? varMap.get(it.variantId) : undefined;
+      if (!variant) {
+        throw new SaleError(
+          `Selecciona una variante para "${it.description.trim()}".`,
+        );
+      }
+      variantId = variant.id;
     }
 
     let qty: number; // stored multiplier
@@ -185,10 +222,15 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       lineCents = Math.round(unitCents * qty);
     }
 
+    if (variantId) {
+      decrement.set(variantId, (decrement.get(variantId) ?? 0) + qty);
+    }
+
     subtotalCents += lineCents;
     return {
       saleId,
       serviceId: it.serviceId || null,
+      variantId,
       staffId: it.staffId || null,
       description: it.description.trim(),
       measureType,
@@ -199,6 +241,16 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       lineTotal: toMoney(lineCents),
     };
   });
+
+  // Validate available stock per variant (aggregated across lines).
+  for (const [variantId, units] of decrement) {
+    const variant = varMap.get(variantId);
+    if (!variant || variant.stock < units) {
+      throw new SaleError(
+        `Stock insuficiente para "${variant?.name ?? "la variante"}".`,
+      );
+    }
+  }
 
   const taxCents = Math.round(subtotalCents * taxRate);
   const totalCents = subtotalCents + taxCents;
@@ -217,6 +269,14 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
         ]
       : [];
 
+  // Decrement variant stock (whole units) for stock-tracked lines.
+  const stockOps = Array.from(decrement.entries()).map(([variantId, units]) =>
+    db
+      .update(serviceVariant)
+      .set({ stock: sql`${serviceVariant.stock} - ${Math.round(units)}` })
+      .where(eq(serviceVariant.id, variantId)),
+  );
+
   await db.batch([
     db.insert(sale).values({
       id: saleId,
@@ -232,23 +292,46 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
     }),
     db.insert(saleItem).values(itemRows),
     ...paymentOps,
+    ...stockOps,
   ]);
 
   return { id: saleId };
 }
 
-/** Soft-void a sale (keeps the financial record). */
+/** Soft-void a sale (keeps the record) and restores any stock it consumed. */
 export async function voidSale(ctx: SalonContext, id: string) {
-  const [updated] = await db
-    .update(sale)
-    .set({ status: "void" })
-    .where(
-      and(
-        eq(sale.id, id),
-        eq(sale.organizationId, ctx.organizationId),
-        eq(sale.salonId, ctx.salonId),
-      ),
-    )
-    .returning({ id: sale.id });
-  return updated ?? null;
+  const target = await db.query.sale.findFirst({
+    where: and(
+      eq(sale.id, id),
+      eq(sale.organizationId, ctx.organizationId),
+      eq(sale.salonId, ctx.salonId),
+    ),
+  });
+  if (!target || target.status === "void") return null;
+
+  // Stock to return: variant lines of this sale.
+  const lines = await db
+    .select({ variantId: saleItem.variantId, quantity: saleItem.quantity })
+    .from(saleItem)
+    .where(eq(saleItem.saleId, id));
+  const restore = new Map<string, number>();
+  for (const l of lines) {
+    if (!l.variantId) continue;
+    restore.set(
+      l.variantId,
+      (restore.get(l.variantId) ?? 0) + Math.round(Number(l.quantity)),
+    );
+  }
+
+  await db.batch([
+    db.update(sale).set({ status: "void" }).where(eq(sale.id, id)),
+    ...Array.from(restore.entries()).map(([variantId, units]) =>
+      db
+        .update(serviceVariant)
+        .set({ stock: sql`${serviceVariant.stock} + ${units}` })
+        .where(eq(serviceVariant.id, variantId)),
+    ),
+  ] as never);
+
+  return { id };
 }

@@ -317,3 +317,26 @@ export async function deleteVariant(ctx: SalonContext, variantId: string) {
     .returning({ id: serviceVariant.id });
   return deleted ?? null;
 }
+
+/** Variants grouped by service id (for the POS), salón-scoped. */
+export async function variantsForServices(ctx: SalonContext, ids: string[]) {
+  const map = new Map<string, ServiceVariant[]>();
+  if (ids.length === 0) return map;
+  const rows = await db
+    .select()
+    .from(serviceVariant)
+    .innerJoin(service, eq(service.id, serviceVariant.serviceId))
+    .where(
+      and(
+        eq(service.salonId, ctx.salonId),
+        inArray(serviceVariant.serviceId, ids),
+      ),
+    )
+    .orderBy(asc(serviceVariant.createdAt));
+  for (const r of rows) {
+    const list = map.get(r.service_variant.serviceId) ?? [];
+    list.push(r.service_variant);
+    map.set(r.service_variant.serviceId, list);
+  }
+  return map;
+}

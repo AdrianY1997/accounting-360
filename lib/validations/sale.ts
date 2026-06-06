@@ -3,6 +3,7 @@ import { paymentInputSchema } from "./payment";
 
 export const saleItemInputSchema = z.object({
   serviceId: z.string().trim().min(1).nullable().optional(),
+  variantId: z.string().trim().min(1).nullable().optional(),
   staffId: z.string().trim().min(1).nullable().optional(),
   description: z.string().trim().min(1, "Descripción requerida").max(200),
   unitPrice: z.coerce.number().min(0, "Precio inválido"),

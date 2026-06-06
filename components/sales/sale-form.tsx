@@ -17,6 +17,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods, paymentMethodLabels } from "@/lib/validations/payment";
 
+type VariantOpt = {
+  id: string;
+  name: string;
+  price: string | null;
+  stock: number;
+};
 type ClientOpt = { id: string; fullName: string; type: string };
 type ServiceOpt = {
   id: string;
@@ -27,11 +33,15 @@ type ServiceOpt = {
   measureType: string;
   priceMode: string;
   durationMinutes: number;
+  tracksStock: boolean;
+  variants: VariantOpt[];
 };
 type StaffOpt = { id: string; name: string };
 
 type Row = {
   serviceId: string;
+  variantId: string;
+  tracksStock: boolean;
   description: string;
   unitPrice: string;
   minPrice: string;
@@ -45,6 +55,8 @@ type Row = {
 const NONE = "__none__";
 const emptyRow = (): Row => ({
   serviceId: NONE,
+  variantId: NONE,
+  tracksStock: false,
   description: "",
   unitPrice: "0",
   minPrice: "0",
@@ -118,19 +130,37 @@ export function SaleForm({
 
   function onPickService(i: number, serviceId: string) {
     if (serviceId === NONE) {
-      setRow(i, { serviceId, minPrice: "0" });
+      setRow(i, {
+        serviceId,
+        minPrice: "0",
+        tracksStock: false,
+        variantId: NONE,
+      });
       return;
     }
     const svc = services.find((s) => s.id === serviceId);
+    const firstVar = svc?.tracksStock ? svc.variants[0] : undefined;
     setRow(i, {
       serviceId,
       description: svc?.name ?? "",
-      unitPrice: svc ? tierPrice(svc, clientType) : "0",
+      tracksStock: svc?.tracksStock ?? false,
+      variantId: firstVar?.id ?? NONE,
+      unitPrice:
+        firstVar?.price ?? (svc ? tierPrice(svc, clientType) : "0"),
       minPrice: svc?.minPrice ?? "0",
       measureType: svc?.measureType ?? "quantity",
       priceMode: svc?.priceMode ?? "per_unit",
       durationMinutes: String(svc?.durationMinutes ?? 0),
       quantity: "1",
+    });
+  }
+
+  function onPickVariant(i: number, variantId: string) {
+    const svc = services.find((s) => s.id === rows[i].serviceId);
+    const v = svc?.variants.find((x) => x.id === variantId);
+    setRow(i, {
+      variantId,
+      unitPrice: v?.price ?? (svc ? tierPrice(svc, clientType) : rows[i].unitPrice),
     });
   }
 
@@ -174,6 +204,10 @@ export function SaleForm({
       setError("Hay ítems por debajo del precio mínimo permitido.");
       return;
     }
+    if (rows.some((r) => r.tracksStock && r.variantId === NONE)) {
+      setError("Selecciona una variante para los productos con stock.");
+      return;
+    }
     if (Number(payAmount) > total) {
       setError("El pago no puede ser mayor al total.");
       return;
@@ -185,6 +219,7 @@ export function SaleForm({
       notes,
       items: rows.map((r) => ({
         serviceId: r.serviceId === NONE ? null : r.serviceId,
+        variantId: r.variantId === NONE ? null : r.variantId,
         staffId: r.staffId === NONE ? null : r.staffId,
         description: r.description,
         unitPrice: r.unitPrice,
@@ -295,6 +330,25 @@ export function SaleForm({
                 placeholder="Descripción"
                 required
               />
+              {r.tracksStock && (
+                <Select
+                  value={r.variantId}
+                  onValueChange={(v) => onPickVariant(i, v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Variante" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(services
+                      .find((s) => s.id === r.serviceId)
+                      ?.variants ?? []).map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.name} (stock {v.stock})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="grid gap-1">
               <Label className="text-xs">Precio</Label>

@@ -2,6 +2,15 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Inventory — sale variant selection + stock decrement (part 2)
+
+- `sale_item.variant_id` (migration `0016`). Stock-tracked items require a
+  variant on the sale line; the POS shows a variant select (with stock) and
+  prices from the variant (own price or item price).
+- `createSale` validates available stock per variant (aggregated across lines,
+  `SaleError` → 400) and decrements `service_variant.stock` atomically in the
+  same `db.batch`. `voidSale` now restores the stock the sale consumed.
+
 ## Inventory — variants & stock (part 1)
 
 - `service.tracks_stock`; `service_variant` (free-text name, optional own price,

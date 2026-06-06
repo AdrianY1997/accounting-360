@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { SaleForm } from "@/components/sales/sale-form";
 import { listClients } from "@/services/clients";
-import { listServices } from "@/services/catalog";
+import { listServices, variantsForServices } from "@/services/catalog";
 import { listSalonStaff } from "@/services/sales";
 import { requireSalonContext } from "@/lib/tenant";
 
@@ -17,6 +17,10 @@ export default async function NewSalePage() {
       where: eq(salonSettings.teamId, ctx.salonId),
     }),
   ]);
+  const variants = await variantsForServices(
+    ctx,
+    services.filter((s) => s.tracksStock).map((s) => s.id),
+  );
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -38,6 +42,13 @@ export default async function NewSalePage() {
             measureType: s.measureType,
             priceMode: s.priceMode,
             durationMinutes: s.durationMinutes,
+            tracksStock: s.tracksStock,
+            variants: (variants.get(s.id) ?? []).map((v) => ({
+              id: v.id,
+              name: v.name,
+              price: v.price,
+              stock: v.stock,
+            })),
           }))}
         staff={staff}
         taxRate={Number(settings?.taxRate ?? 0)}
