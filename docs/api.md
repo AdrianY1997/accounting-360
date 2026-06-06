@@ -47,7 +47,8 @@ optional `?from=&to=`. The list pages use these via `SearchInput` / `SalesFilter
 A printable receipt is rendered at `/print/sales/:id` and a daily close at
 `/reports/daily?date=` (pages, not APIs; both reuse `salonReport`).
 `POST /api/onboarding/complete` marks the current user's first-run tour done
-(`user.onboarded`).
+(`user.onboarded`). `/store/:salonId` is a public (unauthenticated) storefront
+page for a salón (active items, images, variants, stock, suggested price).
 
 ## Tenant scope
 

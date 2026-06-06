@@ -31,11 +31,24 @@ export default async function SettingsPage() {
         </div>
         <ul className="divide-y rounded-md border">
           {salons.map((s) => (
-            <li key={s.id} className="px-4 py-2 text-sm">
-              {s.name}
-              {s.id === ctx.salonId && (
-                <span className="text-muted-foreground"> · activo</span>
-              )}
+            <li
+              key={s.id}
+              className="flex items-center justify-between px-4 py-2 text-sm"
+            >
+              <span>
+                {s.name}
+                {s.id === ctx.salonId && (
+                  <span className="text-muted-foreground"> · activo</span>
+                )}
+              </span>
+              <a
+                href={`/store/${s.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground hover:text-foreground underline"
+              >
+                Ver tienda
+              </a>
             </li>
           ))}
         </ul>

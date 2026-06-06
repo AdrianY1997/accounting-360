@@ -2,6 +2,14 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Public storefront (part 3)
+
+- Unauthenticated catalog per salón at `/store/[salonId]`: shows active items
+  with cover image (item or variant), suggested price, total stock, and each
+  variant's price/stock/images. No cost/min/reseller exposed. `services/
+  public.ts` `publicStore(salonId)` queries directly by salón (no session).
+- Settings → Salones lists a "Ver tienda" link per salón to share the URL.
+
 ## Inventory — sale variant selection + stock decrement (part 2)
 
 - `sale_item.variant_id` (migration `0016`). Stock-tracked items require a
