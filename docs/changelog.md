@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## General accounting — item measure + pricing
+
+- Pivot from salon-only to general accounting. Catalog renamed UI-wise to
+  "Productos y servicios" / "Catálogo"; items can be measured by **quantity** or
+  **duration**.
+- `service` gains `measure_type` (quantity|duration) and `price_mode`
+  (per_unit|fixed). Duration items: `per_unit` = price per hour (line scales with
+  minutes), `fixed` = flat price (duration informational). Migration `0011`.
+- `sale_item`: `quantity` now numeric (decimal), plus `measure_type` snapshot and
+  `duration_minutes`. `createSale` loads referenced items and computes line
+  totals authoritatively per measure/price mode. Sale form shows a Cant. or Min.
+  input per line; detail + receipt render duration vs quantity. Commission compute
+  updated for numeric quantity.
+
 ## Onboarding — first-run interactive tour
 
 - `user.onboarded` boolean (Better Auth additional field; migration `0010`).

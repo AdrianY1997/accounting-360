@@ -76,6 +76,8 @@ function normalizeService(input: ServiceInput) {
     name: input.name.trim(),
     categoryId: input.categoryId || null,
     price: input.price.toFixed(2),
+    measureType: input.measureType,
+    priceMode: input.measureType === "duration" ? input.priceMode : "per_unit",
     durationMinutes: input.durationMinutes,
     active: input.active ?? true,
   };

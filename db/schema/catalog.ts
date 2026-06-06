@@ -50,6 +50,12 @@ export const service = pgTable(
     }),
     name: text("name").notNull(),
     price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
+    // How the item is measured on a sale line:
+    //   quantity → price per unit, line = price × qty
+    //   duration → price_mode decides: per_unit (price per hour, line = price ×
+    //              hours) or fixed (flat price, duration is informational)
+    measureType: text("measure_type").notNull().default("quantity"), // quantity | duration
+    priceMode: text("price_mode").notNull().default("per_unit"), // per_unit | fixed
     durationMinutes: integer("duration_minutes").notNull().default(0),
     active: boolean("active").notNull().default(true),
     ...timestamps,

@@ -6,7 +6,10 @@ export const saleItemInputSchema = z.object({
   staffId: z.string().trim().min(1).nullable().optional(),
   description: z.string().trim().min(1, "Descripción requerida").max(200),
   unitPrice: z.coerce.number().min(0, "Precio inválido"),
-  quantity: z.coerce.number().int().min(1, "Cantidad mínima 1"),
+  // Units for quantity items; ignored for duration items (uses durationMinutes).
+  quantity: z.coerce.number().min(0).default(1),
+  // Minutes for duration items.
+  durationMinutes: z.coerce.number().int().min(0).default(0),
 });
 
 export const saleInputSchema = z.object({

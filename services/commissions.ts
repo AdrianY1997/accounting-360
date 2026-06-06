@@ -173,7 +173,9 @@ export async function computeCommissions(
     if (!it.staffId) continue;
     const rule = bestRule(rules, it.staffId, it.serviceId);
     const lineCents = toCents(Number(it.lineTotal));
-    const commCents = rule ? commissionCents(rule, lineCents, it.quantity) : 0;
+    const commCents = rule
+      ? commissionCents(rule, lineCents, Number(it.quantity))
+      : 0;
     const cur =
       acc.get(it.staffId) ??
       {

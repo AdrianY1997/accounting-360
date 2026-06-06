@@ -1,4 +1,4 @@
-import { and, between, desc, eq } from "drizzle-orm";
+import { and, between, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   client,
@@ -6,6 +6,7 @@ import {
   sale,
   saleItem,
   salonSettings,
+  service,
   teamMember,
   user,
 } from "@/db/schema";
@@ -85,8 +86,10 @@ export async function getSale(ctx: SalonContext, id: string) {
     .select({
       id: saleItem.id,
       description: saleItem.description,
+      measureType: saleItem.measureType,
       unitPrice: saleItem.unitPrice,
       quantity: saleItem.quantity,
+      durationMinutes: saleItem.durationMinutes,
       lineTotal: saleItem.lineTotal,
       staffName: user.name,
     })
@@ -121,18 +124,61 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
   });
   const taxRate = Number(settings?.taxRate ?? 0);
 
+  // Load referenced items to authoritatively know their measure/price mode.
+  const serviceIds = input.items
+    .map((it) => it.serviceId)
+    .filter((v): v is string => Boolean(v));
+  const svcRows = serviceIds.length
+    ? await db
+        .select({
+          id: service.id,
+          measureType: service.measureType,
+          priceMode: service.priceMode,
+        })
+        .from(service)
+        .where(
+          and(eq(service.salonId, ctx.salonId), inArray(service.id, serviceIds)),
+        )
+    : [];
+  const svcMap = new Map(svcRows.map((s) => [s.id, s]));
+
   let subtotalCents = 0;
   const saleId = crypto.randomUUID();
   const itemRows = input.items.map((it) => {
-    const lineCents = toCents(it.unitPrice) * it.quantity;
+    const svc = it.serviceId ? svcMap.get(it.serviceId) : undefined;
+    const measureType = svc?.measureType ?? "quantity";
+    const priceMode = svc?.priceMode ?? "per_unit";
+    const unitCents = toCents(it.unitPrice);
+
+    let qty: number; // stored multiplier
+    let durationMinutes: number | null = null;
+    let lineCents: number;
+
+    if (measureType === "duration") {
+      durationMinutes = Math.round(it.durationMinutes);
+      if (priceMode === "fixed") {
+        qty = 1;
+        lineCents = unitCents;
+      } else {
+        const hours = durationMinutes / 60;
+        qty = hours;
+        lineCents = Math.round(unitCents * hours);
+      }
+    } else {
+      qty = it.quantity;
+      lineCents = Math.round(unitCents * qty);
+    }
+
     subtotalCents += lineCents;
     return {
       saleId,
       serviceId: it.serviceId || null,
       staffId: it.staffId || null,
       description: it.description.trim(),
-      unitPrice: toMoney(toCents(it.unitPrice)),
-      quantity: it.quantity,
+      measureType,
+      unitPrice: toMoney(unitCents),
+      quantity: qty.toFixed(2),
+      durationMinutes,
       lineTotal: toMoney(lineCents),
     };
   });

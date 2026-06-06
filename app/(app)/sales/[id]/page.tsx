@@ -114,7 +114,11 @@ export default async function SaleDetailPage({
                 <TableCell className="text-right">
                   {fmt.format(Number(it.unitPrice))}
                 </TableCell>
-                <TableCell className="text-right">{it.quantity}</TableCell>
+                <TableCell className="text-right">
+                  {it.measureType === "duration"
+                    ? `${it.durationMinutes ?? 0} min`
+                    : Number(it.quantity)}
+                </TableCell>
                 <TableCell className="text-right">
                   {fmt.format(Number(it.lineTotal))}
                 </TableCell>

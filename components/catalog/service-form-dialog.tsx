@@ -22,6 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  measureTypeLabels,
+  measureTypes,
+  priceModeLabels,
+  priceModes,
+} from "@/lib/validations/catalog";
 
 const NONE = "__none__";
 
@@ -38,7 +44,12 @@ export function ServiceFormDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState(service?.categoryId ?? NONE);
+  const [measureType, setMeasureType] = useState(
+    service?.measureType ?? "quantity",
+  );
+  const [priceMode, setPriceMode] = useState(service?.priceMode ?? "per_unit");
   const editing = Boolean(service);
+  const isDuration = measureType === "duration";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,6 +57,8 @@ export function ServiceFormDialog({
     const body = {
       name: String(form.get("name") ?? ""),
       price: String(form.get("price") ?? "0"),
+      measureType,
+      priceMode,
       durationMinutes: String(form.get("durationMinutes") ?? "0"),
       categoryId: categoryId === NONE ? null : categoryId,
     };
@@ -64,7 +77,7 @@ export function ServiceFormDialog({
       toast.error(data.error ?? "No se pudo guardar");
       return;
     }
-    toast.success(editing ? "Servicio actualizado" : "Servicio creado");
+    toast.success(editing ? "Ítem actualizado" : "Ítem creado");
     setOpen(false);
     router.refresh();
   }
@@ -74,9 +87,7 @@ export function ServiceFormDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {editing ? "Editar servicio" : "Nuevo servicio"}
-          </DialogTitle>
+          <DialogTitle>{editing ? "Editar ítem" : "Nuevo ítem"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4">
           <div className="grid gap-2">
@@ -106,7 +117,45 @@ export function ServiceFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="price">Precio</Label>
+              <Label>Medida</Label>
+              <Select value={measureType} onValueChange={setMeasureType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {measureTypes.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {measureTypeLabels[m]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {isDuration && (
+              <div className="grid gap-2">
+                <Label>Precio</Label>
+                <Select value={priceMode} onValueChange={setPriceMode}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priceModes.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {priceModeLabels[p]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="price">
+                {isDuration && priceMode === "per_unit"
+                  ? "Precio por hora"
+                  : "Precio"}
+              </Label>
               <Input
                 id="price"
                 name="price"
@@ -116,16 +165,18 @@ export function ServiceFormDialog({
                 defaultValue={service?.price ?? "0"}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="durationMinutes">Duración (min)</Label>
-              <Input
-                id="durationMinutes"
-                name="durationMinutes"
-                type="number"
-                min="0"
-                defaultValue={service?.durationMinutes ?? 0}
-              />
-            </div>
+            {isDuration && (
+              <div className="grid gap-2">
+                <Label htmlFor="durationMinutes">Duración por defecto (min)</Label>
+                <Input
+                  id="durationMinutes"
+                  name="durationMinutes"
+                  type="number"
+                  min="0"
+                  defaultValue={service?.durationMinutes ?? 0}
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading}>

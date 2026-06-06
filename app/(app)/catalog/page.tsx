@@ -46,23 +46,23 @@ export default async function CatalogPage({
     <div className="mx-auto max-w-4xl space-y-8">
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Servicios</h1>
+          <h1 className="text-2xl font-semibold">Productos y servicios</h1>
           <ServiceFormDialog
             categories={categories}
             trigger={
               <Button>
                 <Plus className="size-4" />
-                Nuevo servicio
+                Nuevo ítem
               </Button>
             }
           />
         </div>
-        <SearchInput placeholder="Buscar servicio" />
+        <SearchInput placeholder="Buscar ítem" />
 
         {services.length === 0 ? (
           <EmptyState
-            title="Aún no hay servicios"
-            description="Crea servicios con su precio para venderlos en los tickets."
+            title="Aún no hay ítems"
+            description="Crea productos o servicios con su precio para venderlos."
           />
         ) : (
           <div className="rounded-md border">
@@ -71,8 +71,8 @@ export default async function CatalogPage({
                 <TableRow>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Categoría</TableHead>
+                  <TableHead>Medida</TableHead>
                   <TableHead className="text-right">Precio</TableHead>
-                  <TableHead className="text-right">Min</TableHead>
                   <TableHead className="w-24 text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -89,11 +89,19 @@ export default async function CatalogPage({
                         "—"
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      {fmt.format(Number(s.price))}
+                    <TableCell>
+                      {s.measureType === "duration"
+                        ? s.priceMode === "per_unit"
+                          ? "Duración (×hora)"
+                          : "Duración (fija)"
+                        : "Cantidad"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {s.durationMinutes}
+                      {fmt.format(Number(s.price))}
+                      {s.measureType === "duration" &&
+                      s.priceMode === "per_unit"
+                        ? " /h"
+                        : ""}
                     </TableCell>
                     <TableCell className="text-right">
                       <ServiceFormDialog
@@ -107,8 +115,8 @@ export default async function CatalogPage({
                       />
                       <ResourceDeleteButton
                         endpoint={`/api/services/${s.id}`}
-                        name={`el servicio ${s.name}`}
-                        successMessage="Servicio eliminado"
+                        name={`el ítem ${s.name}`}
+                        successMessage="Ítem eliminado"
                       />
                     </TableCell>
                   </TableRow>

@@ -25,7 +25,14 @@ export default async function NewSalePage() {
         clients={clients.map((c) => ({ id: c.id, fullName: c.fullName }))}
         services={services
           .filter((s) => s.active)
-          .map((s) => ({ id: s.id, name: s.name, price: s.price }))}
+          .map((s) => ({
+            id: s.id,
+            name: s.name,
+            price: s.price,
+            measureType: s.measureType,
+            priceMode: s.priceMode,
+            durationMinutes: s.durationMinutes,
+          }))}
         staff={staff}
         taxRate={Number(settings?.taxRate ?? 0)}
         currency={settings?.currency ?? "USD"}

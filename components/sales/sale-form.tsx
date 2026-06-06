@@ -18,7 +18,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods, paymentMethodLabels } from "@/lib/validations/payment";
 
 type ClientOpt = { id: string; fullName: string };
-type ServiceOpt = { id: string; name: string; price: string };
+type ServiceOpt = {
+  id: string;
+  name: string;
+  price: string;
+  measureType: string;
+  priceMode: string;
+  durationMinutes: number;
+};
 type StaffOpt = { id: string; name: string };
 
 type Row = {
@@ -26,6 +33,9 @@ type Row = {
   description: string;
   unitPrice: string;
   quantity: string;
+  durationMinutes: string;
+  measureType: string; // quantity | duration
+  priceMode: string; // per_unit | fixed
   staffId: string;
 };
 
@@ -35,8 +45,21 @@ const emptyRow = (): Row => ({
   description: "",
   unitPrice: "0",
   quantity: "1",
+  durationMinutes: "0",
+  measureType: "quantity",
+  priceMode: "per_unit",
   staffId: NONE,
 });
+
+/** Line total for the live preview (mirrors the server math). */
+function rowTotal(r: Row): number {
+  const price = Number(r.unitPrice) || 0;
+  if (r.measureType === "duration") {
+    if (r.priceMode === "fixed") return price;
+    return price * ((Number(r.durationMinutes) || 0) / 60);
+  }
+  return price * (Number(r.quantity) || 0);
+}
 
 export function SaleForm({
   clients,
@@ -79,14 +102,15 @@ export function SaleForm({
       serviceId,
       description: svc?.name ?? "",
       unitPrice: svc?.price ?? "0",
+      measureType: svc?.measureType ?? "quantity",
+      priceMode: svc?.priceMode ?? "per_unit",
+      durationMinutes: String(svc?.durationMinutes ?? 0),
+      quantity: "1",
     });
   }
 
   const { subtotal, tax, total } = useMemo(() => {
-    const sub = rows.reduce(
-      (acc, r) => acc + (Number(r.unitPrice) || 0) * (Number(r.quantity) || 0),
-      0,
-    );
+    const sub = rows.reduce((acc, r) => acc + rowTotal(r), 0);
     const t = sub * taxRate;
     return { subtotal: sub, tax: t, total: sub + t };
   }, [rows, taxRate]);
@@ -119,6 +143,7 @@ export function SaleForm({
         description: r.description,
         unitPrice: r.unitPrice,
         quantity: r.quantity,
+        durationMinutes: r.durationMinutes,
       })),
       payment:
         Number(payAmount) > 0
@@ -220,16 +245,33 @@ export function SaleForm({
                 onChange={(e) => setRow(i, { unitPrice: e.target.value })}
               />
             </div>
-            <div className="grid gap-1">
-              <Label className="text-xs">Cant.</Label>
-              <Input
-                type="number"
-                min="1"
-                className="w-20"
-                value={r.quantity}
-                onChange={(e) => setRow(i, { quantity: e.target.value })}
-              />
-            </div>
+            {r.measureType === "duration" ? (
+              <div className="grid gap-1">
+                <Label className="text-xs">Min.</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  className="w-24"
+                  value={r.durationMinutes}
+                  disabled={r.priceMode === "fixed"}
+                  onChange={(e) =>
+                    setRow(i, { durationMinutes: e.target.value })
+                  }
+                />
+              </div>
+            ) : (
+              <div className="grid gap-1">
+                <Label className="text-xs">Cant.</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="w-20"
+                  value={r.quantity}
+                  onChange={(e) => setRow(i, { quantity: e.target.value })}
+                />
+              </div>
+            )}
             <div className="grid gap-1">
               <Label className="text-xs">Staff</Label>
               <Select

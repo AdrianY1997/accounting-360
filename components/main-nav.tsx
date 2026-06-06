@@ -24,7 +24,7 @@ type NavLink = {
 const LINKS: NavLink[] = [
   { href: "/dashboard", label: "Panel" },
   { href: "/clients", label: "Clientes", perm: "clients:write" },
-  { href: "/catalog", label: "Servicios", perm: "catalog:write" },
+  { href: "/catalog", label: "Catálogo", perm: "catalog:write" },
   { href: "/sales", label: "Ventas", perm: "sales:write" },
   { href: "/cash", label: "Caja", perm: "cash:manage" },
   { href: "/expenses", label: "Gastos", perm: "expenses:write" },

@@ -66,10 +66,17 @@ export const saleItem = pgTable(
       onDelete: "set null",
     }),
     description: text("description").notNull(),
+    // Snapshot of how this line is measured (item may change later).
+    measureType: text("measure_type").notNull().default("quantity"),
     unitPrice: numeric("unit_price", { precision: 12, scale: 2 })
       .notNull()
       .default("0"),
-    quantity: integer("quantity").notNull().default(1),
+    // Multiplier: units (quantity) or hours (duration per_unit) or 1 (fixed).
+    quantity: numeric("quantity", { precision: 12, scale: 2 })
+      .notNull()
+      .default("1"),
+    // Duration in minutes (duration items) — kept for display.
+    durationMinutes: integer("duration_minutes"),
     lineTotal: numeric("line_total", { precision: 12, scale: 2 })
       .notNull()
       .default("0"),

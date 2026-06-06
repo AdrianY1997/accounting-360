@@ -82,7 +82,11 @@ export default async function ReceiptPage({
           {items.map((it) => (
             <tr key={it.id} className="align-top">
               <td className="py-1">{it.description}</td>
-              <td className="py-1 text-right">{it.quantity}</td>
+              <td className="py-1 text-right">
+                {it.measureType === "duration"
+                  ? `${it.durationMinutes ?? 0}m`
+                  : Number(it.quantity)}
+              </td>
               <td className="py-1 text-right">{fmt.format(Number(it.lineTotal))}</td>
             </tr>
           ))}
