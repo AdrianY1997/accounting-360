@@ -29,6 +29,7 @@ import {
   priceModes,
 } from "@/lib/validations/catalog";
 import { ServiceImageManager } from "@/components/catalog/service-image-manager";
+import { VariantManager } from "@/components/catalog/variant-manager";
 
 const NONE = "__none__";
 
@@ -49,6 +50,7 @@ export function ServiceFormDialog({
     service?.measureType ?? "quantity",
   );
   const [priceMode, setPriceMode] = useState(service?.priceMode ?? "per_unit");
+  const [tracksStock, setTracksStock] = useState(service?.tracksStock ?? false);
   const editing = Boolean(service);
   const isDuration = measureType === "duration";
 
@@ -63,6 +65,7 @@ export function ServiceFormDialog({
       minPrice: String(form.get("minPrice") ?? "0"),
       measureType,
       priceMode,
+      tracksStock,
       durationMinutes: String(form.get("durationMinutes") ?? "0"),
       categoryId: categoryId === NONE ? null : categoryId,
     };
@@ -217,8 +220,19 @@ export function ServiceFormDialog({
               />
             </div>
           </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={tracksStock}
+              onChange={(e) => setTracksStock(e.target.checked)}
+            />
+            Controla stock (con variantes)
+          </label>
           {editing && service && (
-            <ServiceImageManager serviceId={service.id} />
+            <ServiceImageManager serviceId={service.id} label="Imágenes principales" />
+          )}
+          {editing && service && tracksStock && (
+            <VariantManager serviceId={service.id} />
           )}
           <DialogFooter>
             <Button type="submit" disabled={loading}>

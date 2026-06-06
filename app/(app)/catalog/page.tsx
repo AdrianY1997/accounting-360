@@ -22,6 +22,7 @@ import {
   imagesForServices,
   listCategories,
   listServices,
+  stockForServices,
 } from "@/services/catalog";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
@@ -45,10 +46,11 @@ export default async function CatalogPage({
   const currency = settings?.currency ?? "USD";
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
-  const thumbs = await imagesForServices(
-    ctx,
-    services.map((s) => s.id),
-  );
+  const ids = services.map((s) => s.id);
+  const [thumbs, stock] = await Promise.all([
+    imagesForServices(ctx, ids),
+    stockForServices(ctx, ids),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -80,6 +82,7 @@ export default async function CatalogPage({
                   <TableHead>Nombre</TableHead>
                   <TableHead>Categoría</TableHead>
                   <TableHead>Medida</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
                   <TableHead className="text-right">Precio</TableHead>
                   <TableHead className="w-24 text-right">Acciones</TableHead>
                 </TableRow>
@@ -115,6 +118,9 @@ export default async function CatalogPage({
                           ? "Duración (×hora)"
                           : "Duración (fija)"
                         : "Cantidad"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {s.tracksStock ? (stock.get(s.id) ?? 0) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       {fmt.format(Number(s.price))}

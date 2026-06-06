@@ -69,6 +69,8 @@ export const service = pgTable(
     measureType: text("measure_type").notNull().default("quantity"), // quantity | duration
     priceMode: text("price_mode").notNull().default("per_unit"), // per_unit | fixed
     durationMinutes: integer("duration_minutes").notNull().default(0),
+    // Inventory: stock-tracked products hold stock in variants (total = sum).
+    tracksStock: boolean("tracks_stock").notNull().default(false),
     active: boolean("active").notNull().default(true),
     ...timestamps,
   },
@@ -78,7 +80,33 @@ export const service = pgTable(
   ],
 );
 
-/** Optional images for a catalog item, stored in Vercel Blob. */
+/** Variants of a stock-tracked item (free-text name, own stock + optional price). */
+export const serviceVariant = pgTable(
+  "service_variant",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    serviceId: text("service_id")
+      .notNull()
+      .references(() => service.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    // Null price = inherit the item's suggested price.
+    price: numeric("price", { precision: 12, scale: 2 }),
+    stock: integer("stock").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [index("service_variant_service_idx").on(t.serviceId)],
+);
+
+export const serviceVariantRelations = relations(serviceVariant, ({ one }) => ({
+  service: one(service, {
+    fields: [serviceVariant.serviceId],
+    references: [service.id],
+  }),
+}));
+
+/** Optional images for a catalog item or a specific variant (Vercel Blob). */
 export const serviceImage = pgTable(
   "service_image",
   {
@@ -88,6 +116,10 @@ export const serviceImage = pgTable(
     serviceId: text("service_id")
       .notNull()
       .references(() => service.id, { onDelete: "cascade" }),
+    // Null = main item image; set = belongs to a variant.
+    variantId: text("variant_id").references(() => serviceVariant.id, {
+      onDelete: "cascade",
+    }),
     url: text("url").notNull(),
     pathname: text("pathname").notNull(),
     ...timestamps,

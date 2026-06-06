@@ -24,6 +24,7 @@ export async function POST(
   const { id } = await ctx.params;
   const form = await req.formData();
   const files = form.getAll("files").filter((f): f is File => f instanceof File);
+  const variantId = (form.get("variantId") as string) || null;
   if (files.length === 0) {
     return NextResponse.json({ error: "Sin archivos" }, { status: 400 });
   }
@@ -34,7 +35,7 @@ export async function POST(
       access: "public",
       addRandomSuffix: true,
     });
-    const row = await addImage(salon, id, blob.url, blob.pathname);
+    const row = await addImage(salon, id, blob.url, blob.pathname, variantId);
     if (!row) {
       return NextResponse.json({ error: "Ítem no encontrado" }, { status: 404 });
     }

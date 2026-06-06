@@ -2,6 +2,22 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Inventory — variants & stock (part 1)
+
+- `service.tracks_stock`; `service_variant` (free-text name, optional own price,
+  stock); `service_image.variant_id` (image belongs to item or a variant).
+  Migration `0015`.
+- `services/catalog.ts`: variant CRUD (`listVariants`, `createVariant`,
+  `updateVariant`, `deleteVariant`), `stockForServices` (total = sum of variant
+  stock), images now optionally scoped to a variant. REST: `GET/POST
+  /api/services/:id/variants`, `PUT/DELETE /api/variants/:id`; image upload
+  accepts `variantId`.
+- UI: item edit dialog has a "Controla stock" toggle + `VariantManager`
+  (variants with price/stock/images); catalog list shows total Stock.
+- Sale form: a **default seller** select applies to every line (and new ones),
+  so you don't re-pick the same staff per item.
+- (Stock decrement on sale + public store view come next.)
+
 ## Catalog — item images (Vercel Blob)
 
 - `service_image` table (migration `0014`): optional, multiple images per item,

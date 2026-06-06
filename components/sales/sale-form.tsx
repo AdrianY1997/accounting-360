@@ -88,7 +88,17 @@ export function SaleForm({
   const router = useRouter();
   const [clientId, setClientId] = useState(NONE);
   const [notes, setNotes] = useState("");
+  const [defaultStaff, setDefaultStaff] = useState(NONE);
   const [rows, setRows] = useState<Row[]>([emptyRow()]);
+
+  // Pick a default seller and apply it to every line (and future ones).
+  function onPickDefaultStaff(v: string) {
+    setDefaultStaff(v);
+    setRows((prev) => prev.map((r) => ({ ...r, staffId: v })));
+  }
+  function addRow() {
+    setRows((p) => [...p, { ...emptyRow(), staffId: defaultStaff }]);
+  }
   const [payMethod, setPayMethod] = useState<string>("cash");
   const [payAmount, setPayAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -224,6 +234,22 @@ export function SaleForm({
             </SelectContent>
           </Select>
         </div>
+        <div className="grid gap-2">
+          <Label>Vendedor (por defecto)</Label>
+          <Select value={defaultStaff} onValueChange={onPickDefaultStaff}>
+            <SelectTrigger>
+              <SelectValue placeholder="—" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NONE}>—</SelectItem>
+              {staff.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -233,7 +259,7 @@ export function SaleForm({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setRows((p) => [...p, emptyRow()])}
+            onClick={addRow}
           >
             <Plus className="size-4" />
             Añadir ítem

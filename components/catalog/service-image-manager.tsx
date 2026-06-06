@@ -5,27 +5,41 @@ import { Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-type Img = { id: string; url: string };
+type Img = { id: string; url: string; variantId: string | null };
 
-/** Manage a catalog item's images (Vercel Blob). Used in the edit dialog. */
-export function ServiceImageManager({ serviceId }: { serviceId: string }) {
+/** Manage images for a catalog item (variantId omitted) or a variant. */
+export function ServiceImageManager({
+  serviceId,
+  variantId,
+  label = "Imágenes",
+}: {
+  serviceId: string;
+  variantId?: string;
+  label?: string;
+}) {
   const [images, setImages] = useState<Img[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function load() {
     const res = await fetch(`/api/services/${serviceId}/images`);
-    if (res.ok) setImages(await res.json());
+    if (res.ok) {
+      const all: Img[] = await res.json();
+      setImages(
+        all.filter((i) => (variantId ? i.variantId === variantId : !i.variantId)),
+      );
+    }
   }
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceId]);
+  }, [serviceId, variantId]);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const fd = new FormData();
     Array.from(files).forEach((f) => fd.append("files", f));
+    if (variantId) fd.append("variantId", variantId);
     setLoading(true);
     const res = await fetch(`/api/services/${serviceId}/images`, {
       method: "POST",
@@ -53,7 +67,7 @@ export function ServiceImageManager({ serviceId }: { serviceId: string }) {
 
   return (
     <div className="grid gap-2">
-      <span className="text-sm font-medium">Imágenes</span>
+      <span className="text-sm font-medium">{label}</span>
       {images.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {images.map((img) => (

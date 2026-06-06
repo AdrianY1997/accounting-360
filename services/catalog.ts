@@ -1,12 +1,22 @@
-import { and, asc, desc, eq, ilike, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { service, serviceCategory, serviceImage } from "@/db/schema";
+import {
+  service,
+  serviceCategory,
+  serviceImage,
+  serviceVariant,
+} from "@/db/schema";
 import type { SalonContext } from "@/lib/tenant";
-import type { CategoryInput, ServiceInput } from "@/lib/validations/catalog";
+import type {
+  CategoryInput,
+  ServiceInput,
+  VariantInput,
+} from "@/lib/validations/catalog";
 
 export type ServiceCategory = typeof serviceCategory.$inferSelect;
 export type Service = typeof service.$inferSelect;
 export type ServiceImage = typeof serviceImage.$inferSelect;
+export type ServiceVariant = typeof serviceVariant.$inferSelect;
 
 /** Service catalog logic. Every query scoped to the caller's salón. */
 
@@ -83,6 +93,7 @@ function normalizeService(input: ServiceInput) {
     measureType: input.measureType,
     priceMode: input.measureType === "duration" ? input.priceMode : "per_unit",
     durationMinutes: input.durationMinutes,
+    tracksStock: input.tracksStock ?? false,
     active: input.active ?? true,
   };
 }
@@ -183,7 +194,11 @@ export async function imagesForServices(ctx: SalonContext, ids: string[]) {
     .from(serviceImage)
     .innerJoin(service, eq(service.id, serviceImage.serviceId))
     .where(
-      and(eq(service.salonId, ctx.salonId), inArray(serviceImage.serviceId, ids)),
+      and(
+        eq(service.salonId, ctx.salonId),
+        isNull(serviceImage.variantId),
+        inArray(serviceImage.serviceId, ids),
+      ),
     )
     .orderBy(asc(serviceImage.createdAt));
   for (const r of rows) if (!map.has(r.serviceId)) map.set(r.serviceId, r.url);
@@ -195,11 +210,12 @@ export async function addImage(
   serviceId: string,
   url: string,
   pathname: string,
+  variantId?: string | null,
 ) {
   if (!(await ownsService(ctx, serviceId))) return null;
   const [created] = await db
     .insert(serviceImage)
-    .values({ serviceId, url, pathname })
+    .values({ serviceId, url, pathname, variantId: variantId ?? null })
     .returning();
   return created;
 }
@@ -213,4 +229,91 @@ export async function deleteImage(ctx: SalonContext, imageId: string) {
   if (!row) return null;
   await db.delete(serviceImage).where(eq(serviceImage.id, imageId));
   return row;
+}
+
+// --- Variants & stock ---
+
+export async function listVariants(ctx: SalonContext, serviceId: string) {
+  if (!(await ownsService(ctx, serviceId))) return [];
+  return db
+    .select()
+    .from(serviceVariant)
+    .where(eq(serviceVariant.serviceId, serviceId))
+    .orderBy(asc(serviceVariant.createdAt));
+}
+
+/** Total stock (sum of variant stock) per service id. */
+export async function stockForServices(ctx: SalonContext, ids: string[]) {
+  const map = new Map<string, number>();
+  if (ids.length === 0) return map;
+  const rows = await db
+    .select({
+      serviceId: serviceVariant.serviceId,
+      stock: sql<number>`coalesce(sum(${serviceVariant.stock}), 0)`,
+    })
+    .from(serviceVariant)
+    .innerJoin(service, eq(service.id, serviceVariant.serviceId))
+    .where(
+      and(eq(service.salonId, ctx.salonId), inArray(serviceVariant.serviceId, ids)),
+    )
+    .groupBy(serviceVariant.serviceId);
+  for (const r of rows) map.set(r.serviceId, Number(r.stock));
+  return map;
+}
+
+export async function createVariant(
+  ctx: SalonContext,
+  serviceId: string,
+  input: VariantInput,
+) {
+  if (!(await ownsService(ctx, serviceId))) return null;
+  const [created] = await db
+    .insert(serviceVariant)
+    .values({
+      serviceId,
+      name: input.name.trim(),
+      price: input.price === undefined ? null : input.price.toFixed(2),
+      stock: input.stock,
+    })
+    .returning();
+  return created;
+}
+
+/** Confirms a variant belongs to the caller's salón; returns it or null. */
+async function ownedVariant(ctx: SalonContext, variantId: string) {
+  const [row] = await db
+    .select({ id: serviceVariant.id })
+    .from(serviceVariant)
+    .innerJoin(service, eq(service.id, serviceVariant.serviceId))
+    .where(
+      and(eq(serviceVariant.id, variantId), eq(service.salonId, ctx.salonId)),
+    );
+  return row ?? null;
+}
+
+export async function updateVariant(
+  ctx: SalonContext,
+  variantId: string,
+  input: VariantInput,
+) {
+  if (!(await ownedVariant(ctx, variantId))) return null;
+  const [updated] = await db
+    .update(serviceVariant)
+    .set({
+      name: input.name.trim(),
+      price: input.price === undefined ? null : input.price.toFixed(2),
+      stock: input.stock,
+    })
+    .where(eq(serviceVariant.id, variantId))
+    .returning();
+  return updated ?? null;
+}
+
+export async function deleteVariant(ctx: SalonContext, variantId: string) {
+  if (!(await ownedVariant(ctx, variantId))) return null;
+  const [deleted] = await db
+    .delete(serviceVariant)
+    .where(eq(serviceVariant.id, variantId))
+    .returning({ id: serviceVariant.id });
+  return deleted ?? null;
 }
