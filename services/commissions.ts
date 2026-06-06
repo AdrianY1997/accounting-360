@@ -27,6 +27,7 @@ export async function listRules(ctx: SalonContext) {
       staffId: commissionRule.staffId,
       serviceId: commissionRule.serviceId,
       type: commissionRule.type,
+      base: commissionRule.base,
       value: commissionRule.value,
       active: commissionRule.active,
       staffName: user.name,
@@ -51,6 +52,7 @@ export async function createRule(
       staffId: input.staffId || null,
       serviceId: input.serviceId || null,
       type: input.type,
+      base: input.base,
       value: centsToString(toCents(input.value)),
       active: input.active ?? true,
     })
@@ -69,6 +71,7 @@ export async function updateRule(
       staffId: input.staffId || null,
       serviceId: input.serviceId || null,
       type: input.type,
+      base: input.base,
       value: centsToString(toCents(input.value)),
       active: input.active ?? true,
     })
@@ -89,6 +92,7 @@ type Rule = {
   staffId: string | null;
   serviceId: string | null;
   type: string;
+  base: string;
   value: string;
 };
 
@@ -112,9 +116,20 @@ function bestRule(
   return best;
 }
 
-function commissionCents(rule: Rule, lineTotalCents: number, quantity: number) {
+function commissionCents(
+  rule: Rule,
+  lineTotalCents: number,
+  costTotalCents: number,
+  quantity: number,
+) {
   const value = Number(rule.value);
-  if (rule.type === "percent") return Math.round((lineTotalCents * value) / 100);
+  if (rule.type === "percent") {
+    const baseCents =
+      rule.base === "margin"
+        ? Math.max(0, lineTotalCents - costTotalCents)
+        : lineTotalCents;
+    return Math.round((baseCents * value) / 100);
+  }
   // fixed: flat amount per unit.
   return toCents(value) * quantity;
 }
@@ -143,6 +158,7 @@ export async function computeCommissions(
         staffId: commissionRule.staffId,
         serviceId: commissionRule.serviceId,
         type: commissionRule.type,
+        base: commissionRule.base,
         value: commissionRule.value,
       })
       .from(commissionRule)
@@ -152,6 +168,7 @@ export async function computeCommissions(
         staffId: saleItem.staffId,
         serviceId: saleItem.serviceId,
         lineTotal: saleItem.lineTotal,
+        costPrice: saleItem.costPrice,
         quantity: saleItem.quantity,
         staffName: staffUser.name,
       })
@@ -173,8 +190,10 @@ export async function computeCommissions(
     if (!it.staffId) continue;
     const rule = bestRule(rules, it.staffId, it.serviceId);
     const lineCents = toCents(Number(it.lineTotal));
+    const qty = Number(it.quantity);
+    const costTotalCents = toCents(Number(it.costPrice)) * qty;
     const commCents = rule
-      ? commissionCents(rule, lineCents, Number(it.quantity))
+      ? commissionCents(rule, lineCents, costTotalCents, qty)
       : 0;
     const cur =
       acc.get(it.staffId) ??

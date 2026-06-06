@@ -57,6 +57,9 @@ export function ServiceFormDialog({
     const body = {
       name: String(form.get("name") ?? ""),
       price: String(form.get("price") ?? "0"),
+      costPrice: String(form.get("costPrice") ?? "0"),
+      resellerPrice: String(form.get("resellerPrice") ?? "0"),
+      minPrice: String(form.get("minPrice") ?? "0"),
       measureType,
       priceMode,
       durationMinutes: String(form.get("durationMinutes") ?? "0"),
@@ -153,8 +156,8 @@ export function ServiceFormDialog({
             <div className="grid gap-2">
               <Label htmlFor="price">
                 {isDuration && priceMode === "per_unit"
-                  ? "Precio por hora"
-                  : "Precio"}
+                  ? "Sugerido / hora"
+                  : "Precio sugerido"}
               </Label>
               <Input
                 id="price"
@@ -177,6 +180,41 @@ export function ServiceFormDialog({
                 />
               </div>
             )}
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="costPrice">Costo (proveedor)</Label>
+              <Input
+                id="costPrice"
+                name="costPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={service?.costPrice ?? "0"}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="resellerPrice">Intermediario</Label>
+              <Input
+                id="resellerPrice"
+                name="resellerPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={service?.resellerPrice ?? "0"}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="minPrice">Mínimo</Label>
+              <Input
+                id="minPrice"
+                name="minPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={service?.minPrice ?? "0"}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading}>

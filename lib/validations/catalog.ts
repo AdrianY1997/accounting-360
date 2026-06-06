@@ -23,6 +23,9 @@ export const serviceInputSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(200),
   categoryId: z.string().trim().min(1).nullable().optional(),
   price: z.coerce.number().min(0, "Precio inválido").default(0),
+  costPrice: z.coerce.number().min(0).default(0),
+  resellerPrice: z.coerce.number().min(0).default(0),
+  minPrice: z.coerce.number().min(0).default(0),
   measureType: z.enum(measureTypes).default("quantity"),
   priceMode: z.enum(priceModes).default("per_unit"),
   durationMinutes: z.coerce

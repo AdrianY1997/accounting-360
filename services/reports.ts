@@ -20,6 +20,7 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
 
   const [
     [salesAgg],
+    [costAgg],
     [expensesAgg],
     byService,
     byStaff,
@@ -34,6 +35,13 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
         tax: sql<string>`coalesce(sum(${sale.taxAmount}), 0)`,
       })
       .from(sale)
+      .where(notVoid),
+    db
+      .select({
+        cost: sql<string>`coalesce(sum(${saleItem.costPrice} * ${saleItem.quantity}), 0)`,
+      })
+      .from(saleItem)
+      .innerJoin(sale, eq(sale.id, saleItem.saleId))
       .where(notVoid),
     db
       .select({
@@ -93,13 +101,17 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
   const income = num(salesAgg?.gross);
   const expenses = num(expensesAgg?.total);
   const commissionsTotal = num(commissions.total);
+  const cost = num(costAgg?.cost);
+  const subtotal = num(salesAgg?.subtotal);
 
   return {
     totals: {
       salesCount: num(salesAgg?.count),
       income,
-      subtotal: num(salesAgg?.subtotal),
+      subtotal,
       tax: num(salesAgg?.tax),
+      cost,
+      margin: subtotal - cost,
       expenses,
       commissions: commissionsTotal,
       profit: income - expenses - commissionsTotal,

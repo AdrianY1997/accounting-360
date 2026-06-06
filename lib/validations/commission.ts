@@ -8,10 +8,18 @@ export const commissionTypeLabels: Record<CommissionType, string> = {
   fixed: "Fijo",
 };
 
+export const commissionBases = ["line", "margin"] as const;
+export type CommissionBase = (typeof commissionBases)[number];
+export const commissionBaseLabels: Record<CommissionBase, string> = {
+  line: "Total de línea",
+  margin: "Margen (venta − costo)",
+};
+
 export const commissionRuleInputSchema = z.object({
   staffId: z.string().trim().min(1).nullable().optional(),
   serviceId: z.string().trim().min(1).nullable().optional(),
   type: z.enum(commissionTypes),
+  base: z.enum(commissionBases).default("line"),
   value: z.coerce.number().min(0, "Valor inválido"),
   active: z.boolean().optional(),
 });

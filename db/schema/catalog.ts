@@ -49,7 +49,19 @@ export const service = pgTable(
       onDelete: "set null",
     }),
     name: text("name").notNull(),
+    // Price tiers. `price` is the suggested/retail price (default for direct
+    // clients); resellerPrice for intermediarios; minPrice is a hard floor;
+    // costPrice (proveedor) feeds margin + margin-based commissions.
     price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
+    costPrice: numeric("cost_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
+    resellerPrice: numeric("reseller_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
+    minPrice: numeric("min_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
     // How the item is measured on a sale line:
     //   quantity → price per unit, line = price × qty
     //   duration → price_mode decides: per_unit (price per hour, line = price ×

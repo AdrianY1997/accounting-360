@@ -1,7 +1,15 @@
 import { z } from "zod";
 
+export const clientTypes = ["direct", "reseller"] as const;
+export type ClientType = (typeof clientTypes)[number];
+export const clientTypeLabels: Record<ClientType, string> = {
+  direct: "Directo",
+  reseller: "Intermediario",
+};
+
 export const clientInputSchema = z.object({
   fullName: z.string().trim().min(1, "El nombre es obligatorio").max(200),
+  type: z.enum(clientTypes).default("direct"),
   phone: z.string().trim().max(50).optional().or(z.literal("")),
   email: z
     .string()

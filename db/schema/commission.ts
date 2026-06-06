@@ -29,6 +29,8 @@ export const commissionRule = pgTable(
       onDelete: "cascade",
     }),
     type: text("type").notNull(), // percent | fixed
+    // What the commission is computed on: line total or margin (line − cost).
+    base: text("base").notNull().default("line"), // line | margin
     // percent: e.g. 10.00 = 10%. fixed: flat amount per line item (salón currency).
     value: numeric("value", { precision: 12, scale: 2 }).notNull().default("0"),
     active: boolean("active").notNull().default(true),

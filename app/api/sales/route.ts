@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSale, listSales } from "@/services/sales";
+import { createSale, listSales, SaleError } from "@/services/sales";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { saleInputSchema } from "@/lib/validations/sale";
@@ -21,5 +21,14 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  return NextResponse.json(await createSale(ctx, parsed.data), { status: 201 });
+  try {
+    return NextResponse.json(await createSale(ctx, parsed.data), {
+      status: 201,
+    });
+  } catch (e) {
+    if (e instanceof SaleError) {
+      return NextResponse.json({ error: e.message }, { status: 400 });
+    }
+    throw e;
+  }
 }

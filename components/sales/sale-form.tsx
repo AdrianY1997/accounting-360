@@ -17,11 +17,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods, paymentMethodLabels } from "@/lib/validations/payment";
 
-type ClientOpt = { id: string; fullName: string };
+type ClientOpt = { id: string; fullName: string; type: string };
 type ServiceOpt = {
   id: string;
   name: string;
   price: string;
+  resellerPrice: string;
+  minPrice: string;
   measureType: string;
   priceMode: string;
   durationMinutes: number;
@@ -32,6 +34,7 @@ type Row = {
   serviceId: string;
   description: string;
   unitPrice: string;
+  minPrice: string;
   quantity: string;
   durationMinutes: string;
   measureType: string; // quantity | duration
@@ -44,12 +47,20 @@ const emptyRow = (): Row => ({
   serviceId: NONE,
   description: "",
   unitPrice: "0",
+  minPrice: "0",
   quantity: "1",
   durationMinutes: "0",
   measureType: "quantity",
   priceMode: "per_unit",
   staffId: NONE,
 });
+
+/** Price for a client type: resellers get the intermediario price. */
+function tierPrice(svc: ServiceOpt, clientType: string): string {
+  return clientType === "reseller" && Number(svc.resellerPrice) > 0
+    ? svc.resellerPrice
+    : svc.price;
+}
 
 /** Line total for the live preview (mirrors the server math). */
 function rowTotal(r: Row): number {
@@ -92,21 +103,38 @@ export function SaleForm({
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   }
 
+  const clientType =
+    clients.find((c) => c.id === clientId)?.type ?? "direct";
+
   function onPickService(i: number, serviceId: string) {
     if (serviceId === NONE) {
-      setRow(i, { serviceId });
+      setRow(i, { serviceId, minPrice: "0" });
       return;
     }
     const svc = services.find((s) => s.id === serviceId);
     setRow(i, {
       serviceId,
       description: svc?.name ?? "",
-      unitPrice: svc?.price ?? "0",
+      unitPrice: svc ? tierPrice(svc, clientType) : "0",
+      minPrice: svc?.minPrice ?? "0",
       measureType: svc?.measureType ?? "quantity",
       priceMode: svc?.priceMode ?? "per_unit",
       durationMinutes: String(svc?.durationMinutes ?? 0),
       quantity: "1",
     });
+  }
+
+  // Reprice catalog lines when the client (and thus tier) changes.
+  function onPickClient(id: string) {
+    setClientId(id);
+    const ct = clients.find((c) => c.id === id)?.type ?? "direct";
+    setRows((prev) =>
+      prev.map((r) => {
+        if (r.serviceId === NONE) return r;
+        const svc = services.find((s) => s.id === r.serviceId);
+        return svc ? { ...r, unitPrice: tierPrice(svc, ct) } : r;
+      }),
+    );
   }
 
   const { subtotal, tax, total } = useMemo(() => {
@@ -126,6 +154,14 @@ export function SaleForm({
     }
     if (subtotal <= 0) {
       setError("El total debe ser mayor a 0.");
+      return;
+    }
+    if (
+      rows.some(
+        (r) => Number(r.minPrice) > 0 && Number(r.unitPrice) < Number(r.minPrice),
+      )
+    ) {
+      setError("Hay ítems por debajo del precio mínimo permitido.");
       return;
     }
     if (Number(payAmount) > total) {
@@ -174,7 +210,7 @@ export function SaleForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label>Cliente</Label>
-          <Select value={clientId} onValueChange={setClientId}>
+          <Select value={clientId} onValueChange={onPickClient}>
             <SelectTrigger>
               <SelectValue placeholder="Sin cliente" />
             </SelectTrigger>

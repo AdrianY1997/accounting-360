@@ -64,6 +64,12 @@ export default async function ReportsPage({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat title="Ingresos" value={fmt.format(totals.income)} hint={`${totals.salesCount} ventas`} />
+        <Stat title="Costo (proveedor)" value={fmt.format(totals.cost)} />
+        <Stat
+          title="Margen"
+          value={fmt.format(totals.margin)}
+          hint="subtotal − costo"
+        />
         <Stat title="Gastos" value={fmt.format(totals.expenses)} />
         <Stat title="Comisiones" value={fmt.format(totals.commissions)} />
         <Stat

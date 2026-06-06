@@ -24,6 +24,8 @@ import {
 import {
   commissionTypes,
   commissionTypeLabels,
+  commissionBases,
+  commissionBaseLabels,
 } from "@/lib/validations/commission";
 
 type Option = { id: string; name: string };
@@ -32,6 +34,7 @@ type Rule = {
   staffId: string | null;
   serviceId: string | null;
   type: string;
+  base: string;
   value: string;
 };
 
@@ -54,6 +57,7 @@ export function RuleFormDialog({
   const [staffId, setStaffId] = useState(rule?.staffId ?? NONE);
   const [serviceId, setServiceId] = useState(rule?.serviceId ?? NONE);
   const [type, setType] = useState(rule?.type ?? "percent");
+  const [base, setBase] = useState(rule?.base ?? "line");
   const editing = Boolean(rule);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -63,6 +67,7 @@ export function RuleFormDialog({
       staffId: staffId === NONE ? null : staffId,
       serviceId: serviceId === NONE ? null : serviceId,
       type,
+      base,
       value: String(form.get("value") ?? "0"),
     };
     setLoading(true);
@@ -156,6 +161,23 @@ export function RuleFormDialog({
               />
             </div>
           </div>
+          {type === "percent" && (
+            <div className="grid gap-2">
+              <Label>Base</Label>
+              <Select value={base} onValueChange={setBase}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {commissionBases.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {commissionBaseLabels[b]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}

@@ -22,13 +22,19 @@ export default async function NewSalePage() {
     <div className="mx-auto max-w-3xl space-y-4">
       <h1 className="text-2xl font-semibold">Nueva venta</h1>
       <SaleForm
-        clients={clients.map((c) => ({ id: c.id, fullName: c.fullName }))}
+        clients={clients.map((c) => ({
+          id: c.id,
+          fullName: c.fullName,
+          type: c.type,
+        }))}
         services={services
           .filter((s) => s.active)
           .map((s) => ({
             id: s.id,
             name: s.name,
             price: s.price,
+            resellerPrice: s.resellerPrice,
+            minPrice: s.minPrice,
             measureType: s.measureType,
             priceMode: s.priceMode,
             durationMinutes: s.durationMinutes,

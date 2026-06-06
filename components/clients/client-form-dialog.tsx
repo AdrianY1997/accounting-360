@@ -16,7 +16,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { clientTypeLabels, clientTypes } from "@/lib/validations/client";
 
 type Props = {
   /** Existing client to edit; omit to create a new one. */
@@ -28,6 +36,7 @@ export function ClientFormDialog({ client, trigger }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [type, setType] = useState(client?.type ?? "direct");
   const editing = Boolean(client);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -35,6 +44,7 @@ export function ClientFormDialog({ client, trigger }: Props) {
     const form = new FormData(e.currentTarget);
     const body = {
       fullName: String(form.get("fullName") ?? ""),
+      type,
       phone: String(form.get("phone") ?? ""),
       email: String(form.get("email") ?? ""),
       notes: String(form.get("notes") ?? ""),
@@ -80,6 +90,21 @@ export function ClientFormDialog({ client, trigger }: Props) {
               required
               defaultValue={client?.fullName ?? ""}
             />
+          </div>
+          <div className="grid gap-2">
+            <Label>Tipo</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {clientTypes.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {clientTypeLabels[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="phone">Teléfono</Label>

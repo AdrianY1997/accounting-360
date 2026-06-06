@@ -2,6 +2,22 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## General accounting — price tiers, client types, traceability
+
+- **Item price tiers**: `service` gains `cost_price` (proveedor), `reseller_price`
+  (intermediario) and `min_price` (hard floor); existing `price` is the suggested
+  price. Catalog form edits all four.
+- **Client types**: `client.type` (`direct` | `reseller`). Direct clients may be
+  anonymous (sale without client); resellers are always registered records.
+- **Sale pricing**: line price defaults by client type (reseller → reseller
+  price, else suggested) and is editable but **cannot go below `min_price`**
+  (enforced client + server via `SaleError` → 400). `sale_item` snapshots
+  `cost_price` for margin/traceability.
+- **Commissions**: rule `base` (`line` | `margin`); percent commissions can be
+  computed on the margin (line − cost). Rule form adds the base selector.
+- **Reports**: add Costo (proveedor) and Margen (subtotal − costo) totals/cards.
+- Migration `0012`.
+
 ## General accounting — item measure + pricing
 
 - Pivot from salon-only to general accounting. Catalog renamed UI-wise to

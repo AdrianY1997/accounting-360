@@ -20,6 +20,9 @@ export const client = pgTable(
       .notNull()
       .references(() => team.id, { onDelete: "cascade" }),
     fullName: text("full_name").notNull(),
+    // direct = consumidor final (puede ser anónimo); reseller = intermediario
+    // (siempre registrado, recibe precio de intermediario).
+    type: text("type").notNull().default("direct"),
     phone: text("phone"),
     email: text("email"),
     notes: text("notes"),

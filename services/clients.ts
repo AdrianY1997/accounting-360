@@ -14,6 +14,7 @@ export type Client = typeof client.$inferSelect;
 function normalize(input: ClientInput) {
   return {
     fullName: input.fullName.trim(),
+    type: input.type,
     phone: input.phone?.trim() || null,
     email: input.email?.trim() || null,
     notes: input.notes?.trim() || null,

@@ -18,6 +18,9 @@ import type { SaleInput } from "@/lib/validations/sale";
 export type Sale = typeof sale.$inferSelect;
 export type SaleItem = typeof saleItem.$inferSelect;
 
+/** Domain error (e.g. price below minimum) → surfaced as a 400 by routes. */
+export class SaleError extends Error {}
+
 /** Staff (users) assigned to the caller's salón — for item attribution. */
 export async function listSalonStaff(ctx: SalonContext) {
   return db
@@ -134,6 +137,8 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
           id: service.id,
           measureType: service.measureType,
           priceMode: service.priceMode,
+          costPrice: service.costPrice,
+          minPrice: service.minPrice,
         })
         .from(service)
         .where(
@@ -149,6 +154,17 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
     const measureType = svc?.measureType ?? "quantity";
     const priceMode = svc?.priceMode ?? "per_unit";
     const unitCents = toCents(it.unitPrice);
+    const costCents = svc ? toCents(Number(svc.costPrice)) : 0;
+
+    // Minimum price is a hard floor for catalog items.
+    if (svc) {
+      const minCents = toCents(Number(svc.minPrice));
+      if (minCents > 0 && unitCents < minCents) {
+        throw new SaleError(
+          `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
+        );
+      }
+    }
 
     let qty: number; // stored multiplier
     let durationMinutes: number | null = null;
@@ -177,6 +193,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       description: it.description.trim(),
       measureType,
       unitPrice: toMoney(unitCents),
+      costPrice: toMoney(costCents),
       quantity: qty.toFixed(2),
       durationMinutes,
       lineTotal: toMoney(lineCents),

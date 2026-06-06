@@ -71,6 +71,10 @@ export const saleItem = pgTable(
     unitPrice: numeric("unit_price", { precision: 12, scale: 2 })
       .notNull()
       .default("0"),
+    // Cost (proveedor) snapshot for margin + margin-based commissions.
+    costPrice: numeric("cost_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
     // Multiplier: units (quantity) or hours (duration per_unit) or 1 (fixed).
     quantity: numeric("quantity", { precision: 12, scale: 2 })
       .notNull()
