@@ -1,11 +1,12 @@
-import { and, asc, desc, eq, ilike } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { service, serviceCategory } from "@/db/schema";
+import { service, serviceCategory, serviceImage } from "@/db/schema";
 import type { SalonContext } from "@/lib/tenant";
 import type { CategoryInput, ServiceInput } from "@/lib/validations/catalog";
 
 export type ServiceCategory = typeof serviceCategory.$inferSelect;
 export type Service = typeof service.$inferSelect;
+export type ServiceImage = typeof serviceImage.$inferSelect;
 
 /** Service catalog logic. Every query scoped to the caller's salón. */
 
@@ -144,4 +145,72 @@ export async function deleteService(ctx: SalonContext, id: string) {
     )
     .returning({ id: service.id });
   return deleted ?? null;
+}
+
+// --- Item images ---
+
+/** Confirms a service belongs to the caller's salón. */
+async function ownsService(ctx: SalonContext, serviceId: string) {
+  const found = await db.query.service.findFirst({
+    where: and(
+      eq(service.id, serviceId),
+      eq(service.organizationId, ctx.organizationId),
+      eq(service.salonId, ctx.salonId),
+    ),
+  });
+  return Boolean(found);
+}
+
+export async function listImages(ctx: SalonContext, serviceId: string) {
+  if (!(await ownsService(ctx, serviceId))) return [];
+  return db
+    .select()
+    .from(serviceImage)
+    .where(eq(serviceImage.serviceId, serviceId))
+    .orderBy(asc(serviceImage.createdAt));
+}
+
+/** First image URL per service id, for list thumbnails. */
+export async function imagesForServices(ctx: SalonContext, ids: string[]) {
+  const map = new Map<string, string>();
+  if (ids.length === 0) return map;
+  const rows = await db
+    .select({
+      serviceId: serviceImage.serviceId,
+      url: serviceImage.url,
+      createdAt: serviceImage.createdAt,
+    })
+    .from(serviceImage)
+    .innerJoin(service, eq(service.id, serviceImage.serviceId))
+    .where(
+      and(eq(service.salonId, ctx.salonId), inArray(serviceImage.serviceId, ids)),
+    )
+    .orderBy(asc(serviceImage.createdAt));
+  for (const r of rows) if (!map.has(r.serviceId)) map.set(r.serviceId, r.url);
+  return map;
+}
+
+export async function addImage(
+  ctx: SalonContext,
+  serviceId: string,
+  url: string,
+  pathname: string,
+) {
+  if (!(await ownsService(ctx, serviceId))) return null;
+  const [created] = await db
+    .insert(serviceImage)
+    .values({ serviceId, url, pathname })
+    .returning();
+  return created;
+}
+
+export async function deleteImage(ctx: SalonContext, imageId: string) {
+  const [row] = await db
+    .select({ id: serviceImage.id, pathname: serviceImage.pathname })
+    .from(serviceImage)
+    .innerJoin(service, eq(service.id, serviceImage.serviceId))
+    .where(and(eq(serviceImage.id, imageId), eq(service.salonId, ctx.salonId)));
+  if (!row) return null;
+  await db.delete(serviceImage).where(eq(serviceImage.id, imageId));
+  return row;
 }

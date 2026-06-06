@@ -78,6 +78,30 @@ export const service = pgTable(
   ],
 );
 
+/** Optional images for a catalog item, stored in Vercel Blob. */
+export const serviceImage = pgTable(
+  "service_image",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    serviceId: text("service_id")
+      .notNull()
+      .references(() => service.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    pathname: text("pathname").notNull(),
+    ...timestamps,
+  },
+  (t) => [index("service_image_service_idx").on(t.serviceId)],
+);
+
+export const serviceImageRelations = relations(serviceImage, ({ one }) => ({
+  service: one(service, {
+    fields: [serviceImage.serviceId],
+    references: [service.id],
+  }),
+}));
+
 export const serviceCategoryRelations = relations(
   serviceCategory,
   ({ one, many }) => ({

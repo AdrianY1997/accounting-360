@@ -18,7 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listCategories, listServices } from "@/services/catalog";
+import {
+  imagesForServices,
+  listCategories,
+  listServices,
+} from "@/services/catalog";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
@@ -41,6 +45,10 @@ export default async function CatalogPage({
   const currency = settings?.currency ?? "USD";
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
+  const thumbs = await imagesForServices(
+    ctx,
+    services.map((s) => s.id),
+  );
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -79,7 +87,19 @@ export default async function CatalogPage({
               <TableBody>
                 {services.map((s) => (
                   <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="flex items-center gap-2">
+                        {thumbs.get(s.id) ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbs.get(s.id)}
+                            alt=""
+                            className="size-8 rounded border object-cover"
+                          />
+                        ) : null}
+                        {s.name}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       {s.categoryId ? (
                         <Badge variant="secondary">

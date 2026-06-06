@@ -2,6 +2,17 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Catalog — item images (Vercel Blob)
+
+- `service_image` table (migration `0014`): optional, multiple images per item,
+  stored in Vercel Blob (`@vercel/blob`; needs `BLOB_READ_WRITE_TOKEN`).
+- `services/catalog.ts`: `listImages`, `imagesForServices` (list thumbnails),
+  `addImage`, `deleteImage` (salón-scoped). REST: `GET/POST
+  /api/services/:id/images` (multipart upload via `put`), `DELETE
+  /api/service-images/:id` (also removes the blob). `catalog:write` gated.
+- UI: `ServiceImageManager` in the item edit dialog (upload multiple, thumbnail
+  grid, delete); catalog list shows the first image as a thumbnail.
+
 ## Access — fully custom per-user permissions
 
 - Replaced the fixed role→permission matrix with **per-user permissions**

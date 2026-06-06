@@ -28,6 +28,7 @@ import {
   priceModeLabels,
   priceModes,
 } from "@/lib/validations/catalog";
+import { ServiceImageManager } from "@/components/catalog/service-image-manager";
 
 const NONE = "__none__";
 
@@ -88,7 +89,7 @@ export function ServiceFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90svh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? "Editar ítem" : "Nuevo ítem"}</DialogTitle>
         </DialogHeader>
@@ -216,6 +217,9 @@ export function ServiceFormDialog({
               />
             </div>
           </div>
+          {editing && service && (
+            <ServiceImageManager serviceId={service.id} />
+          )}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}
