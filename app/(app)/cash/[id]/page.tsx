@@ -28,7 +28,7 @@ export default async function CashSessionPage({
   params: Promise<{ id: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "cash:manage")) redirect("/dashboard");
+  if (!can(ctx, "cash:manage")) redirect("/dashboard");
   const { id } = await params;
   const data = await getSession(ctx, id);
   if (!data) notFound();

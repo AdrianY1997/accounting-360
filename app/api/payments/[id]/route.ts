@@ -8,7 +8,7 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
-  if (!can(salon.role, "payments:write")) {
+  if (!can(salon, "payments:write")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;

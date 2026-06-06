@@ -34,7 +34,7 @@ import { movementTypeLabels, type MovementType } from "@/lib/validations/cash";
 
 export default async function CashPage() {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "cash:manage")) redirect("/dashboard");
+  if (!can(ctx, "cash:manage")) redirect("/dashboard");
   const [open, sessions, settings] = await Promise.all([
     getOpenSession(ctx),
     listSessions(ctx),

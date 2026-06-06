@@ -32,7 +32,7 @@ export default async function ExpensesPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "expenses:write")) redirect("/dashboard");
+  if (!can(ctx, "expenses:write")) redirect("/dashboard");
   const { q } = await searchParams;
   const [categories, expenses, settings] = await Promise.all([
     listExpenseCategories(ctx),

@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 type NavLink = {
   href: string;
   label: string;
-  admin?: boolean;
   platform?: boolean;
   perm?: Permission;
 };
@@ -30,26 +29,25 @@ const LINKS: NavLink[] = [
   { href: "/expenses", label: "Gastos", perm: "expenses:write" },
   { href: "/commissions", label: "Comisiones", perm: "reports:view" },
   { href: "/reports", label: "Reportes", perm: "reports:view" },
-  { href: "/staff", label: "Personal", admin: true },
-  { href: "/settings", label: "Configuración", admin: true },
+  { href: "/staff", label: "Personal", perm: "staff:manage" },
+  { href: "/settings", label: "Configuración", perm: "settings:manage" },
   { href: "/platform", label: "Plataforma", platform: true },
 ];
 
 export function MainNav({
   role,
-  admin,
+  permissions,
   platformAdmin,
 }: {
   role: string;
-  admin: boolean;
+  permissions: Permission[];
   platformAdmin: boolean;
 }) {
   const pathname = usePathname();
+  const access = { role, permissions };
   const links = LINKS.filter(
     (l) =>
-      (!l.admin || admin) &&
-      (!l.platform || platformAdmin) &&
-      (!l.perm || can(role, l.perm)),
+      (!l.platform || platformAdmin) && (!l.perm || can(access, l.perm)),
   );
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);

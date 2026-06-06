@@ -9,7 +9,7 @@ export async function PUT(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
-  if (!can(salon.role, "catalog:write")) {
+  if (!can(salon, "catalog:write")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;
@@ -32,7 +32,7 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
-  if (!can(salon.role, "catalog:write")) {
+  if (!can(salon, "catalog:write")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;

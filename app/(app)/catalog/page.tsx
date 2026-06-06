@@ -28,7 +28,7 @@ export default async function CatalogPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "catalog:write")) redirect("/dashboard");
+  if (!can(ctx, "catalog:write")) redirect("/dashboard");
   const { q } = await searchParams;
   const [categories, services, settings] = await Promise.all([
     listCategories(ctx),

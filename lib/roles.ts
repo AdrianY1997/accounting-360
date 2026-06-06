@@ -1,30 +1,20 @@
 /**
- * Organization roles (Better Auth `member.role`). `owner` is the empresa
- * creator; the rest are assigned to staff. Admin-tier roles may manage config,
- * staff, and destructive actions; others are operational only.
+ * Access model. `member.role` keeps `owner` for the empresa creator (implicit
+ * full access); everyone else gets an explicit, fully-custom permission set
+ * (table `member_permission`). There is no fixed role→permission matrix.
  */
-export const ROLES = ["owner", "admin", "manager", "cashier", "staff"] as const;
+export const ROLES = ["owner", "staff"] as const;
 export type Role = (typeof ROLES)[number];
 
-/** Roles an admin can assign to staff (owner is reserved for the creator). */
-export const ASSIGNABLE_ROLES = [
-  "admin",
-  "manager",
-  "cashier",
-  "staff",
-] as const;
-
-export const roleLabels: Record<Role, string> = {
+export const roleLabels: Record<string, string> = {
   owner: "Dueño",
   admin: "Administrador",
-  manager: "Gerente",
-  cashier: "Cajero",
-  staff: "Estilista",
+  staff: "Personal",
 };
 
 const ADMIN_ROLES: readonly string[] = ["owner", "admin"];
 
-/** True for config / staff / destructive privileges. */
+/** Owner/admin: implicit full access (config, staff, everything). */
 export function isAdmin(role: string): boolean {
   return ADMIN_ROLES.includes(role);
 }
@@ -44,40 +34,41 @@ export type Permission =
   | "staff:manage"
   | "salon:manage";
 
-const ALL: Permission[] = [
+/** All assignable permissions (owner can grant any of these). */
+export const ALL_PERMISSIONS: Permission[] = [
   "clients:write",
   "catalog:write",
   "sales:write",
-  "sales:void",
   "payments:write",
-  "expenses:write",
+  "sales:void",
   "cash:manage",
-  "commissions:manage",
+  "expenses:write",
   "reports:view",
+  "commissions:manage",
   "settings:manage",
-  "staff:manage",
   "salon:manage",
+  "staff:manage",
 ];
 
-const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
-  owner: ALL,
-  admin: ALL,
-  manager: [
-    "clients:write",
-    "catalog:write",
-    "sales:write",
-    "sales:void",
-    "payments:write",
-    "expenses:write",
-    "cash:manage",
-    "reports:view",
-  ],
-  cashier: ["clients:write", "sales:write", "payments:write", "cash:manage"],
-  staff: ["sales:write", "payments:write"],
+export const permissionLabels: Record<Permission, string> = {
+  "clients:write": "Clientes (crear/editar)",
+  "catalog:write": "Catálogo (productos/servicios)",
+  "sales:write": "Registrar ventas",
+  "payments:write": "Registrar pagos",
+  "sales:void": "Anular ventas",
+  "cash:manage": "Caja (abrir/cerrar/movimientos)",
+  "expenses:write": "Gastos",
+  "reports:view": "Reportes y comisiones",
+  "commissions:manage": "Configurar reglas de comisión",
+  "settings:manage": "Configuración del salón",
+  "salon:manage": "Crear salones",
+  "staff:manage": "Gestionar personal",
 };
 
-/** Whether a role may perform a capability. Unknown roles get nothing. */
-export function can(role: string, permission: Permission): boolean {
-  const perms = ROLE_PERMISSIONS[role as Role];
-  return perms ? perms.includes(permission) : false;
+export type AccessContext = { role: string; permissions: readonly Permission[] };
+
+/** Whether the context may perform a capability. Owners/admins always can. */
+export function can(ctx: AccessContext, permission: Permission): boolean {
+  if (isAdmin(ctx.role)) return true;
+  return ctx.permissions.includes(permission);
 }

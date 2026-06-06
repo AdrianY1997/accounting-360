@@ -1,8 +1,15 @@
 import { cookies } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { member, organization, team, teamMember } from "@/db/schema";
+import {
+  member,
+  memberPermission,
+  organization,
+  team,
+  teamMember,
+} from "@/db/schema";
 import { requireSession } from "@/lib/session";
+import { isAdmin, type Permission } from "@/lib/roles";
 
 export const ACTIVE_SALON_COOKIE = "activeSalonId";
 export const ACTIVE_ORG_COOKIE = "activeOrgId";
@@ -12,6 +19,8 @@ export type SalonContext = {
   organizationId: string;
   salonId: string;
   role: string;
+  /** Granular permissions for non-owner members (owners get all via `can`). */
+  permissions: Permission[];
   /** True when a platform admin is operating an org they don't belong to. */
   impersonating: boolean;
 };
@@ -42,6 +51,7 @@ export async function requireSalonContext(): Promise<SalonContext> {
 
   let organizationId: string | undefined;
   let role: string | undefined;
+  let memberId: string | undefined;
   let impersonating = false;
 
   // An explicit org cookie wins: use the membership if any, else (platform
@@ -52,6 +62,7 @@ export async function requireSalonContext(): Promise<SalonContext> {
     if (m) {
       organizationId = cookieOrg;
       role = m.role;
+      memberId = m.id;
     } else if (platformAdmin) {
       const org = await db.query.organization.findFirst({
         where: eq(organization.id, cookieOrg),
@@ -74,6 +85,17 @@ export async function requireSalonContext(): Promise<SalonContext> {
     if (!m) throw new Error("El usuario no pertenece a ninguna empresa");
     organizationId = m.organizationId;
     role = m.role;
+    memberId = m.id;
+  }
+
+  // Permissions: owners/admins get all (via `can`); others, the explicit set.
+  let permissions: Permission[] = [];
+  if (memberId && !isAdmin(role ?? "")) {
+    const rows = await db
+      .select({ permission: memberPermission.permission })
+      .from(memberPermission)
+      .where(eq(memberPermission.memberId, memberId));
+    permissions = rows.map((r) => r.permission as Permission);
   }
 
   // Salón: assigned salones (normal) or all org salones (impersonation).
@@ -102,5 +124,12 @@ export async function requireSalonContext(): Promise<SalonContext> {
     throw new Error("El usuario no tiene ningún salón asignado");
   }
 
-  return { userId: user.id, organizationId, salonId, role: role!, impersonating };
+  return {
+    userId: user.id,
+    organizationId,
+    salonId,
+    role: role!,
+    permissions,
+    impersonating,
+  };
 }

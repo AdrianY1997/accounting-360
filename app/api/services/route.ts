@@ -11,7 +11,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "catalog:write")) {
+  if (!can(ctx, "catalog:write")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const parsed = serviceInputSchema.safeParse(await req.json());

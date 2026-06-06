@@ -23,7 +23,7 @@ export default async function ClientsPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "clients:write")) redirect("/dashboard");
+  if (!can(ctx, "clients:write")) redirect("/dashboard");
   const { q } = await searchParams;
   const clients = await listClients(ctx, q);
 

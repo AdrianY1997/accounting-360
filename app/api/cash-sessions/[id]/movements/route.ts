@@ -9,7 +9,7 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
-  if (!can(salon.role, "cash:manage")) {
+  if (!can(salon, "cash:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;

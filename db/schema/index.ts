@@ -9,3 +9,4 @@ export * from "./payment";
 export * from "./cash";
 export * from "./expense";
 export * from "./commission";
+export * from "./access";

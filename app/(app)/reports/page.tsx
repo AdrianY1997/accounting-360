@@ -34,7 +34,7 @@ export default async function ReportsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "reports:view")) redirect("/dashboard");
+  if (!can(ctx, "reports:view")) redirect("/dashboard");
   const sp = await searchParams;
   const { from, to } = parseRange(sp.from ?? null, sp.to ?? null) ?? monthRange();
 

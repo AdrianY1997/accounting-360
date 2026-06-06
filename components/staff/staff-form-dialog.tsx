@@ -15,20 +15,19 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ASSIGNABLE_ROLES, roleLabels } from "@/lib/roles";
+import { ALL_PERMISSIONS, permissionLabels, type Permission } from "@/lib/roles";
 
 export function StaffFormDialog() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [role, setRole] = useState<string>("staff");
+  const [perms, setPerms] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(false);
+
+  function toggle(p: Permission) {
+    setPerms((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p],
+    );
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,7 +36,7 @@ export function StaffFormDialog() {
       name: String(form.get("name") ?? ""),
       email: String(form.get("email") ?? ""),
       password: String(form.get("password") ?? ""),
-      role,
+      permissions: perms,
     };
     setLoading(true);
     const res = await fetch("/api/staff", {
@@ -51,8 +50,9 @@ export function StaffFormDialog() {
       toast.error(data.error ?? "No se pudo crear");
       return;
     }
-    toast.success("Staff creado");
+    toast.success("Personal creado");
     setOpen(false);
+    setPerms([]);
     router.refresh();
   }
 
@@ -61,12 +61,12 @@ export function StaffFormDialog() {
       <DialogTrigger asChild>
         <Button>
           <Plus className="size-4" />
-          Nuevo staff
+          Nuevo personal
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90svh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nuevo staff</DialogTitle>
+          <DialogTitle>Nuevo personal</DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4">
           <div className="grid gap-2">
@@ -79,28 +79,22 @@ export function StaffFormDialog() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              name="password"
-              type="text"
-              minLength={8}
-              required
-            />
+            <Input id="password" name="password" type="text" minLength={8} required />
           </div>
           <div className="grid gap-2">
-            <Label>Rol</Label>
-            <Select value={role} onValueChange={setRole}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ASSIGNABLE_ROLES.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {roleLabels[r]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Permisos</Label>
+            <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+              {ALL_PERMISSIONS.map((p) => (
+                <label key={p} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={perms.includes(p)}
+                    onChange={() => toggle(p)}
+                  />
+                  {permissionLabels[p]}
+                </label>
+              ))}
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading}>

@@ -6,7 +6,7 @@ import { requireSalonContext } from "@/lib/tenant";
 
 export async function GET(req: Request) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "reports:view")) {
+  if (!can(ctx, "reports:view")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { searchParams } = new URL(req.url);

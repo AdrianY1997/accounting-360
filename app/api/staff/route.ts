@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createStaff, listStaff } from "@/services/staff";
-import { isAdmin } from "@/lib/roles";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { createStaffSchema } from "@/lib/validations/staff";
 
 export async function GET() {
   const ctx = await requireSalonContext();
-  if (!isAdmin(ctx.role)) {
+  if (!can(ctx, "staff:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   return NextResponse.json(await listStaff(ctx));
@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
-  if (!isAdmin(ctx.role)) {
+  if (!can(ctx, "staff:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const parsed = createStaffSchema.safeParse(await req.json());

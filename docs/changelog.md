@@ -2,6 +2,19 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Access — fully custom per-user permissions
+
+- Replaced the fixed role→permission matrix with **per-user permissions**
+  (`member_permission` table, migration `0013`). `member.role` keeps `owner`
+  (implicit full access); everyone else gets an explicit permission set chosen by
+  the owner. `can(ctx, permission)` now reads `ctx.permissions` (owners/admins
+  always allowed); `requireSalonContext` loads them.
+- Staff form/edit use permission checkboxes (`ALL_PERMISSIONS` +
+  `permissionLabels`) instead of a role select. Staff/settings/commission-rules/
+  salon routes + pages now gate on the matching permission (`staff:manage`,
+  `settings:manage`, `commissions:manage`, `salon:manage`). Nav filtered by
+  `can`.
+
 ## General accounting — price tiers, client types, traceability
 
 - **Item price tiers**: `service` gains `cost_price` (proveedor), `reseller_price`

@@ -34,7 +34,7 @@ export default async function DailyClosePage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "reports:view")) redirect("/dashboard");
+  if (!can(ctx, "reports:view")) redirect("/dashboard");
 
   const sp = await searchParams;
   const base = sp.date ? new Date(`${sp.date}T12:00:00`) : new Date();

@@ -85,7 +85,7 @@ export default async function SaleDetailPage({
           <Badge variant={statusVariant[paymentStatus]}>
             {statusLabel[paymentStatus]}
           </Badge>
-          {sale.status !== "void" && can(ctx.role, "sales:void") && (
+          {sale.status !== "void" && can(ctx, "sales:void") && (
             <ResourceDeleteButton
               endpoint={`/api/sales/${sale.id}`}
               name="esta venta"

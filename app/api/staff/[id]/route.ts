@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { removeStaff, updateStaff } from "@/services/staff";
-import { isAdmin } from "@/lib/roles";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { updateStaffSchema } from "@/lib/validations/staff";
 
@@ -9,7 +9,7 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
-  if (!isAdmin(salon.role)) {
+  if (!can(salon, "staff:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;
@@ -32,7 +32,7 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const salon = await requireSalonContext();
-  if (!isAdmin(salon.role)) {
+  if (!can(salon, "staff:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const { id } = await ctx.params;

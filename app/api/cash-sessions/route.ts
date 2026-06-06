@@ -11,7 +11,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "cash:manage")) {
+  if (!can(ctx, "cash:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const parsed = openSessionSchema.safeParse(await req.json());

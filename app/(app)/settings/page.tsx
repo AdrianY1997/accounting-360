@@ -3,12 +3,12 @@ import { CreateSalonDialog } from "@/components/settings/create-salon-dialog";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { getSettings } from "@/services/settings";
 import { listSalons } from "@/services/salons";
-import { isAdmin } from "@/lib/roles";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
 export default async function SettingsPage() {
   const ctx = await requireSalonContext();
-  if (!isAdmin(ctx.role)) redirect("/dashboard");
+  if (!can(ctx, "settings:manage")) redirect("/dashboard");
   const [settings, salons] = await Promise.all([
     getSettings(ctx),
     listSalons(ctx),

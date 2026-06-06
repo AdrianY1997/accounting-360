@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["better-auth", "@better-auth/kysely-adapter"],
   // Don't serve dynamic pages from the client Router Cache: a mutation in one
   // module must be reflected when navigating to another (no manual reload).
+  allowedDevOrigins: ["67.73.237.30"],
   experimental: {
     staleTimes: { dynamic: 30, static: 30 },
   },

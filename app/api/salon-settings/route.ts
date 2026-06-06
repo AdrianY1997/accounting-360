@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/services/settings";
-import { isAdmin } from "@/lib/roles";
+import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { salonSettingsSchema } from "@/lib/validations/settings";
 
@@ -11,7 +11,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   const ctx = await requireSalonContext();
-  if (!isAdmin(ctx.role)) {
+  if (!can(ctx, "settings:manage")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
   const parsed = salonSettingsSchema.safeParse(await req.json());

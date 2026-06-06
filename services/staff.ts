@@ -1,7 +1,15 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { account, member, team, teamMember, user } from "@/db/schema";
+import {
+  account,
+  member,
+  memberPermission,
+  team,
+  teamMember,
+  user,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
+import type { Permission } from "@/lib/roles";
 import type { SalonContext } from "@/lib/tenant";
 import type {
   CreateStaffInput,
@@ -14,11 +22,12 @@ export type StaffRow = {
   name: string;
   email: string;
   role: string;
+  permissions: Permission[];
 };
 
-/** Members of the caller's organization. */
+/** Members of the caller's organization, with their granular permissions. */
 export async function listStaff(ctx: SalonContext): Promise<StaffRow[]> {
-  return db
+  const members = await db
     .select({
       memberId: member.id,
       userId: user.id,
@@ -30,6 +39,41 @@ export async function listStaff(ctx: SalonContext): Promise<StaffRow[]> {
     .innerJoin(user, eq(user.id, member.userId))
     .where(eq(member.organizationId, ctx.organizationId))
     .orderBy(member.createdAt);
+
+  if (members.length === 0) return [];
+  const perms = await db
+    .select({
+      memberId: memberPermission.memberId,
+      permission: memberPermission.permission,
+    })
+    .from(memberPermission)
+    .where(
+      inArray(
+        memberPermission.memberId,
+        members.map((m) => m.memberId),
+      ),
+    );
+  const byMember = new Map<string, Permission[]>();
+  for (const p of perms) {
+    const list = byMember.get(p.memberId) ?? [];
+    list.push(p.permission as Permission);
+    byMember.set(p.memberId, list);
+  }
+  return members.map((m) => ({
+    ...m,
+    permissions: byMember.get(m.memberId) ?? [],
+  }));
+}
+
+async function setMemberPermissions(memberId: string, perms: Permission[]) {
+  await db
+    .delete(memberPermission)
+    .where(eq(memberPermission.memberId, memberId));
+  if (perms.length > 0) {
+    await db
+      .insert(memberPermission)
+      .values(perms.map((permission) => ({ memberId, permission })));
+  }
 }
 
 /**
@@ -59,11 +103,12 @@ export async function createStaff(ctx: SalonContext, input: CreateStaffInput) {
   });
 
   const now = new Date();
+  const memberId = crypto.randomUUID();
   await db.insert(member).values({
-    id: crypto.randomUUID(),
+    id: memberId,
     organizationId: ctx.organizationId,
     userId: created.id,
-    role: input.role,
+    role: "staff",
     createdAt: now,
   });
   await db.insert(teamMember).values({
@@ -72,6 +117,7 @@ export async function createStaff(ctx: SalonContext, input: CreateStaffInput) {
     userId: created.id,
     createdAt: now,
   });
+  await setMemberPermissions(memberId, input.permissions);
   return { id: created.id };
 }
 
@@ -93,11 +139,8 @@ export async function updateStaff(
   const m = await findMember(ctx, memberId);
   if (!m) return null;
 
-  if (input.role) {
-    await db
-      .update(member)
-      .set({ role: input.role })
-      .where(eq(member.id, memberId));
+  if (input.permissions && m.role !== "owner") {
+    await setMemberPermissions(memberId, input.permissions);
   }
   if (input.password) {
     const authCtx = await auth.$context;

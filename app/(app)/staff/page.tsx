@@ -12,12 +12,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { listStaff } from "@/services/staff";
-import { isAdmin, roleLabels, type Role } from "@/lib/roles";
+import { can, roleLabels, type Role } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 
 export default async function StaffPage() {
   const ctx = await requireSalonContext();
-  if (!isAdmin(ctx.role)) redirect("/dashboard");
+  if (!can(ctx, "staff:manage")) redirect("/dashboard");
   const staff = await listStaff(ctx);
 
   return (

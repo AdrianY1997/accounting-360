@@ -17,29 +17,28 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ASSIGNABLE_ROLES, roleLabels } from "@/lib/roles";
+import { ALL_PERMISSIONS, permissionLabels, type Permission } from "@/lib/roles";
 
 export function StaffEditDialog({ staff }: { staff: StaffRow }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [role, setRole] = useState(staff.role);
+  const [perms, setPerms] = useState<Permission[]>(staff.permissions);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const isOwner = staff.role === "owner";
 
+  function toggle(p: Permission) {
+    setPerms((prev) =>
+      prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p],
+    );
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const body: { role?: string; password?: string } = {};
-    if (!isOwner && role !== staff.role) body.role = role;
+    const body: { permissions?: Permission[]; password?: string } = {};
+    if (!isOwner) body.permissions = perms;
     if (password) body.password = password;
-    if (!body.role && !body.password) {
+    if (!body.permissions && !body.password) {
       toast.error("Nada que actualizar");
       return;
     }
@@ -55,7 +54,7 @@ export function StaffEditDialog({ staff }: { staff: StaffRow }) {
       toast.error(data.error ?? "No se pudo actualizar");
       return;
     }
-    toast.success("Staff actualizado");
+    toast.success("Personal actualizado");
     setPassword("");
     setOpen(false);
     router.refresh();
@@ -68,35 +67,33 @@ export function StaffEditDialog({ staff }: { staff: StaffRow }) {
           <Pencil className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90svh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar {staff.name}</DialogTitle>
           <DialogDescription>{staff.email}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label>Rol</Label>
-            <Select
-              value={role}
-              onValueChange={setRole}
-              disabled={isOwner}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {isOwner ? (
-                  <SelectItem value="owner">{roleLabels.owner}</SelectItem>
-                ) : (
-                  ASSIGNABLE_ROLES.map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {roleLabels[r]}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          {isOwner ? (
+            <p className="text-muted-foreground text-sm">
+              El dueño tiene acceso total.
+            </p>
+          ) : (
+            <div className="grid gap-2">
+              <Label>Permisos</Label>
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {ALL_PERMISSIONS.map((p) => (
+                  <label key={p} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={perms.includes(p)}
+                      onChange={() => toggle(p)}
+                    />
+                    {permissionLabels[p]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="password">Nueva contraseña (opcional)</Label>
             <Input

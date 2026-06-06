@@ -19,7 +19,6 @@ import {
 import { listServices } from "@/services/catalog";
 import { computeCommissions, listRules } from "@/services/commissions";
 import { listSalonStaff } from "@/services/sales";
-import { isAdmin } from "@/lib/roles";
 import { can } from "@/lib/roles";
 import { monthRange, parseRange, toDateInput } from "@/lib/period";
 import { requireSalonContext } from "@/lib/tenant";
@@ -34,8 +33,8 @@ export default async function CommissionsPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const ctx = await requireSalonContext();
-  if (!can(ctx.role, "reports:view")) redirect("/dashboard");
-  const manageRules = isAdmin(ctx.role);
+  if (!can(ctx, "reports:view")) redirect("/dashboard");
+  const manageRules = can(ctx, "commissions:manage");
   const sp = await searchParams;
   const { from, to } = parseRange(sp.from ?? null, sp.to ?? null) ?? monthRange();
 

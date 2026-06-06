@@ -54,7 +54,11 @@ export default async function AppLayout({
             className="size-8 w-auto hidden dark:block"
           />
         </Link>
-        <MainNav role={ctx.role} admin={admin} platformAdmin={platformAdmin} />
+        <MainNav
+          role={ctx.role}
+          permissions={ctx.permissions}
+          platformAdmin={platformAdmin}
+        />
         <div className="flex items-center gap-3 text-sm">
           <OrgSwitcher orgs={orgs} activeId={ctx.organizationId} />
           <SalonSwitcher salons={salons} activeId={ctx.salonId} />
@@ -67,12 +71,12 @@ export default async function AppLayout({
       {!onboarded && (
         <ProductTour
           caps={{
-            sales: can(ctx.role, "sales:write"),
-            clients: can(ctx.role, "clients:write"),
-            catalog: can(ctx.role, "catalog:write"),
-            cash: can(ctx.role, "cash:manage"),
-            expenses: can(ctx.role, "expenses:write"),
-            reports: can(ctx.role, "reports:view"),
+            sales: can(ctx, "sales:write"),
+            clients: can(ctx, "clients:write"),
+            catalog: can(ctx, "catalog:write"),
+            cash: can(ctx, "cash:manage"),
+            expenses: can(ctx, "expenses:write"),
+            reports: can(ctx, "reports:view"),
             admin,
             platformAdmin,
           }}
