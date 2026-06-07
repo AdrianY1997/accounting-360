@@ -11,7 +11,10 @@ import { Label } from "@/components/ui/label";
 type Variant = {
   id: string;
   name: string;
-  price: string | null;
+  price: string;
+  costPrice: string;
+  resellerPrice: string;
+  minPrice: string;
   stock: number;
 };
 
@@ -20,6 +23,9 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
+  const [resellerPrice, setResellerPrice] = useState("");
+  const [minPrice, setMinPrice] = useState("");
   const [stock, setStock] = useState("0");
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +44,14 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
     const res = await fetch(`/api/services/${serviceId}/variants`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, price: price || undefined, stock }),
+      body: JSON.stringify({
+        name,
+        price: price || 0,
+        costPrice: costPrice || 0,
+        resellerPrice: resellerPrice || 0,
+        minPrice: minPrice || 0,
+        stock,
+      }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -47,6 +60,9 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
     }
     setName("");
     setPrice("");
+    setCostPrice("");
+    setResellerPrice("");
+    setMinPrice("");
     setStock("0");
     void load();
   }
@@ -57,7 +73,10 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: v.name,
-        price: v.price === null || v.price === "" ? undefined : v.price,
+        price: v.price || 0,
+        costPrice: v.costPrice || 0,
+        resellerPrice: v.resellerPrice || 0,
+        minPrice: v.minPrice || 0,
         stock: v.stock,
       }),
     });
@@ -104,15 +123,47 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
               />
             </div>
             <div className="grid gap-1">
-              <Label className="text-xs">Precio (opc.)</Label>
+              <Label className="text-xs">Sugerido</Label>
               <Input
-                className="w-28"
+                className="w-24"
                 type="number"
                 step="0.01"
                 min="0"
-                value={v.price ?? ""}
-                placeholder="hereda"
+                value={v.price}
                 onChange={(e) => patch(v.id, { price: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Costo</Label>
+              <Input
+                className="w-24"
+                type="number"
+                step="0.01"
+                min="0"
+                value={v.costPrice}
+                onChange={(e) => patch(v.id, { costPrice: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Intermediario</Label>
+              <Input
+                className="w-24"
+                type="number"
+                step="0.01"
+                min="0"
+                value={v.resellerPrice}
+                onChange={(e) => patch(v.id, { resellerPrice: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Mínimo</Label>
+              <Input
+                className="w-24"
+                type="number"
+                step="0.01"
+                min="0"
+                value={v.minPrice}
+                onChange={(e) => patch(v.id, { minPrice: e.target.value })}
               />
             </div>
             <div className="grid gap-1">
@@ -157,15 +208,47 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
           />
         </div>
         <div className="grid gap-1">
-          <Label className="text-xs">Precio (opc.)</Label>
+          <Label className="text-xs">Sugerido</Label>
           <Input
-            className="w-28"
+            className="w-24"
             type="number"
             step="0.01"
             min="0"
             value={price}
-            placeholder="hereda"
             onChange={(e) => setPrice(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">Costo</Label>
+          <Input
+            className="w-24"
+            type="number"
+            step="0.01"
+            min="0"
+            value={costPrice}
+            onChange={(e) => setCostPrice(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">Intermediario</Label>
+          <Input
+            className="w-24"
+            type="number"
+            step="0.01"
+            min="0"
+            value={resellerPrice}
+            onChange={(e) => setResellerPrice(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">Mínimo</Label>
+          <Input
+            className="w-24"
+            type="number"
+            step="0.01"
+            min="0"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
           />
         </div>
         <div className="grid gap-1">

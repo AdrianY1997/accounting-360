@@ -2,6 +2,24 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Pricing moved to variants (item base has no pricing)
+
+- Per `docs/notes.md`: pricing + stock now live entirely on variants. Every item
+  has ≥1 variant; the item base only holds name/category/measure/images.
+- `service_variant` gains `cost_price`, `reseller_price`, `min_price` (price tiers
+  per variant); `price` is now NOT NULL (migration `0017`, with backfill).
+  Creating an item auto-creates an "Estándar" variant; existing items were
+  backfilled one variant from their old item price.
+- `VariantManager` edits all four prices + stock + images per variant. The item
+  form no longer shows prices (just a note + a "Descuenta stock al vender"
+  toggle); the variant manager shows for every item.
+- Sale: **a variant is required for every catalog line** (auto-selected when the
+  item has a single variant); unit price, min-price floor and cost snapshot come
+  from the chosen variant; reseller pricing uses the variant's reseller price.
+  Catalog list shows "desde" (lowest variant price); public store shows the
+  lowest variant price as the item price. The legacy `service` price columns are
+  unused.
+
 ## Public storefront (part 3)
 
 - Unauthenticated catalog per salón at `/store/[salonId]`: shows active items

@@ -20,16 +20,15 @@ import { paymentMethods, paymentMethodLabels } from "@/lib/validations/payment";
 type VariantOpt = {
   id: string;
   name: string;
-  price: string | null;
+  price: string;
+  resellerPrice: string;
+  minPrice: string;
   stock: number;
 };
 type ClientOpt = { id: string; fullName: string; type: string };
 type ServiceOpt = {
   id: string;
   name: string;
-  price: string;
-  resellerPrice: string;
-  minPrice: string;
   measureType: string;
   priceMode: string;
   durationMinutes: number;
@@ -67,11 +66,11 @@ const emptyRow = (): Row => ({
   staffId: NONE,
 });
 
-/** Price for a client type: resellers get the intermediario price. */
-function tierPrice(svc: ServiceOpt, clientType: string): string {
-  return clientType === "reseller" && Number(svc.resellerPrice) > 0
-    ? svc.resellerPrice
-    : svc.price;
+/** Variant price for a client type: resellers get the intermediario price. */
+function variantTier(v: VariantOpt, clientType: string): string {
+  return clientType === "reseller" && Number(v.resellerPrice) > 0
+    ? v.resellerPrice
+    : v.price;
 }
 
 /** Line total for the live preview (mirrors the server math). */
@@ -139,15 +138,14 @@ export function SaleForm({
       return;
     }
     const svc = services.find((s) => s.id === serviceId);
-    const firstVar = svc?.tracksStock ? svc.variants[0] : undefined;
+    const firstVar = svc?.variants[0];
     setRow(i, {
       serviceId,
       description: svc?.name ?? "",
       tracksStock: svc?.tracksStock ?? false,
       variantId: firstVar?.id ?? NONE,
-      unitPrice:
-        firstVar?.price ?? (svc ? tierPrice(svc, clientType) : "0"),
-      minPrice: svc?.minPrice ?? "0",
+      unitPrice: firstVar ? variantTier(firstVar, clientType) : "0",
+      minPrice: firstVar?.minPrice ?? "0",
       measureType: svc?.measureType ?? "quantity",
       priceMode: svc?.priceMode ?? "per_unit",
       durationMinutes: String(svc?.durationMinutes ?? 0),
@@ -160,7 +158,8 @@ export function SaleForm({
     const v = svc?.variants.find((x) => x.id === variantId);
     setRow(i, {
       variantId,
-      unitPrice: v?.price ?? (svc ? tierPrice(svc, clientType) : rows[i].unitPrice),
+      unitPrice: v ? variantTier(v, clientType) : rows[i].unitPrice,
+      minPrice: v?.minPrice ?? "0",
     });
   }
 
@@ -170,9 +169,10 @@ export function SaleForm({
     const ct = clients.find((c) => c.id === id)?.type ?? "direct";
     setRows((prev) =>
       prev.map((r) => {
-        if (r.serviceId === NONE) return r;
+        if (r.serviceId === NONE || r.variantId === NONE) return r;
         const svc = services.find((s) => s.id === r.serviceId);
-        return svc ? { ...r, unitPrice: tierPrice(svc, ct) } : r;
+        const v = svc?.variants.find((x) => x.id === r.variantId);
+        return v ? { ...r, unitPrice: variantTier(v, ct) } : r;
       }),
     );
   }
@@ -204,8 +204,8 @@ export function SaleForm({
       setError("Hay ítems por debajo del precio mínimo permitido.");
       return;
     }
-    if (rows.some((r) => r.tracksStock && r.variantId === NONE)) {
-      setError("Selecciona una variante para los productos con stock.");
+    if (rows.some((r) => r.serviceId !== NONE && r.variantId === NONE)) {
+      setError("Selecciona una variante para cada ítem del catálogo.");
       return;
     }
     if (Number(payAmount) > total) {
@@ -330,7 +330,7 @@ export function SaleForm({
                 placeholder="Descripción"
                 required
               />
-              {r.tracksStock && (
+              {r.serviceId !== NONE && (
                 <Select
                   value={r.variantId}
                   onValueChange={(v) => onPickVariant(i, v)}
@@ -343,7 +343,8 @@ export function SaleForm({
                       .find((s) => s.id === r.serviceId)
                       ?.variants ?? []).map((v) => (
                       <SelectItem key={v.id} value={v.id}>
-                        {v.name} (stock {v.stock})
+                        {v.name}
+                        {r.tracksStock ? ` (stock ${v.stock})` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>

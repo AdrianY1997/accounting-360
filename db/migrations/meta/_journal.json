@@ -120,6 +120,13 @@
       "when": 1780782216376,
       "tag": "0016_nifty_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1780799557967,
+      "tag": "0017_tough_inertia",
+      "breakpoints": true
     }
   ]
 }

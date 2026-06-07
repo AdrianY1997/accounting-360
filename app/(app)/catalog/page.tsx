@@ -22,10 +22,13 @@ import {
   imagesForServices,
   listCategories,
   listServices,
+  priceFromForServices,
   stockForServices,
 } from "@/services/catalog";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
+import { Copy } from "@/components/copy";
+import { env } from "@/lib/env";
 
 export default async function CatalogPage({
   searchParams,
@@ -47,9 +50,10 @@ export default async function CatalogPage({
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
   const ids = services.map((s) => s.id);
-  const [thumbs, stock] = await Promise.all([
+  const [thumbs, stock, priceFrom] = await Promise.all([
     imagesForServices(ctx, ids),
     stockForServices(ctx, ids),
+    priceFromForServices(ctx, ids),
   ]);
 
   return (
@@ -57,15 +61,10 @@ export default async function CatalogPage({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Productos y servicios</h1>
-          <ServiceFormDialog
-            categories={categories}
-            trigger={
-              <Button>
-                <Plus className="size-4" />
-                Nuevo ítem
-              </Button>
-            }
-          />
+          <div className="flex items-center gap-4">
+            <Copy text={`${env.BETTER_AUTH_URL}/store/${ctx.salonId}`} />
+            <ServiceFormDialog categories={categories} />
+          </div>
         </div>
         <SearchInput placeholder="Buscar ítem" />
 
@@ -123,7 +122,7 @@ export default async function CatalogPage({
                       {s.tracksStock ? (stock.get(s.id) ?? 0) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      {fmt.format(Number(s.price))}
+                      {fmt.format(priceFrom.get(s.id) ?? 0)}
                       {s.measureType === "duration" &&
                       s.priceMode === "per_unit"
                         ? " /h"
@@ -133,11 +132,7 @@ export default async function CatalogPage({
                       <ServiceFormDialog
                         service={s}
                         categories={categories}
-                        trigger={
-                          <Button variant="ghost" size="icon" aria-label="Editar">
-                            <Pencil className="size-4" />
-                          </Button>
-                        }
+                        mode="edit"
                       />
                       <ResourceDeleteButton
                         endpoint={`/api/services/${s.id}`}
@@ -156,20 +151,11 @@ export default async function CatalogPage({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Categorías</h2>
-          <CategoryFormDialog
-            trigger={
-              <Button variant="outline" size="sm">
-                <Plus className="size-4" />
-                Nueva categoría
-              </Button>
-            }
-          />
+          <CategoryFormDialog />
         </div>
 
         {categories.length === 0 ? (
-          <p className="text-muted-foreground py-4 text-sm">
-            Sin categorías.
-          </p>
+          <p className="text-muted-foreground py-4 text-sm">Sin categorías.</p>
         ) : (
           <ul className="divide-y rounded-md border">
             {categories.map((c) => (
@@ -179,14 +165,7 @@ export default async function CatalogPage({
               >
                 <span>{c.name}</span>
                 <span className="flex items-center">
-                  <CategoryFormDialog
-                    category={c}
-                    trigger={
-                      <Button variant="ghost" size="icon" aria-label="Editar">
-                        <Pencil className="size-4" />
-                      </Button>
-                    }
-                  />
+                  <CategoryFormDialog category={c} mode="edit" />
                   <ResourceDeleteButton
                     endpoint={`/api/service-categories/${c.id}`}
                     name={`la categoría ${c.name}`}

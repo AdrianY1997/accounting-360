@@ -36,7 +36,8 @@ export default async function CommissionsPage({
   if (!can(ctx, "reports:view")) redirect("/dashboard");
   const manageRules = can(ctx, "commissions:manage");
   const sp = await searchParams;
-  const { from, to } = parseRange(sp.from ?? null, sp.to ?? null) ?? monthRange();
+  const { from, to } =
+    parseRange(sp.from ?? null, sp.to ?? null) ?? monthRange();
 
   const [report, rules, staff, services, settings] = await Promise.all([
     computeCommissions(ctx, from, to),
@@ -106,74 +107,61 @@ export default async function CommissionsPage({
       </section>
 
       {manageRules && (
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Reglas</h2>
-          <RuleFormDialog
-            staff={staff}
-            services={serviceOpts}
-            trigger={
-              <Button variant="outline" size="sm">
-                <Plus className="size-4" />
-                Nueva regla
-              </Button>
-            }
-          />
-        </div>
-
-        {rules.length === 0 ? (
-          <p className="text-muted-foreground py-4 text-sm">Sin reglas.</p>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Staff</TableHead>
-                  <TableHead>Servicio</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-20 text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rules.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{r.staffName ?? "Todos"}</TableCell>
-                    <TableCell>{r.serviceName ?? "Todos"}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {commissionTypeLabels[r.type as CommissionType] ?? r.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {r.type === "percent"
-                        ? `${Number(r.value)}%`
-                        : fmt.format(Number(r.value))}
-                    </TableCell>
-                    <TableCell className="flex justify-end text-right">
-                      <RuleFormDialog
-                        rule={r}
-                        staff={staff}
-                        services={serviceOpts}
-                        trigger={
-                          <Button variant="ghost" size="icon" aria-label="Editar">
-                            <Pencil className="size-4" />
-                          </Button>
-                        }
-                      />
-                      <ResourceDeleteButton
-                        endpoint={`/api/commission-rules/${r.id}`}
-                        name="esta regla"
-                        successMessage="Regla eliminada"
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Reglas</h2>
+            <RuleFormDialog staff={staff} services={serviceOpts} />
           </div>
-        )}
-      </section>
+
+          {rules.length === 0 ? (
+            <p className="text-muted-foreground py-4 text-sm">Sin reglas.</p>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Staff</TableHead>
+                    <TableHead>Servicio</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="w-20 text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rules.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>{r.staffName ?? "Todos"}</TableCell>
+                      <TableCell>{r.serviceName ?? "Todos"}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {commissionTypeLabels[r.type as CommissionType] ??
+                            r.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {r.type === "percent"
+                          ? `${Number(r.value)}%`
+                          : fmt.format(Number(r.value))}
+                      </TableCell>
+                      <TableCell className="flex justify-end text-right">
+                        <RuleFormDialog
+                          rule={r}
+                          staff={staff}
+                          services={serviceOpts}
+                        />
+                        <ResourceDeleteButton
+                          endpoint={`/api/commission-rules/${r.id}`}
+                          name="esta regla"
+                          successMessage="Regla eliminada"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </section>
       )}
     </div>
   );

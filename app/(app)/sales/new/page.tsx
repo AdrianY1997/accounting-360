@@ -19,7 +19,7 @@ export default async function NewSalePage() {
   ]);
   const variants = await variantsForServices(
     ctx,
-    services.filter((s) => s.tracksStock).map((s) => s.id),
+    services.map((s) => s.id),
   );
 
   return (
@@ -36,9 +36,6 @@ export default async function NewSalePage() {
           .map((s) => ({
             id: s.id,
             name: s.name,
-            price: s.price,
-            resellerPrice: s.resellerPrice,
-            minPrice: s.minPrice,
             measureType: s.measureType,
             priceMode: s.priceMode,
             durationMinutes: s.durationMinutes,
@@ -47,6 +44,8 @@ export default async function NewSalePage() {
               id: v.id,
               name: v.name,
               price: v.price,
+              resellerPrice: v.resellerPrice,
+              minPrice: v.minPrice,
               stock: v.stock,
             })),
           }))}

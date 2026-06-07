@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import type { Service, ServiceCategory } from "@/services/catalog";
+import { ServiceImageManager } from "@/components/catalog/service-image-manager";
+import { VariantManager } from "@/components/catalog/variant-manager";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -28,19 +27,22 @@ import {
   priceModeLabels,
   priceModes,
 } from "@/lib/validations/catalog";
-import { ServiceImageManager } from "@/components/catalog/service-image-manager";
-import { VariantManager } from "@/components/catalog/variant-manager";
+import type { Service, ServiceCategory } from "@/services/catalog";
+import { Pencil, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const NONE = "__none__";
 
 export function ServiceFormDialog({
   service,
   categories,
-  trigger,
+  mode = "create",
 }: {
   service?: Service;
   categories: ServiceCategory[];
-  trigger: React.ReactNode;
+  mode?: "edit" | "create";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -91,10 +93,22 @@ export function ServiceFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        {mode === "edit" ? ( <Button variant="ghost" size="icon" aria-label="Editar">
+          <Pencil className="size-4" />
+        </Button>) : (
+          <Button>
+            <Plus className="size-4" />
+            Nuevo ítem
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent className="max-h-[90svh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editing ? "Editar ítem" : "Nuevo ítem"}</DialogTitle>
+          <DialogDescription>
+            Agrega un nuevo ítem al catálogo o edita uno existente.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4">
           <div className="grid gap-2">
@@ -156,84 +170,39 @@ export function ServiceFormDialog({
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          {isDuration && (
             <div className="grid gap-2">
-              <Label htmlFor="price">
-                {isDuration && priceMode === "per_unit"
-                  ? "Sugerido / hora"
-                  : "Precio sugerido"}
-              </Label>
+              <Label htmlFor="durationMinutes">Duración por defecto (min)</Label>
               <Input
-                id="price"
-                name="price"
+                id="durationMinutes"
+                name="durationMinutes"
                 type="number"
-                step="0.01"
                 min="0"
-                defaultValue={service?.price ?? "0"}
+                defaultValue={service?.durationMinutes ?? 0}
               />
             </div>
-            {isDuration && (
-              <div className="grid gap-2">
-                <Label htmlFor="durationMinutes">Duración por defecto (min)</Label>
-                <Input
-                  id="durationMinutes"
-                  name="durationMinutes"
-                  type="number"
-                  min="0"
-                  defaultValue={service?.durationMinutes ?? 0}
-                />
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="costPrice">Costo (proveedor)</Label>
-              <Input
-                id="costPrice"
-                name="costPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={service?.costPrice ?? "0"}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="resellerPrice">Intermediario</Label>
-              <Input
-                id="resellerPrice"
-                name="resellerPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={service?.resellerPrice ?? "0"}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="minPrice">Mínimo</Label>
-              <Input
-                id="minPrice"
-                name="minPrice"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={service?.minPrice ?? "0"}
-              />
-            </div>
-          </div>
+          )}
+          {!editing && (
+            <p className="text-muted-foreground text-xs">
+              Los precios y el stock se configuran en las variantes (tras crear el
+              ítem se crea una variante Estándar).
+            </p>
+          )}
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={tracksStock}
               onChange={(e) => setTracksStock(e.target.checked)}
             />
-            Controla stock (con variantes)
+            Descuenta stock al vender
           </label>
           {editing && service && (
-            <ServiceImageManager serviceId={service.id} label="Imágenes principales" />
+            <ServiceImageManager
+              serviceId={service.id}
+              label="Imágenes principales"
+            />
           )}
-          {editing && service && tracksStock && (
-            <VariantManager serviceId={service.id} />
-          )}
+          {editing && service && <VariantManager serviceId={service.id} />}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}

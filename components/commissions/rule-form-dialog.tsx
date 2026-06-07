@@ -27,6 +27,7 @@ import {
   commissionBases,
   commissionBaseLabels,
 } from "@/lib/validations/commission";
+import { Pencil, Plus } from "lucide-react";
 
 type Option = { id: string; name: string };
 type Rule = {
@@ -44,12 +45,12 @@ export function RuleFormDialog({
   rule,
   staff,
   services,
-  trigger,
+  mode = "create",
 }: {
   rule?: Rule;
   staff: Option[];
   services: Option[];
-  trigger: React.ReactNode;
+  mode?: "edit" | "create";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -92,7 +93,18 @@ export function RuleFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        {mode === "edit" ? (
+          <Button variant="ghost" size="icon" aria-label="Editar">
+            <Pencil className="size-4" />
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm">
+            <Plus className="size-4" />
+            Nueva regla
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{editing ? "Editar regla" : "Nueva regla"}</DialogTitle>

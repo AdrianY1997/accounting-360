@@ -36,7 +36,7 @@ export default async function AppLayout({
     <div className="flex min-h-svh flex-col">
       {ctx.impersonating && <ImpersonationBanner />}
       <header className="flex items-center justify-between border-b px-4 py-3">
-        <Link href="/dashboard" className="flex items-center">
+        {/* <Link href="/dashboard" className="flex items-center">
           <Image
             src="/logo-icon.png"
             alt="salon360"
@@ -53,7 +53,7 @@ export default async function AppLayout({
             priority
             className="size-8 w-auto hidden dark:block"
           />
-        </Link>
+        </Link> */}
         <MainNav
           role={ctx.role}
           permissions={ctx.permissions}

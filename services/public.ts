@@ -91,8 +91,14 @@ export async function publicStore(salonId: string): Promise<PublicStore | null> 
     currency: settings?.currency ?? "USD",
     items: items.map((it) => {
       const itemVariants = variants.filter((v) => v.serviceId === it.id);
+      // Display price = lowest variant price (the item base has no price).
+      const prices = itemVariants
+        .map((v) => Number(v.price))
+        .filter((n) => n > 0);
+      const fromPrice = prices.length ? Math.min(...prices).toFixed(2) : it.price;
       return {
         ...it,
+        price: fromPrice,
         totalStock: itemVariants.reduce((acc, v) => acc + v.stock, 0),
         images: images
           .filter((im) => im.serviceId === it.id && !im.variantId)

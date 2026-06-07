@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -15,13 +16,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Pencil, Plus } from "lucide-react";
 
 export function CategoryFormDialog({
   category,
-  trigger,
+  mode = "create",
 }: {
   category?: ServiceCategory;
-  trigger: React.ReactNode;
+  mode?: "create" | "edit";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -55,12 +57,26 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        {mode === "edit" ? (
+          <Button variant="ghost" size="icon" aria-label="Editar">
+            <Pencil className="size-4" />
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm">
+            <Plus className="size-4" />
+            Nueva categoría
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {editing ? "Editar categoría" : "Nueva categoría"}
           </DialogTitle>
+          <DialogDescription>
+            Agrega una nueva categoria o edita una existente
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-4">
           <div className="grid gap-2">

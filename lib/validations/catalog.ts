@@ -40,8 +40,10 @@ export type ServiceInput = z.infer<typeof serviceInputSchema>;
 
 export const variantInputSchema = z.object({
   name: z.string().trim().min(1, "Nombre requerido").max(120),
-  // Empty → inherits the item price.
-  price: z.coerce.number().min(0).optional(),
+  price: z.coerce.number().min(0).default(0),
+  costPrice: z.coerce.number().min(0).default(0),
+  resellerPrice: z.coerce.number().min(0).default(0),
+  minPrice: z.coerce.number().min(0).default(0),
   stock: z.coerce.number().int().min(0).default(0),
 });
 export type VariantInput = z.infer<typeof variantInputSchema>;

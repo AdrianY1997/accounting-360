@@ -110,7 +110,7 @@ export async function listServices(ctx: SalonContext, q?: string) {
         search ? ilike(service.name, `%${search}%`) : undefined,
       ),
     )
-    .orderBy(desc(service.createdAt));
+    .orderBy(asc(service.name));
 }
 
 export async function createService(ctx: SalonContext, input: ServiceInput) {
@@ -122,6 +122,16 @@ export async function createService(ctx: SalonContext, input: ServiceInput) {
       ...normalizeService(input),
     })
     .returning();
+  // Every item has at least one variant — pricing lives on variants.
+  await db.insert(serviceVariant).values({
+    serviceId: created.id,
+    name: "Estándar",
+    price: input.price.toFixed(2),
+    costPrice: input.costPrice.toFixed(2),
+    resellerPrice: input.resellerPrice.toFixed(2),
+    minPrice: input.minPrice.toFixed(2),
+    stock: 0,
+  });
   return created;
 }
 
@@ -242,6 +252,25 @@ export async function listVariants(ctx: SalonContext, serviceId: string) {
     .orderBy(asc(serviceVariant.createdAt));
 }
 
+/** Lowest variant price ("desde") per service id. */
+export async function priceFromForServices(ctx: SalonContext, ids: string[]) {
+  const map = new Map<string, number>();
+  if (ids.length === 0) return map;
+  const rows = await db
+    .select({
+      serviceId: serviceVariant.serviceId,
+      min: sql<string>`min(${serviceVariant.price})`,
+    })
+    .from(serviceVariant)
+    .innerJoin(service, eq(service.id, serviceVariant.serviceId))
+    .where(
+      and(eq(service.salonId, ctx.salonId), inArray(serviceVariant.serviceId, ids)),
+    )
+    .groupBy(serviceVariant.serviceId);
+  for (const r of rows) map.set(r.serviceId, Number(r.min));
+  return map;
+}
+
 /** Total stock (sum of variant stock) per service id. */
 export async function stockForServices(ctx: SalonContext, ids: string[]) {
   const map = new Map<string, number>();
@@ -272,7 +301,10 @@ export async function createVariant(
     .values({
       serviceId,
       name: input.name.trim(),
-      price: input.price === undefined ? null : input.price.toFixed(2),
+      price: input.price.toFixed(2),
+      costPrice: input.costPrice.toFixed(2),
+      resellerPrice: input.resellerPrice.toFixed(2),
+      minPrice: input.minPrice.toFixed(2),
       stock: input.stock,
     })
     .returning();
@@ -301,7 +333,10 @@ export async function updateVariant(
     .update(serviceVariant)
     .set({
       name: input.name.trim(),
-      price: input.price === undefined ? null : input.price.toFixed(2),
+      price: input.price.toFixed(2),
+      costPrice: input.costPrice.toFixed(2),
+      resellerPrice: input.resellerPrice.toFixed(2),
+      minPrice: input.minPrice.toFixed(2),
       stock: input.stock,
     })
     .where(eq(serviceVariant.id, variantId))

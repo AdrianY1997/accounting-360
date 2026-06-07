@@ -159,6 +159,8 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
           id: serviceVariant.id,
           stock: serviceVariant.stock,
           name: serviceVariant.name,
+          costPrice: serviceVariant.costPrice,
+          minPrice: serviceVariant.minPrice,
         })
         .from(serviceVariant)
         .innerJoin(service, eq(service.id, serviceVariant.serviceId))
@@ -179,21 +181,11 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
     const measureType = svc?.measureType ?? "quantity";
     const priceMode = svc?.priceMode ?? "per_unit";
     const unitCents = toCents(it.unitPrice);
-    const costCents = svc ? toCents(Number(svc.costPrice)) : 0;
 
-    // Minimum price is a hard floor for catalog items.
-    if (svc) {
-      const minCents = toCents(Number(svc.minPrice));
-      if (minCents > 0 && unitCents < minCents) {
-        throw new SaleError(
-          `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
-        );
-      }
-    }
-
-    // Stock-tracked items require a variant with enough stock.
+    // Catalog items require a variant (pricing/stock live on the variant).
     let variantId: string | null = null;
-    if (svc?.tracksStock) {
+    let costCents = 0;
+    if (svc) {
       const variant = it.variantId ? varMap.get(it.variantId) : undefined;
       if (!variant) {
         throw new SaleError(
@@ -201,6 +193,13 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
         );
       }
       variantId = variant.id;
+      costCents = toCents(Number(variant.costPrice));
+      const minCents = toCents(Number(variant.minPrice));
+      if (minCents > 0 && unitCents < minCents) {
+        throw new SaleError(
+          `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
+        );
+      }
     }
 
     let qty: number; // stored multiplier
@@ -222,7 +221,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       lineCents = Math.round(unitCents * qty);
     }
 
-    if (variantId) {
+    if (variantId && svc?.tracksStock) {
       decrement.set(variantId, (decrement.get(variantId) ?? 0) + qty);
     }
 

@@ -41,7 +41,7 @@ export default async function ReceiptPage({
   });
 
   return (
-    <main className="mx-auto max-w-md space-y-4 p-6 text-sm">
+    <main className="mx-auto max-w-md space-y-4 p-6 text-sm min-w-[88mm]">
       <div className="flex items-center justify-between print:hidden">
         <Link href={`/sales/${sale.id}`} className="text-muted-foreground hover:underline">
           ← Volver
@@ -78,10 +78,10 @@ export default async function ReceiptPage({
             <th className="py-1 text-right">Total</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="text-xs">
           {items.map((it) => (
             <tr key={it.id} className="align-top">
-              <td className="py-1">{it.description}</td>
+              <td className="py-1 max-w-[100px] truncate">{it.description}</td>
               <td className="py-1 text-right">
                 {it.measureType === "duration"
                   ? `${it.durationMinutes ?? 0}m`
@@ -93,7 +93,7 @@ export default async function ReceiptPage({
         </tbody>
       </table>
 
-      <div className="space-y-0.5 border-t pt-2">
+      <div className="space-y-0.5 border-t pt-2 text-xs">
         <Row label="Subtotal" value={fmt.format(Number(sale.subtotal))} />
         <Row
           label={`Impuesto (${(Number(sale.taxRate) * 100).toFixed(2)}%)`}
@@ -108,7 +108,7 @@ export default async function ReceiptPage({
       </div>
 
       {payments.length > 0 && (
-        <div className="space-y-0.5 border-t pt-2">
+        <div className="space-y-0.5 border-t pt-2 text-xs">
           {payments.map((p) => (
             <Row
               key={p.id}

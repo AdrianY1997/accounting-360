@@ -55,7 +55,7 @@ export function MainNav({
   return (
     <>
       {/* Desktop */}
-      <nav className="ml-6 mr-auto hidden items-center gap-4 text-sm lg:flex">
+      <nav className="mr-auto hidden items-center gap-4 text-sm lg:flex">
         {links.map((l) => (
           <Link
             key={l.href}

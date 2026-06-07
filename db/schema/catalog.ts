@@ -91,8 +91,17 @@ export const serviceVariant = pgTable(
       .notNull()
       .references(() => service.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    // Null price = inherit the item's suggested price.
-    price: numeric("price", { precision: 12, scale: 2 }),
+    // Price tiers live on the variant (the item base holds no pricing).
+    price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
+    costPrice: numeric("cost_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
+    resellerPrice: numeric("reseller_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
+    minPrice: numeric("min_price", { precision: 12, scale: 2 })
+      .notNull()
+      .default("0"),
     stock: integer("stock").notNull().default(0),
     ...timestamps,
   },

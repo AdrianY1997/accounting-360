@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "salon360",
-  description: "Sistema contable para salones de belleza",
+  title: "Accounting 360",
+  description: "Sistema contable",
 };
 
 export default function RootLayout({
