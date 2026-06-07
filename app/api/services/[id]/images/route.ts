@@ -21,6 +21,13 @@ export async function POST(
   if (!can(salon, "catalog:write")) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) {
+    return NextResponse.json(
+      { error: "Almacenamiento de imágenes no configurado (BLOB_READ_WRITE_TOKEN)" },
+      { status: 500 },
+    );
+  }
   const { id } = await ctx.params;
   const form = await req.formData();
   const files = form.getAll("files").filter((f): f is File => f instanceof File);
@@ -34,6 +41,7 @@ export async function POST(
     const blob = await put(`items/${id}/${file.name}`, file, {
       access: "public",
       addRandomSuffix: true,
+      token,
     });
     const row = await addImage(salon, id, blob.url, blob.pathname, variantId);
     if (!row) {

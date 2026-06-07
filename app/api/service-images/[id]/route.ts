@@ -17,6 +17,8 @@ export async function DELETE(
   if (!removed) {
     return NextResponse.json({ error: "Imagen no encontrada" }, { status: 404 });
   }
-  await del(removed.pathname).catch(() => {});
+  await del(removed.pathname, {
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  }).catch(() => {});
   return NextResponse.json({ ok: true });
 }
