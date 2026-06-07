@@ -2,6 +2,14 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Public store — product card with variant gallery
+
+- `ProductCard` (client): card shows cover + name + "desde" price; clicking opens
+  a dialog with a main image, thumbnail strip, and variant chips. Selecting a
+  variant swaps the gallery to that variant's images (falls back to the item's
+  main images) and shows its price/stock; out-of-stock variants are disabled.
+  The public store grid now uses it.
+
 ## Pricing moved to variants (item base has no pricing)
 
 - Per `docs/notes.md`: pricing + stock now live entirely on variants. Every item

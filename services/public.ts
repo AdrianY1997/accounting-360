@@ -12,7 +12,7 @@ import {
 export type PublicVariant = {
   id: string;
   name: string;
-  price: string | null;
+  price: string;
   stock: number;
   images: string[];
 };
