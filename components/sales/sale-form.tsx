@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,8 @@ type StaffOpt = { id: string; name: string };
 type Row = {
   serviceId: string;
   variantId: string;
-  imageId: string;
+  /** Units to pull per photo (pattern/print), keyed by image id. */
+  photoQty: Record<string, number>;
   tracksStock: boolean;
   description: string;
   unitPrice: string;
@@ -63,7 +64,7 @@ const NONE = "__none__";
 const emptyRow = (): Row => ({
   serviceId: NONE,
   variantId: NONE,
-  imageId: NONE,
+  photoQty: {},
   tracksStock: false,
   description: "",
   unitPrice: "0",
@@ -75,11 +76,23 @@ const emptyRow = (): Row => ({
   staffId: NONE,
 });
 
-/** First photo with stock available, else the first tracked photo. */
-function defaultImage(v?: VariantOpt): string {
+/** Sum of units picked across all photos. */
+function photoQtyTotal(photoQty: Record<string, number>): number {
+  return Object.values(photoQty).reduce((a, b) => a + b, 0);
+}
+
+/** Default pick: 1 unit of the first in-stock photo, else nothing. */
+function defaultPhotoQty(v?: VariantOpt): Record<string, number> {
   const tracked = trackedImages(v);
-  if (tracked.length === 0) return NONE;
-  return (tracked.find((i) => (i.stock ?? 0) > 0) ?? tracked[0]).id;
+  const img = tracked.find((i) => (i.stock ?? 0) > 0);
+  return img ? { [img.id]: 1 } : {};
+}
+
+/** Initial line quantity: matches the default photo pick, else 1 (no photo tracking). */
+function defaultQuantity(v?: VariantOpt): string {
+  const tracked = trackedImages(v);
+  if (tracked.length === 0) return "1";
+  return String(photoQtyTotal(defaultPhotoQty(v)));
 }
 
 /** Variant price for a client type: resellers get the intermediario price. */
@@ -140,6 +153,37 @@ export function SaleForm({
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   }
 
+  /**
+   * +/- on a photo. Each photo (pattern/print) of the variant has its own
+   * count, capped to that photo's stock; the line's quantity is the sum
+   * across all photos picked.
+   */
+  function pickPhoto(i: number, img: VariantImageOpt, delta: number) {
+    setRows((prev) =>
+      prev.map((r, idx) => {
+        if (idx !== i) return r;
+        const stock = img.stock ?? 0;
+        const current = r.photoQty[img.id] ?? 0;
+        const next = Math.min(Math.max(current + delta, 0), stock);
+        const photoQty = { ...r.photoQty };
+        if (next > 0) photoQty[img.id] = next;
+        else delete photoQty[img.id];
+        return { ...r, photoQty, quantity: String(photoQtyTotal(photoQty)) };
+      }),
+    );
+  }
+
+  function clearPhoto(i: number, imgId: string) {
+    setRows((prev) =>
+      prev.map((r, idx) => {
+        if (idx !== i) return r;
+        const photoQty = { ...r.photoQty };
+        delete photoQty[imgId];
+        return { ...r, photoQty, quantity: String(photoQtyTotal(photoQty)) };
+      }),
+    );
+  }
+
   const clientType =
     clients.find((c) => c.id === clientId)?.type ?? "direct";
 
@@ -150,7 +194,7 @@ export function SaleForm({
         minPrice: "0",
         tracksStock: false,
         variantId: NONE,
-        imageId: NONE,
+        photoQty: {},
       });
       return;
     }
@@ -161,13 +205,13 @@ export function SaleForm({
       description: svc?.name ?? "",
       tracksStock: svc?.tracksStock ?? false,
       variantId: firstVar?.id ?? NONE,
-      imageId: defaultImage(firstVar),
+      photoQty: defaultPhotoQty(firstVar),
       unitPrice: firstVar ? variantTier(firstVar, clientType) : "0",
       minPrice: firstVar?.minPrice ?? "0",
       measureType: svc?.measureType ?? "quantity",
       priceMode: svc?.priceMode ?? "per_unit",
       durationMinutes: String(svc?.durationMinutes ?? 0),
-      quantity: "1",
+      quantity: defaultQuantity(firstVar),
     });
   }
 
@@ -176,9 +220,10 @@ export function SaleForm({
     const v = svc?.variants.find((x) => x.id === variantId);
     setRow(i, {
       variantId,
-      imageId: defaultImage(v),
+      photoQty: defaultPhotoQty(v),
       unitPrice: v ? variantTier(v, clientType) : rows[i].unitPrice,
       minPrice: v?.minPrice ?? "0",
+      quantity: defaultQuantity(v),
     });
   }
 
@@ -233,14 +278,17 @@ export function SaleForm({
       const v = svc?.variants.find((x) => x.id === r.variantId);
       const tracked = trackedImages(v);
       if (tracked.length === 0) continue;
-      if (r.imageId === NONE) {
-        setError(`Selecciona una foto para "${r.description.trim()}".`);
+      const picks = Object.entries(r.photoQty).filter(([, qty]) => qty > 0);
+      if (picks.length === 0) {
+        setError(`Selecciona al menos una foto y cantidad para "${r.description.trim()}".`);
         return;
       }
-      const img = tracked.find((x) => x.id === r.imageId);
-      if (!img || (img.stock ?? 0) < (Number(r.quantity) || 0)) {
-        setError(`Stock insuficiente en la foto de "${r.description.trim()}".`);
-        return;
+      for (const [imageId, qty] of picks) {
+        const img = tracked.find((x) => x.id === imageId);
+        if (!img || (img.stock ?? 0) < qty) {
+          setError(`Stock insuficiente en una foto de "${r.description.trim()}".`);
+          return;
+        }
       }
     }
     if (Number(payAmount) > total) {
@@ -252,16 +300,31 @@ export function SaleForm({
     const body = {
       clientId: clientId === NONE ? null : clientId,
       notes,
-      items: rows.map((r) => ({
-        serviceId: r.serviceId === NONE ? null : r.serviceId,
-        variantId: r.variantId === NONE ? null : r.variantId,
-        imageId: r.imageId === NONE ? null : r.imageId,
-        staffId: r.staffId === NONE ? null : r.staffId,
-        description: r.description,
-        unitPrice: r.unitPrice,
-        quantity: r.quantity,
-        durationMinutes: r.durationMinutes,
-      })),
+      items: rows.flatMap((r) => {
+        const svc = services.find((s) => s.id === r.serviceId);
+        const v = svc?.variants.find((x) => x.id === r.variantId);
+        const tracked = trackedImages(v);
+        const base = {
+          serviceId: r.serviceId === NONE ? null : r.serviceId,
+          variantId: r.variantId === NONE ? null : r.variantId,
+          staffId: r.staffId === NONE ? null : r.staffId,
+          description: r.description,
+          unitPrice: r.unitPrice,
+          durationMinutes: r.durationMinutes,
+        };
+        if (tracked.length === 0) {
+          return [{ ...base, imageId: null as string | null, quantity: r.quantity }];
+        }
+        // One sale item per photo picked, so each photo's stock is
+        // decremented by the units sold for that pattern.
+        return Object.entries(r.photoQty)
+          .filter(([, qty]) => qty > 0)
+          .map(([imageId, qty]) => ({
+            ...base,
+            imageId: imageId as string | null,
+            quantity: String(qty),
+          }));
+      }),
       payment:
         Number(payAmount) > 0
           ? { method: payMethod, amount: payAmount }
@@ -342,7 +405,7 @@ export function SaleForm({
             key={i}
             className="grid gap-2 rounded-md border p-3 sm:grid-cols-[1fr_auto_auto_1fr_auto] sm:items-end"
           >
-            <div className="grid gap-1">
+            <div className="grid gap-1 col-span-6">
               <Label className="text-xs">Servicio / descripción</Label>
               <Select
                 value={r.serviceId}
@@ -393,25 +456,64 @@ export function SaleForm({
                 const tracked = trackedImages(v);
                 if (tracked.length === 0) return null;
                 return (
-                  <div className="flex flex-wrap gap-1 pt-1">
-                    {tracked.map((img) => (
-                      <button
-                        key={img.id}
-                        type="button"
-                        disabled={(img.stock ?? 0) <= 0}
-                        onClick={() => setRow(i, { imageId: img.id })}
-                        className={`relative size-12 shrink-0 overflow-hidden rounded border disabled:opacity-30 ${
-                          r.imageId === img.id ? "ring-primary ring-2" : ""
-                        }`}
-                        title={`Stock: ${img.stock}`}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={img.url} alt="" className="size-full object-cover" />
-                        <span className="absolute bottom-0 right-0 bg-black/60 px-1 text-[10px] text-white">
-                          {img.stock}
-                        </span>
-                      </button>
-                    ))}
+                  <div className="flex gap-2 overflow-x-auto pt-1">
+                    {tracked.map((img) => {
+                      const stock = img.stock ?? 0;
+                      const qty = r.photoQty[img.id] ?? 0;
+                      return (
+                        <div key={img.id} className="flex shrink-0 flex-col items-center gap-1">
+                          <div
+                            className={`relative size-20 shrink-0 overflow-hidden rounded border ${
+                              qty > 0 ? "ring-primary ring-2" : ""
+                            } ${stock <= 0 ? "opacity-30" : ""}`}
+                            title={`Stock: ${stock}`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img.url} alt="" className="size-full object-cover" />
+                            <span className="absolute bottom-0 right-0 bg-black/60 px-1 text-[10px] text-white">
+                              {stock}
+                            </span>
+                            {qty > 0 && (
+                              <span className="bg-primary text-primary-foreground absolute left-0 top-0 px-1 text-[10px] font-semibold">
+                                {qty}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-0.5">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="size-6"
+                              disabled={qty <= 0}
+                              onClick={() => pickPhoto(i, img, -1)}
+                            >
+                              <Minus className="size-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="size-6"
+                              disabled={qty <= 0}
+                              onClick={() => clearPhoto(i, img.id)}
+                            >
+                              <X className="size-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className="size-6"
+                              disabled={qty >= stock}
+                              onClick={() => pickPhoto(i, img, 1)}
+                            >
+                              <Plus className="size-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })()}
@@ -450,6 +552,11 @@ export function SaleForm({
                   step="0.01"
                   className="w-20"
                   value={r.quantity}
+                  disabled={trackedImages(
+                    services
+                      .find((s) => s.id === r.serviceId)
+                      ?.variants.find((x) => x.id === r.variantId),
+                  ).length > 0}
                   onChange={(e) => setRow(i, { quantity: e.target.value })}
                 />
               </div>
