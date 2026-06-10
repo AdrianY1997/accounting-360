@@ -47,6 +47,7 @@ export default async function NewSalePage() {
               resellerPrice: v.resellerPrice,
               minPrice: v.minPrice,
               stock: v.stock,
+              images: v.images,
             })),
           }))}
         staff={staff}

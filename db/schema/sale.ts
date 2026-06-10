@@ -4,7 +4,7 @@ import { timestamps } from "./_shared";
 import { user } from "./auth";
 import { organization, team } from "./auth";
 import { client } from "./client";
-import { service, serviceVariant } from "./catalog";
+import { service, serviceImage, serviceVariant } from "./catalog";
 
 /**
  * Sales (tickets). A sale has line items (services or free-form), a tax
@@ -62,6 +62,10 @@ export const saleItem = pgTable(
       onDelete: "set null",
     }),
     variantId: text("variant_id").references(() => serviceVariant.id, {
+      onDelete: "set null",
+    }),
+    // Specific photo sold, when the variant tracks stock per photo.
+    imageId: text("image_id").references(() => serviceImage.id, {
       onDelete: "set null",
     }),
     // Staff who performed this line — basis for future commissions.

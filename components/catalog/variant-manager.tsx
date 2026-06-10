@@ -16,6 +16,7 @@ type Variant = {
   resellerPrice: string;
   minPrice: string;
   stock: number;
+  hasPhotoStock?: boolean;
 };
 
 /** Manage stock variants of an item (name, optional price, stock, images). */
@@ -167,12 +168,15 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
               />
             </div>
             <div className="grid gap-1">
-              <Label className="text-xs">Stock</Label>
+              <Label className="text-xs">
+                Stock{v.hasPhotoStock ? " (desde fotos)" : ""}
+              </Label>
               <Input
                 className="w-20"
                 type="number"
                 min="0"
                 value={v.stock}
+                disabled={v.hasPhotoStock}
                 onChange={(e) => patch(v.id, { stock: Number(e.target.value) })}
               />
             </div>
@@ -192,7 +196,8 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
           <ServiceImageManager
             serviceId={serviceId}
             variantId={v.id}
-            label="Imágenes de la variante"
+            label="Imágenes de la variante (asigna stock por foto)"
+            onStockSaved={load}
           />
         </div>
       ))}

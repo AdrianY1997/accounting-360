@@ -131,6 +131,10 @@ export const serviceImage = pgTable(
     }),
     url: text("url").notNull(),
     pathname: text("pathname").notNull(),
+    // Per-photo stock for variant images (null = not tracked per photo; the
+    // variant's own `stock` is used instead). When set, the variant's total
+    // stock is the sum of its images' stock.
+    stock: integer("stock"),
     ...timestamps,
   },
   (t) => [index("service_image_service_idx").on(t.serviceId)],

@@ -84,6 +84,14 @@ Categories — body `{ name }`. Services — body (zod, `lib/validations/catalog
 | POST   | `/api/services`               | Create service (201)       |
 | PUT    | `/api/services/:id`           | Update (404 if not in salón) |
 | DELETE | `/api/services/:id`           | Delete (404 if not in salón) |
+| GET    | `/api/services/:id/variants`  | List variants (pricing + stock) |
+| POST   | `/api/services/:id/variants`  | Create variant (201)       |
+| PUT    | `/api/variants/:id`           | Update variant (404 if not in salón) |
+| DELETE | `/api/variants/:id`           | Delete variant (404 if not in salón) |
+| GET    | `/api/services/:id/images`    | List item/variant images   |
+| POST   | `/api/services/:id/images`    | Upload images (multipart `files[]`, optional `variantId`) |
+| PUT    | `/api/service-images/:id`     | Set per-photo stock — body `{ stock: number \| null }` (variant images only; recomputes the variant's total stock) |
+| DELETE | `/api/service-images/:id`     | Delete an image (404 if not in salón) |
 
 ## Sales
 

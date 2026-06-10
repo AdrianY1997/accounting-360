@@ -9,12 +9,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+type VariantImage = { url: string; stock: number | null };
 type Variant = {
   id: string;
   name: string;
   price: string;
   stock: number;
-  images: string[];
+  images: VariantImage[];
 };
 type Item = {
   id: string;
@@ -24,6 +25,15 @@ type Item = {
   images: string[];
   variants: Variant[];
 };
+
+/** Sold-out photos (stock === 0) move to the end, in-stock/untracked first. */
+function orderGallery(images: VariantImage[]): VariantImage[] {
+  return [...images].sort((a, b) => {
+    const aOut = a.stock === 0 ? 1 : 0;
+    const bOut = b.stock === 0 ? 1 : 0;
+    return aOut - bOut;
+  });
+}
 
 const ALL = "__all__";
 
@@ -43,15 +53,22 @@ export function ProductCard({
   const [active, setActive] = useState(0);
 
   const selected = item.variants.find((v) => v.id === variantId);
+  const itemImages: VariantImage[] = item.images.map((url) => ({
+    url,
+    stock: null,
+  }));
   // Gallery: the selected variant's images, else the item's main images,
-  // else fall back to any variant image so the card is never blank.
-  const gallery =
+  // else fall back to any variant image so the card is never blank. Sold-out
+  // photos (stock 0) are pushed to the end but still shown.
+  const gallery = orderGallery(
     selected && selected.images.length > 0
       ? selected.images
-      : item.images.length > 0
-        ? item.images
-        : item.variants.flatMap((v) => v.images);
-  const cover = item.images[0] ?? item.variants.find((v) => v.images[0])?.images[0];
+      : itemImages.length > 0
+        ? itemImages
+        : item.variants.flatMap((v) => v.images),
+  );
+  const cover =
+    item.images[0] ?? item.variants.find((v) => v.images[0])?.images[0]?.url;
 
   function pickVariant(id: string) {
     setVariantId(id);
@@ -93,30 +110,44 @@ export function ProductCard({
           <DialogTitle>{item.name}</DialogTitle>
         </DialogHeader>
 
-        <div className="bg-muted aspect-square overflow-hidden rounded-md">
+        <div className="bg-muted relative aspect-square overflow-hidden rounded-md">
           {gallery[active] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={gallery[active]}
+              src={gallery[active].url}
               alt={item.name}
-              className="size-full object-contain"
+              className={`size-full object-contain ${gallery[active].stock === 0 ? "opacity-40" : ""}`}
             />
           ) : null}
+          {gallery[active]?.stock === 0 && (
+            <span className="bg-destructive text-destructive-foreground absolute right-2 top-2 rounded px-2 py-1 text-sm font-semibold shadow">
+              Agotado
+            </span>
+          )}
         </div>
 
         {gallery.length > 1 && (
           <div className="flex gap-2 overflow-x-auto">
-            {gallery.map((url, i) => (
+            {gallery.map((img, i) => (
               <button
-                key={url}
+                key={img.url}
                 type="button"
                 onClick={() => setActive(i)}
-                className={`size-14 shrink-0 overflow-hidden rounded border ${
+                className={`relative size-14 shrink-0 overflow-hidden rounded border ${
                   i === active ? "ring-primary ring-2" : ""
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="size-full object-cover" />
+                <img
+                  src={img.url}
+                  alt=""
+                  className={`size-full object-cover ${img.stock === 0 ? "opacity-40" : ""}`}
+                />
+                {img.stock === 0 && (
+                  <span className="bg-destructive/90 absolute inset-x-0 bottom-0 text-center text-[9px] font-semibold leading-tight text-white">
+                    Agotado
+                  </span>
+                )}
               </button>
             ))}
           </div>

@@ -57,7 +57,7 @@ installed.
 | `ResourceDeleteButton` | `resource-delete-button.tsx` | Generic delete confirm. Props `endpoint`, `name`, `successMessage?`. DELETE + toast + refresh. Prefer this for new resources. |
 | `CategoryFormDialog` | `catalog/category-form-dialog.tsx` | Client. Create/edit service category. Props `category?`, `trigger`. POST/PUT `/api/service-categories`. |
 | `ServiceFormDialog` | `catalog/service-form-dialog.tsx` | Client. Create/edit service (name, category Select, price, duration). Props `service?`, `categories`, `trigger`. POST/PUT `/api/services`. |
-| `SaleForm` | `sales/sale-form.tsx` | Client. New-sale form: dynamic line items (service autofill, price, qty, per-item staff), client Select, live subtotal/tax/total, optional payment (method + amount, "pagar total", 0 = pending). Props `clients`, `services`, `staff`, `taxRate`, `currency`. POST `/api/sales` → redirect to detail. |
+| `SaleForm` | `sales/sale-form.tsx` | Client. New-sale form: dynamic line items (service autofill, price, qty, per-item staff), client Select, live subtotal/tax/total, optional payment (method + amount, "pagar total", 0 = pending). When the chosen variant has photo-tracked stock, a thumbnail picker requires selecting one (shows remaining stock per photo). Props `clients`, `services`, `staff`, `taxRate`, `currency`. POST `/api/sales` → redirect to detail. |
 | `PaymentDialog` | `sales/payment-dialog.tsx` | Client. Add a payment to a sale (method Select + amount, prefilled with balance). Props `saleId`, `defaultAmount`. POST `/api/sales/:id/payments`. |
 | `OpenSessionForm` | `cash/open-session-form.tsx` | Client. Opens a cash session (opening balance). No props. POST `/api/cash-sessions`. |
 | `MovementDialog` | `cash/movement-dialog.tsx` | Client. Add cash in/out movement (type, amount, description). Prop `sessionId`. POST `/api/cash-sessions/:id/movements`. |
@@ -72,8 +72,9 @@ installed.
 | `SearchInput` | `search-input.tsx` | Client. Search box; pushes `?<param>=` (merges params). Props `param?` (def `q`), `placeholder?`. |
 | `SalesFilters` | `sales/sales-filters.tsx` | Client. Payment-status Select; pushes `?status=`. Prop `status?`. |
 | `PrintButton` | `print-button.tsx` | Client. Calls `window.print()`; `print:hidden`. |
-| `ProductCard` | `store/product-card.tsx` | Client. Public storefront card + dialog: cover, "desde" price, gallery + thumbnails, variant chips that swap images and price/stock. Props `item`, `currency`. |
-| `VariantManager` | `catalog/variant-manager.tsx` | Client. Per-item variants: name, price tiers (sugerido/costo/intermediario/mínimo), stock, and per-variant images. Prop `serviceId`. |
+| `ProductCard` | `store/product-card.tsx` | Client. Public storefront card + dialog: cover, "desde" price, gallery + thumbnails, variant chips that swap images and price/stock. Sold-out photos (`stock === 0`) sort last in the gallery and show an "Agotado" badge instead of being hidden. Props `item`, `currency`. |
+| `VariantManager` | `catalog/variant-manager.tsx` | Client. Per-item variants: name, price tiers (sugerido/costo/intermediario/mínimo), stock, and per-variant images via `ServiceImageManager`. Stock input is disabled and labeled "(desde fotos)" once any photo of that variant tracks its own stock. Prop `serviceId`. |
+| `ServiceImageManager` | `catalog/service-image-manager.tsx` | Client. Upload/list/delete images for an item or a variant (Vercel Blob). For variant images, an inline number input sets per-photo stock (`PUT /api/service-images/:id`, blank = not tracked) and shows an "Agotado" badge at 0. Props `serviceId`, `variantId?`, `label?`, `onStockSaved?`. |
 | `MainNav` | `main-nav.tsx` | Client. App header navigation: inline links on desktop, hamburger dropdown on mobile, active highlight. Prop `admin` (shows Personal/Configuración). |
 | `EmptyState` | `empty-state.tsx` | Empty-list block. Props `title`, `description?`, `action?` (CTA node). |
 | `CreateCompanyDialog` | `platform/create-company-dialog.tsx` | Client (platform admin). Onboards a company (company, salón, owner name/email/password). POST `/api/platform/companies`. |

@@ -7,6 +7,7 @@ import {
   saleItem,
   salonSettings,
   service,
+  serviceImage,
   serviceVariant,
   teamMember,
   user,
@@ -174,6 +175,30 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
   const varMap = new Map(varRows.map((v) => [v.id, v]));
   const decrement = new Map<string, number>(); // variantId → units sold
 
+  // Load variant images that track stock per photo (non-null stock).
+  const imgRows = variantIds.length
+    ? await db
+        .select({
+          id: serviceImage.id,
+          variantId: serviceImage.variantId,
+          stock: serviceImage.stock,
+        })
+        .from(serviceImage)
+        .innerJoin(service, eq(service.id, serviceImage.serviceId))
+        .where(
+          and(
+            eq(service.salonId, ctx.salonId),
+            inArray(serviceImage.variantId, variantIds),
+          ),
+        )
+    : [];
+  const imgMap = new Map(imgRows.map((i) => [i.id, i]));
+  const trackedByVariant = new Map<string, boolean>();
+  for (const i of imgRows) {
+    if (i.stock !== null && i.variantId) trackedByVariant.set(i.variantId, true);
+  }
+  const imageDecrement = new Map<string, number>(); // imageId → units sold
+
   let subtotalCents = 0;
   const saleId = crypto.randomUUID();
   const itemRows = input.items.map((it) => {
@@ -184,6 +209,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
 
     // Catalog items require a variant (pricing/stock live on the variant).
     let variantId: string | null = null;
+    let imageId: string | null = null;
     let costCents = 0;
     if (svc) {
       const variant = it.variantId ? varMap.get(it.variantId) : undefined;
@@ -199,6 +225,17 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
         throw new SaleError(
           `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
         );
+      }
+
+      // Variants with per-photo stock require selecting a specific photo.
+      if (svc.tracksStock && trackedByVariant.get(variantId)) {
+        const image = it.imageId ? imgMap.get(it.imageId) : undefined;
+        if (!image || image.variantId !== variantId || image.stock === null) {
+          throw new SaleError(
+            `Selecciona una foto para "${it.description.trim()}".`,
+          );
+        }
+        imageId = image.id;
       }
     }
 
@@ -223,6 +260,9 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
 
     if (variantId && svc?.tracksStock) {
       decrement.set(variantId, (decrement.get(variantId) ?? 0) + qty);
+      if (imageId) {
+        imageDecrement.set(imageId, (imageDecrement.get(imageId) ?? 0) + qty);
+      }
     }
 
     subtotalCents += lineCents;
@@ -230,6 +270,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       saleId,
       serviceId: it.serviceId || null,
       variantId,
+      imageId,
       staffId: it.staffId || null,
       description: it.description.trim(),
       measureType,
@@ -248,6 +289,14 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       throw new SaleError(
         `Stock insuficiente para "${variant?.name ?? "la variante"}".`,
       );
+    }
+  }
+
+  // Validate available stock per photo (aggregated across lines).
+  for (const [imageId, units] of imageDecrement) {
+    const image = imgMap.get(imageId);
+    if (!image || (image.stock ?? 0) < units) {
+      throw new SaleError("Stock insuficiente para la foto seleccionada.");
     }
   }
 
@@ -276,6 +325,15 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       .where(eq(serviceVariant.id, variantId)),
   );
 
+  // Decrement the selected photo's stock for variants tracked per photo.
+  const imageStockOps = Array.from(imageDecrement.entries()).map(
+    ([imageId, units]) =>
+      db
+        .update(serviceImage)
+        .set({ stock: sql`${serviceImage.stock} - ${Math.round(units)}` })
+        .where(eq(serviceImage.id, imageId)),
+  );
+
   await db.batch([
     db.insert(sale).values({
       id: saleId,
@@ -292,6 +350,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
     db.insert(saleItem).values(itemRows),
     ...paymentOps,
     ...stockOps,
+    ...imageStockOps,
   ]);
 
   return { id: saleId };
@@ -308,18 +367,24 @@ export async function voidSale(ctx: SalonContext, id: string) {
   });
   if (!target || target.status === "void") return null;
 
-  // Stock to return: variant lines of this sale.
+  // Stock to return: variant (and photo) lines of this sale.
   const lines = await db
-    .select({ variantId: saleItem.variantId, quantity: saleItem.quantity })
+    .select({
+      variantId: saleItem.variantId,
+      imageId: saleItem.imageId,
+      quantity: saleItem.quantity,
+    })
     .from(saleItem)
     .where(eq(saleItem.saleId, id));
   const restore = new Map<string, number>();
+  const restoreImages = new Map<string, number>();
   for (const l of lines) {
     if (!l.variantId) continue;
-    restore.set(
-      l.variantId,
-      (restore.get(l.variantId) ?? 0) + Math.round(Number(l.quantity)),
-    );
+    const units = Math.round(Number(l.quantity));
+    restore.set(l.variantId, (restore.get(l.variantId) ?? 0) + units);
+    if (l.imageId) {
+      restoreImages.set(l.imageId, (restoreImages.get(l.imageId) ?? 0) + units);
+    }
   }
 
   await db.batch([
@@ -329,6 +394,12 @@ export async function voidSale(ctx: SalonContext, id: string) {
         .update(serviceVariant)
         .set({ stock: sql`${serviceVariant.stock} + ${units}` })
         .where(eq(serviceVariant.id, variantId)),
+    ),
+    ...Array.from(restoreImages.entries()).map(([imageId, units]) =>
+      db
+        .update(serviceImage)
+        .set({ stock: sql`${serviceImage.stock} + ${units}` })
+        .where(eq(serviceImage.id, imageId)),
     ),
   ] as never);
 

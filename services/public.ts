@@ -9,12 +9,13 @@ import {
   team,
 } from "@/db/schema";
 
+export type PublicVariantImage = { url: string; stock: number | null };
 export type PublicVariant = {
   id: string;
   name: string;
   price: string;
   stock: number;
-  images: string[];
+  images: PublicVariantImage[];
 };
 export type PublicItem = {
   id: string;
@@ -71,6 +72,7 @@ export async function publicStore(salonId: string): Promise<PublicStore | null> 
             serviceId: serviceImage.serviceId,
             variantId: serviceImage.variantId,
             url: serviceImage.url,
+            stock: serviceImage.stock,
           })
           .from(serviceImage)
           .where(inArray(serviceImage.serviceId, ids))
@@ -110,7 +112,7 @@ export async function publicStore(salonId: string): Promise<PublicStore | null> 
           stock: v.stock,
           images: images
             .filter((im) => im.variantId === v.id)
-            .map((im) => im.url),
+            .map((im) => ({ url: im.url, stock: im.stock })),
         })),
       };
     }),

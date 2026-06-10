@@ -5,17 +5,25 @@ import { Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-type Img = { id: string; url: string; variantId: string | null };
+type Img = {
+  id: string;
+  url: string;
+  variantId: string | null;
+  stock: number | null;
+};
 
 /** Manage images for a catalog item (variantId omitted) or a variant. */
 export function ServiceImageManager({
   serviceId,
   variantId,
   label = "Imágenes",
+  onStockSaved,
 }: {
   serviceId: string;
   variantId?: string;
   label?: string;
+  /** Called after a photo's stock is saved (e.g. to refresh the variant's total). */
+  onStockSaved?: () => void;
 }) {
   const [images, setImages] = useState<Img[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,6 +73,22 @@ export function ServiceImageManager({
     setImages((prev) => prev.filter((i) => i.id !== id));
   }
 
+  async function onStockChange(id: string, value: string) {
+    const stock = value.trim() === "" ? null : Math.max(0, Number(value));
+    setImages((prev) => prev.map((i) => (i.id === id ? { ...i, stock } : i)));
+    const res = await fetch(`/api/service-images/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stock }),
+    });
+    if (!res.ok) {
+      toast.error("No se pudo guardar el stock de la foto");
+      void load();
+      return;
+    }
+    onStockSaved?.();
+  }
+
   return (
     <div className="grid gap-2">
       <span className="text-sm font-medium">{label}</span>
@@ -78,6 +102,11 @@ export function ServiceImageManager({
                 alt=""
                 className="size-16 rounded-md border object-cover"
               />
+              {img.stock === 0 && (
+                <span className="bg-destructive text-destructive-foreground absolute bottom-0 left-0 right-0 text-center text-[10px] leading-tight">
+                  Agotado
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => onDelete(img.id)}
@@ -86,6 +115,17 @@ export function ServiceImageManager({
               >
                 <Trash2 className="size-3" />
               </button>
+              {variantId && (
+                <input
+                  type="number"
+                  min="0"
+                  className="border-input bg-background mt-1 w-16 rounded border px-1 py-0.5 text-xs"
+                  placeholder="Stock"
+                  defaultValue={img.stock ?? ""}
+                  onBlur={(e) => onStockChange(img.id, e.target.value)}
+                  aria-label="Stock de esta foto"
+                />
+              )}
             </div>
           ))}
         </div>

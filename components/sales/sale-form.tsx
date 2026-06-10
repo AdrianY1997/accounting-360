@@ -17,6 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { paymentMethods, paymentMethodLabels } from "@/lib/validations/payment";
 
+type VariantImageOpt = { id: string; url: string; stock: number | null };
 type VariantOpt = {
   id: string;
   name: string;
@@ -24,7 +25,13 @@ type VariantOpt = {
   resellerPrice: string;
   minPrice: string;
   stock: number;
+  images: VariantImageOpt[];
 };
+
+/** Images of a variant that track stock per photo. */
+function trackedImages(v?: VariantOpt): VariantImageOpt[] {
+  return v?.images.filter((i) => i.stock !== null) ?? [];
+}
 type ClientOpt = { id: string; fullName: string; type: string };
 type ServiceOpt = {
   id: string;
@@ -40,6 +47,7 @@ type StaffOpt = { id: string; name: string };
 type Row = {
   serviceId: string;
   variantId: string;
+  imageId: string;
   tracksStock: boolean;
   description: string;
   unitPrice: string;
@@ -55,6 +63,7 @@ const NONE = "__none__";
 const emptyRow = (): Row => ({
   serviceId: NONE,
   variantId: NONE,
+  imageId: NONE,
   tracksStock: false,
   description: "",
   unitPrice: "0",
@@ -65,6 +74,13 @@ const emptyRow = (): Row => ({
   priceMode: "per_unit",
   staffId: NONE,
 });
+
+/** First photo with stock available, else the first tracked photo. */
+function defaultImage(v?: VariantOpt): string {
+  const tracked = trackedImages(v);
+  if (tracked.length === 0) return NONE;
+  return (tracked.find((i) => (i.stock ?? 0) > 0) ?? tracked[0]).id;
+}
 
 /** Variant price for a client type: resellers get the intermediario price. */
 function variantTier(v: VariantOpt, clientType: string): string {
@@ -134,6 +150,7 @@ export function SaleForm({
         minPrice: "0",
         tracksStock: false,
         variantId: NONE,
+        imageId: NONE,
       });
       return;
     }
@@ -144,6 +161,7 @@ export function SaleForm({
       description: svc?.name ?? "",
       tracksStock: svc?.tracksStock ?? false,
       variantId: firstVar?.id ?? NONE,
+      imageId: defaultImage(firstVar),
       unitPrice: firstVar ? variantTier(firstVar, clientType) : "0",
       minPrice: firstVar?.minPrice ?? "0",
       measureType: svc?.measureType ?? "quantity",
@@ -158,6 +176,7 @@ export function SaleForm({
     const v = svc?.variants.find((x) => x.id === variantId);
     setRow(i, {
       variantId,
+      imageId: defaultImage(v),
       unitPrice: v ? variantTier(v, clientType) : rows[i].unitPrice,
       minPrice: v?.minPrice ?? "0",
     });
@@ -208,6 +227,22 @@ export function SaleForm({
       setError("Selecciona una variante para cada ítem del catálogo.");
       return;
     }
+    for (const r of rows) {
+      if (r.serviceId === NONE) continue;
+      const svc = services.find((s) => s.id === r.serviceId);
+      const v = svc?.variants.find((x) => x.id === r.variantId);
+      const tracked = trackedImages(v);
+      if (tracked.length === 0) continue;
+      if (r.imageId === NONE) {
+        setError(`Selecciona una foto para "${r.description.trim()}".`);
+        return;
+      }
+      const img = tracked.find((x) => x.id === r.imageId);
+      if (!img || (img.stock ?? 0) < (Number(r.quantity) || 0)) {
+        setError(`Stock insuficiente en la foto de "${r.description.trim()}".`);
+        return;
+      }
+    }
     if (Number(payAmount) > total) {
       setError("El pago no puede ser mayor al total.");
       return;
@@ -220,6 +255,7 @@ export function SaleForm({
       items: rows.map((r) => ({
         serviceId: r.serviceId === NONE ? null : r.serviceId,
         variantId: r.variantId === NONE ? null : r.variantId,
+        imageId: r.imageId === NONE ? null : r.imageId,
         staffId: r.staffId === NONE ? null : r.staffId,
         description: r.description,
         unitPrice: r.unitPrice,
@@ -350,6 +386,35 @@ export function SaleForm({
                   </SelectContent>
                 </Select>
               )}
+              {(() => {
+                if (r.serviceId === NONE) return null;
+                const svc = services.find((s) => s.id === r.serviceId);
+                const v = svc?.variants.find((x) => x.id === r.variantId);
+                const tracked = trackedImages(v);
+                if (tracked.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {tracked.map((img) => (
+                      <button
+                        key={img.id}
+                        type="button"
+                        disabled={(img.stock ?? 0) <= 0}
+                        onClick={() => setRow(i, { imageId: img.id })}
+                        className={`relative size-12 shrink-0 overflow-hidden rounded border disabled:opacity-30 ${
+                          r.imageId === img.id ? "ring-primary ring-2" : ""
+                        }`}
+                        title={`Stock: ${img.stock}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={img.url} alt="" className="size-full object-cover" />
+                        <span className="absolute bottom-0 right-0 bg-black/60 px-1 text-[10px] text-white">
+                          {img.stock}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             <div className="grid gap-1">
               <Label className="text-xs">Precio</Label>

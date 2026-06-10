@@ -79,7 +79,8 @@ Service categories. Scoped by `organization_id` + `salon_id` (`team`).
 
 ### `service`
 
-Salon services. Scoped by `organization_id` + `salon_id`.
+Salon items / services (catalog). Scoped by `organization_id` + `salon_id`.
+Pricing lives on `service_variant` — the item base holds no price.
 
 | Column             | Type                          | Notes                       |
 | ------------------ | ----------------------------- | --------------------------- |
@@ -88,10 +89,42 @@ Salon services. Scoped by `organization_id` + `salon_id`.
 | `salon_id`         | text → `team.id`              | cascade; indexed            |
 | `category_id`      | text → `service_category.id`  | nullable; on delete set null; indexed |
 | `name`             | text, not null                |                             |
-| `price`            | numeric(12,2), default `0`    | salón currency (money, not float) |
+| `price` / `cost_price` / `reseller_price` / `min_price` | numeric(12,2), default `0` | legacy/unused now that pricing lives on variants |
+| `measure_type`     | text, default `quantity`      | `quantity` \| `duration`    |
+| `price_mode`       | text, default `per_unit`      | `per_unit` \| `fixed` (duration items) |
 | `duration_minutes` | integer, default `0`          |                             |
+| `tracks_stock`     | boolean, default `false`      | total stock = sum of variant stock |
 | `active`           | boolean, default `true`       |                             |
 | `created_at` / `updated_at` | timestamp            | from `timestamps`           |
+
+### `service_variant`
+
+Stock-tracked variants of an item (e.g. size/color). Pricing and stock live
+here; every `service` has at least one variant ("Estándar").
+
+| Column            | Type                          | Notes                          |
+| ----------------- | ------------------------------ | ------------------------------ |
+| `id`              | text (uuid)                    | PK                             |
+| `service_id`      | text → `service.id`            | cascade; indexed               |
+| `name`            | text, not null                 | free text (e.g. "M - Rojo")    |
+| `price` / `cost_price` / `reseller_price` / `min_price` | numeric(12,2), default `0` | price tiers |
+| `stock`           | integer, default `0`           | total units; if any of its `service_image` rows track stock per photo, this is the sum of those |
+| `created_at` / `updated_at` | timestamp             | from `timestamps`               |
+
+### `service_image`
+
+Catalog photos (Vercel Blob). Item images have `variant_id = null`; variant
+images can additionally track stock per photo.
+
+| Column        | Type                            | Notes                          |
+| ------------- | --------------------------------| ------------------------------ |
+| `id`          | text (uuid)                     | PK                             |
+| `service_id`  | text → `service.id`             | cascade; indexed               |
+| `variant_id`  | text → `service_variant.id`     | nullable; cascade. Null = main item image |
+| `url`         | text, not null                  | public Blob URL                |
+| `pathname`    | text, not null                  | Blob pathname (for delete)     |
+| `stock`       | integer, nullable               | per-photo stock; null = not tracked per photo (variant's own `stock` is the manual total). Selling decrements this and the variant total together; the storefront shows photos with `stock = 0` last, marked "Agotado" |
+| `created_at` / `updated_at` | timestamp              | from `timestamps`              |
 
 ### `sale`
 
@@ -119,10 +152,15 @@ Sales (tickets). Scoped by `organization_id` + `salon_id`. Totals are stored
 | `id`          | text (uuid)              | PK                             |
 | `sale_id`     | text → `sale.id`         | cascade; indexed               |
 | `service_id`  | text → `service.id`      | nullable; on delete set null   |
+| `variant_id`  | text → `service_variant.id` | nullable; on delete set null; pricing/stock snapshot |
+| `image_id`    | text → `service_image.id`   | nullable; on delete set null. Set when the variant tracks stock per photo — records which photo was sold so voiding restores its stock |
 | `staff_id`    | text → `user.id`         | nullable; on delete set null; commission basis; indexed |
 | `description` | text, not null           | name snapshot / free text      |
+| `measure_type`| text, default `quantity` | `quantity` \| `duration`       |
 | `unit_price`  | numeric(12,2)            |                                |
-| `quantity`    | integer, default `1`     |                                |
+| `cost_price`  | numeric(12,2)            | proveedor cost snapshot for margin/commissions |
+| `quantity`    | numeric(12,2), default `1` | units, hours, or `1` (fixed)  |
+| `duration_minutes` | integer, nullable    | duration items                 |
 | `line_total`  | numeric(12,2)            | `unit_price * quantity`        |
 
 ### `payment`

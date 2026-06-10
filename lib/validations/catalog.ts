@@ -47,3 +47,9 @@ export const variantInputSchema = z.object({
   stock: z.coerce.number().int().min(0).default(0),
 });
 export type VariantInput = z.infer<typeof variantInputSchema>;
+
+/** Per-photo stock for a variant image. Null clears photo-level tracking. */
+export const imageStockInputSchema = z.object({
+  stock: z.coerce.number().int().min(0).nullable(),
+});
+export type ImageStockInput = z.infer<typeof imageStockInputSchema>;

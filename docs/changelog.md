@@ -2,7 +2,23 @@
 
 All relevant project changes are recorded here (most recent first).
 
-## Public store — product card with variant gallery
+## Per-photo stock for variants
+
+- `service_image` gains a nullable `stock` column (migration `0018`). Null =
+  not tracked per photo (variant's own `stock` is the manual total). When set,
+  the variant's `stock` becomes the sum of its images' stock and is
+  recomputed on every photo-stock edit/delete (`recomputeVariantStock`).
+- Catalog: `ServiceImageManager` shows a stock input under each variant photo
+  (`PUT /api/service-images/[id]`) and an "Agotado" badge at 0. `VariantManager`
+  disables the variant's manual stock field and labels it "(desde fotos)" once
+  any photo tracks stock.
+- Sale: `sale_item` gains nullable `image_id`. When a variant has photo-tracked
+  stock, the POS requires picking a specific photo (thumbnail picker shows each
+  photo's remaining stock); selling decrements both the photo and the variant
+  total, voiding restores both.
+- Public store: sold-out photos (`stock = 0`) are no longer hidden — they're
+  shown last in the gallery with an "Agotado" badge (cover/thumbnail and main
+  image).
 
 - `ProductCard` (client): card shows cover + name + "desde" price; clicking opens
   a dialog with a main image, thumbnail strip, and variant chips. Selecting a
