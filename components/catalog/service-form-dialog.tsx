@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -61,6 +62,7 @@ export function ServiceFormDialog({
     const form = new FormData(e.currentTarget);
     const body = {
       name: String(form.get("name") ?? ""),
+      description: String(form.get("description") ?? ""),
       price: String(form.get("price") ?? "0"),
       costPrice: String(form.get("costPrice") ?? "0"),
       resellerPrice: String(form.get("resellerPrice") ?? "0"),
@@ -118,6 +120,18 @@ export function ServiceFormDialog({
               name="name"
               required
               defaultValue={service?.name ?? ""}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="description">
+              Descripción (visible en la tienda)
+            </Label>
+            <Textarea
+              id="description"
+              name="description"
+              rows={3}
+              maxLength={2000}
+              defaultValue={service?.description ?? ""}
             />
           </div>
           <div className="grid gap-2">

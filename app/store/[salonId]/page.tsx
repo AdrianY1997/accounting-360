@@ -1,38 +1,39 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ProductCard } from "@/components/store/product-card";
+import { StoreBrowser } from "@/components/store/store-browser";
 import { publicStore } from "@/services/public";
 
-export default async function StorePage({
-  params,
-}: {
-  params: Promise<{ salonId: string }>;
-}) {
+type Props = { params: Promise<{ salonId: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { salonId } = await params;
+  const store = await publicStore(salonId);
+  if (!store) return {};
+  return {
+    title: `${store.company} — Catálogo`,
+    description: `Catálogo en línea de ${store.company} · ${store.salon}`,
+  };
+}
+
+export default async function StorePage({ params }: Props) {
   const { salonId } = await params;
   const store = await publicStore(salonId);
   if (!store) notFound();
 
+  if (store.items.length === 0) {
+    return (
+      <p className="text-muted-foreground py-16 text-center">
+        No hay productos para mostrar.
+      </p>
+    );
+  }
+
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-4">
-      <header className="space-y-1 text-center">
-        <h1 className="text-2xl font-semibold">{store.company}</h1>
-        <p className="text-muted-foreground">{store.salon}</p>
-      </header>
-
-      {store.items.length === 0 ? (
-        <p className="text-muted-foreground py-16 text-center">
-          No hay productos para mostrar.
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {store.items.map((item) => (
-            <ProductCard key={item.id} item={item} currency={store.currency} />
-          ))}
-        </div>
-      )}
-
-      <footer className="text-muted-foreground pt-6 text-center text-xs">
-        Catálogo en línea · {store.company}
-      </footer>
-    </main>
+    <StoreBrowser
+      items={store.items}
+      categories={store.categories}
+      currency={store.currency}
+      salonId={salonId}
+    />
   );
 }

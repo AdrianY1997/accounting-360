@@ -2,6 +2,26 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Public storefront redesign: filters, grid/list views and item detail page
+
+- `/store/[salonId]` listing redesigned: sticky `StoreHeader` (company link +
+  salon + search) in a new `app/store/[salonId]/layout.tsx`, plus client-side
+  filters synced to the URL (`q`, `cat`, `min`, `max`, `stock=1`) and a
+  grid/list view toggle (`view`). New components: `StoreBrowser`,
+  `StoreFilters`, `ViewToggle`, `setParams` helper.
+- New public item detail page `/store/[salonId]/[itemId]`: breadcrumb
+  (shadcn `breadcrumb` added), `ProductGallery` (thumbnails, sold-out photos
+  last with "Agotado"), `VariantPicker` chips, low-stock warning, description
+  and a "Tu selección" `SelectionSummary` side panel. No cart — informational
+  only. `generateMetadata` on both store pages.
+- `ProductCard` is now a link card (grid + list layouts); its old dialog moved
+  to the detail page components. `SearchInput` gains `shallow` + `basePath`.
+- `publicStore()` is request-cached (`react` `cache`) and now exposes
+  `categories` and per-item `categoryId`/`description`; new
+  `publicStoreItem(salonId, itemId)` feeds the detail page.
+- `service` gains a nullable `description` column (migration `0019`), editable
+  in the catalog item form ("Descripción (visible en la tienda)").
+
 ## Per-photo stock for variants
 
 - `service_image` gains a nullable `stock` column (migration `0018`). Null =

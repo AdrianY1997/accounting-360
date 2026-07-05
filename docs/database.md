@@ -89,6 +89,7 @@ Pricing lives on `service_variant` — the item base holds no price.
 | `salon_id`         | text → `team.id`              | cascade; indexed            |
 | `category_id`      | text → `service_category.id`  | nullable; on delete set null; indexed |
 | `name`             | text, not null                |                             |
+| `description`      | text                          | nullable; shown on the public store detail page |
 | `price` / `cost_price` / `reseller_price` / `min_price` | numeric(12,2), default `0` | legacy/unused now that pricing lives on variants |
 | `measure_type`     | text, default `quantity`      | `quantity` \| `duration`    |
 | `price_mode`       | text, default `per_unit`      | `per_unit` \| `fixed` (duration items) |

@@ -43,6 +43,7 @@ installed.
 | `Badge` | `ui/badge.tsx` | Status pill. `variant` (default/secondary/destructive/outline), `asChild`. |
 | `Select` | `ui/select.tsx` | `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem`. Controlled via `value`/`onValueChange`. |
 | `Skeleton` | `ui/skeleton.tsx` | Loading placeholder block. Used by `(app)/loading.tsx`. |
+| `Breadcrumb` | `ui/breadcrumb.tsx` | `Breadcrumb`, `BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink` (`asChild` for `Link`), `BreadcrumbPage`, `BreadcrumbSeparator`. Used by store detail page. |
 
 ## App components (`components/`)
 
@@ -69,10 +70,19 @@ installed.
 | `DayFilter` | `day-filter.tsx` | Client. Single-day picker; pushes `?date=`. Prop `date`. Used by `/reports/daily`. |
 | `SalonSwitcher` | `salon-switcher.tsx` | Client. Active-salón Select (hidden if <2). Props `salons`, `activeId`. POST `/api/active-salon` then refresh. In app header. |
 | `OrgSwitcher` | `org-switcher.tsx` | Client. Active-empresa Select (hidden if <2). Props `orgs`, `activeId`. POST `/api/active-org` then refresh. In app header. |
-| `SearchInput` | `search-input.tsx` | Client. Search box; pushes `?<param>=` (merges params). Props `param?` (def `q`), `placeholder?`. |
+| `SearchInput` | `search-input.tsx` | Client. Search box; pushes `?<param>=` (merges params). Props `param?` (def `q`), `placeholder?`, `shallow?` (same-route `history.replaceState`, no navigation), `basePath?` (target another route, e.g. store listing from detail page). |
 | `SalesFilters` | `sales/sales-filters.tsx` | Client. Payment-status Select; pushes `?status=`. Prop `status?`. |
 | `PrintButton` | `print-button.tsx` | Client. Calls `window.print()`; `print:hidden`. |
-| `ProductCard` | `store/product-card.tsx` | Client. Public storefront card + dialog: cover, "desde" price, gallery + thumbnails, variant chips that swap images and price/stock. Sold-out photos (`stock === 0`) sort last in the gallery and show an "Agotado" badge instead of being hidden. Props `item`, `currency`. |
+| `ProductCard` | `store/product-card.tsx` | Server-safe. Store listing card linking to `/store/:salonId/:itemId`. Props `item`, `currency`, `salonId`, `view?` (`grid` square card / `list` horizontal row), `categoryName?` (list view). "desde" price with >1 variant, "Agotado" badge + faded cover when tracked stock is 0. |
+| `StoreHeader` | `store/store-header.tsx` | Server-safe. Sticky store header: company "logo" link to listing, salon subtitle, `SearchInput` (`shallow` + `basePath`). Props `company`, `salon`, `salonId`. Mounted in `app/store/[salonId]/layout.tsx`. |
+| `StoreBrowser` | `store/store-browser.tsx` | Client. Filtered store listing: `StoreFilters` + `ViewToggle` + result count + grid/list of `ProductCard`; empty state with "Limpiar filtros". Filter state lives in URL params `q,cat,min,max,stock,view` (shallow). Props `items`, `categories`, `currency`, `salonId`. |
+| `StoreFilters` | `store/store-filters.tsx` | Client. Category Select, min/max price inputs, "Solo disponibles" chip, "Limpiar". Writes params via `setParams` (shallow). Collapsed behind "Filtros" button (+active count badge) below `sm`. Prop `categories`. |
+| `ViewToggle` | `store/view-toggle.tsx` | Client. Grid/list icon buttons; persists `view` URL param (grid = param removed). No props. |
+| `ProductDetail` | `store/product-detail.tsx` | Client. Store detail orchestrator: variant + active-photo state, `ProductGallery`, price, `VariantPicker`, low-stock warning (1–5), description, `SelectionSummary`. 3-col grid on `lg`, stacked on mobile. Props `item`, `currency`. |
+| `ProductGallery` | `store/product-gallery.tsx` | Client, controlled. Main image + thumbnail strip; sold-out photos faded + "Agotado" badge, sorted last via exported `orderGallery()`. Props `images`, `alt`, `active`, `onSelect`. |
+| `VariantPicker` | `store/variant-picker.tsx` | Client, controlled. Variant chips ("Todas" + per-variant with stock count, disabled at 0). Exports `ALL_VARIANTS` sentinel. Props `variants`, `tracksStock`, `value`, `onChange`. |
+| `SelectionSummary` | `store/selection-summary.tsx` | Presentational. Detail-page side panel ("Tu selección"): active photo thumb, variant, price, availability. Informational only — no cart. Sticky on `lg`. Props `item`, `variant?`, `photo?`, `currency`. |
+| `setParams` | `store/set-params.ts` | Helper (not a component). Shallow URL query merge via `history.replaceState`; empty/null removes the param. |
 | `VariantManager` | `catalog/variant-manager.tsx` | Client. Per-item variants: name, price tiers (sugerido/costo/intermediario/mínimo), stock, and per-variant images via `ServiceImageManager`. Stock input is disabled and labeled "(desde fotos)" once any photo of that variant tracks its own stock. Prop `serviceId`. |
 | `ServiceImageManager` | `catalog/service-image-manager.tsx` | Client. Upload/list/delete images for an item or a variant (Vercel Blob). For variant images, an inline number input sets per-photo stock (`PUT /api/service-images/:id`, blank = not tracked) and shows an "Agotado" badge at 0. Props `serviceId`, `variantId?`, `label?`, `onStockSaved?`. |
 | `MainNav` | `main-nav.tsx` | Client. App header navigation: inline links on desktop, hamburger dropdown on mobile, active highlight. Prop `admin` (shows Personal/Configuración). |

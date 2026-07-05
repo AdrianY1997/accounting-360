@@ -87,6 +87,7 @@ export async function deleteCategory(ctx: SalonContext, id: string) {
 function normalizeService(input: ServiceInput) {
   return {
     name: input.name.trim(),
+    description: input.description?.trim() || null,
     categoryId: input.categoryId || null,
     price: input.price.toFixed(2),
     costPrice: input.costPrice.toFixed(2),

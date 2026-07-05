@@ -48,7 +48,13 @@ A printable receipt is rendered at `/print/sales/:id` and a daily close at
 `/reports/daily?date=` (pages, not APIs; both reuse `salonReport`).
 `POST /api/onboarding/complete` marks the current user's first-run tour done
 (`user.onboarded`). `/store/:salonId` is a public (unauthenticated) storefront
-page for a salón (active items, images, variants, stock, suggested price).
+listing for a salón (active items, images, variants, stock, suggested price,
+categories, description) fed by `publicStore()` (request-cached). Filters are
+client-side, URL-synced query params: `q`, `cat` (category id), `min`/`max`
+(price), `stock=1` (in stock only), `view` (`grid`|`list`).
+`/store/:salonId/:itemId` is the public item detail page (gallery, variant
+chips, selection summary — no cart) fed by `publicStoreItem()`. Cost, reseller
+and min prices are never exposed on either page.
 
 ## Tenant scope
 

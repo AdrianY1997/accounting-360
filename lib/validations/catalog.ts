@@ -21,6 +21,7 @@ export const priceModeLabels: Record<PriceMode, string> = {
 
 export const serviceInputSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(200),
+  description: z.string().trim().max(2000, "Máximo 2000 caracteres").optional(),
   categoryId: z.string().trim().min(1).nullable().optional(),
   price: z.coerce.number().min(0, "Precio inválido").default(0),
   costPrice: z.coerce.number().min(0).default(0),

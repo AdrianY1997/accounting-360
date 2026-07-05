@@ -49,6 +49,8 @@ export const service = pgTable(
       onDelete: "set null",
     }),
     name: text("name").notNull(),
+    // Shown on the public storefront detail page.
+    description: text("description"),
     // Price tiers. `price` is the suggested/retail price (default for direct
     // clients); resellerPrice for intermediarios; minPrice is a hard floor;
     // costPrice (proveedor) feeds margin + margin-based commissions.
