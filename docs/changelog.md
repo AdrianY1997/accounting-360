@@ -2,6 +2,29 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Service (duration) parity with products
+
+- Catalog form: create mode gains a price field (feeds the Estándar variant —
+  new entries are no longer created at $0). Duration services hide the stock
+  checkbox (server receives `tracksStock:false`) and their variants render as
+  "Tarifas" (`VariantManager kind="service"`): no stock inputs, no per-photo
+  stock (`ServiceImageManager photoStock={false}`). Images stay available.
+- `/catalog`: type tabs (Todos | Productos | Servicios via `?type=`) and the
+  Medida column now shows a badge ("Producto", "Servicio · por hora",
+  "Servicio · fijo").
+- Public store: duration services show "/hora" (per_unit) and "~N min" on
+  cards, detail page and selection summary; the summary shows Duración instead
+  of Disponibilidad for services. Single-variant items auto-select the variant
+  and hide the picker (products included). New Productos/Servicios filter
+  (`?type=`, only when the catalog has both); result texts are now
+  "N resultados". `PublicItem` exposes `durationMinutes`.
+- Commissions: fixed rules now pay per service performed on duration lines —
+  previously the fixed amount was multiplied by hours (`quantity`), so a
+  90-minute service paid 1.5× the rule value. Percent rules unchanged.
+- Reports: "Ventas por servicio" split into servicios (duration, with a new
+  Horas column derived from `sale_item.duration_minutes`) and productos;
+  "Ventas por staff" also shows hours worked. No schema changes.
+
 ## Public storefront redesign: filters, grid/list views and item detail page
 
 - `/store/[salonId]` listing redesigned: sticky `StoreHeader` (company link +

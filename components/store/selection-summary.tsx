@@ -23,6 +23,8 @@ export function SelectionSummary({
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
   const price = variant ? variant.price : item.price;
   const stock = variant ? variant.stock : item.totalStock;
+  const isService = item.measureType === "duration";
+  const perHour = isService && item.priceMode === "per_unit";
 
   let availability = "Disponible";
   if (item.tracksStock) {
@@ -51,31 +53,49 @@ export function SelectionSummary({
           </div>
         )}
         <dl className="space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-2">
-            <dt className="text-muted-foreground">Variante</dt>
-            <dd className="text-right font-medium">
-              {variant ? variant.name : item.variants.length > 0 ? "Todas" : "—"}
-            </dd>
-          </div>
+          {item.variants.length > 1 && (
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-muted-foreground">
+                {isService ? "Tarifa" : "Variante"}
+              </dt>
+              <dd className="text-right font-medium">
+                {variant ? variant.name : "Todas"}
+              </dd>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2">
             <dt className="text-muted-foreground">Precio</dt>
             <dd className="text-right font-semibold">
               {!variant && item.variants.length > 1 ? "desde " : ""}
               {fmt.format(Number(price))}
+              {perHour ? (
+                <span className="text-muted-foreground font-normal"> /hora</span>
+              ) : null}
             </dd>
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <dt className="text-muted-foreground">Disponibilidad</dt>
-            <dd
-              className={`text-right font-medium ${
-                item.tracksStock && (stock === 0 || photo?.stock === 0)
-                  ? "text-destructive"
-                  : ""
-              }`}
-            >
-              {availability}
-            </dd>
-          </div>
+          {isService ? (
+            item.durationMinutes > 0 && (
+              <div className="flex items-center justify-between gap-2">
+                <dt className="text-muted-foreground">Duración</dt>
+                <dd className="text-right font-medium">
+                  ~{item.durationMinutes} min
+                </dd>
+              </div>
+            )
+          ) : (
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-muted-foreground">Disponibilidad</dt>
+              <dd
+                className={`text-right font-medium ${
+                  item.tracksStock && (stock === 0 || photo?.stock === 0)
+                    ? "text-destructive"
+                    : ""
+                }`}
+              >
+                {availability}
+              </dd>
+            </div>
+          )}
         </dl>
       </CardContent>
     </Card>

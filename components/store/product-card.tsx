@@ -24,7 +24,25 @@ export function ProductCard({
   const cover =
     item.images[0] ?? item.variants.find((v) => v.images[0])?.images[0]?.url;
   const soldOut = item.tracksStock && item.totalStock === 0;
+  const isService = item.measureType === "duration";
+  const perHour = isService && item.priceMode === "per_unit";
   const href = `/store/${salonId}/${item.id}`;
+
+  const priceLine = (
+    <p className="text-sm font-semibold">
+      {item.variants.length > 1 ? "desde " : ""}
+      {fmt.format(Number(item.price))}
+      {perHour ? (
+        <span className="text-muted-foreground font-normal"> /hora</span>
+      ) : null}
+    </p>
+  );
+  const durationLine =
+    isService && item.durationMinutes > 0 ? (
+      <p className="text-muted-foreground text-xs">
+        ~{item.durationMinutes} min
+      </p>
+    ) : null;
 
   if (view === "list") {
     return (
@@ -47,10 +65,8 @@ export function ProductCard({
           {categoryName && (
             <p className="text-muted-foreground text-xs">{categoryName}</p>
           )}
-          <p className="text-sm font-semibold">
-            {item.variants.length > 1 ? "desde " : ""}
-            {fmt.format(Number(item.price))}
-          </p>
+          {priceLine}
+          {durationLine}
           {item.tracksStock &&
             (soldOut ? (
               <Badge variant="destructive">Agotado</Badge>
@@ -86,10 +102,8 @@ export function ProductCard({
       </div>
       <div className="space-y-0.5 p-3">
         <p className="font-medium leading-tight">{item.name}</p>
-        <p className="text-sm font-semibold">
-          {item.variants.length > 1 ? "desde " : ""}
-          {fmt.format(Number(item.price))}
-        </p>
+        {priceLine}
+        {durationLine}
         {item.tracksStock && !soldOut && (
           <p className="text-muted-foreground text-xs">
             {item.totalStock} disponibles

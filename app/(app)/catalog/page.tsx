@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 import { db } from "@/db";
@@ -33,18 +34,38 @@ import { env } from "@/lib/env";
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; type?: string }>;
 }) {
   const ctx = await requireSalonContext();
   if (!can(ctx, "catalog:write")) redirect("/dashboard");
-  const { q } = await searchParams;
-  const [categories, services, settings] = await Promise.all([
+  const { q, type } = await searchParams;
+  const [categories, allServices, settings] = await Promise.all([
     listCategories(ctx),
     listServices(ctx, q),
     db.query.salonSettings.findFirst({
       where: eq(salonSettings.teamId, ctx.salonId),
     }),
   ]);
+
+  const services = allServices.filter((s) =>
+    type === "products"
+      ? s.measureType === "quantity"
+      : type === "services"
+        ? s.measureType === "duration"
+        : true,
+  );
+  const typeTabs = [
+    { value: undefined, label: "Todos" },
+    { value: "products", label: "Productos" },
+    { value: "services", label: "Servicios" },
+  ] as const;
+  const tabHref = (value?: string) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (value) params.set("type", value);
+    const qs = params.toString();
+    return qs ? `/catalog?${qs}` : "/catalog";
+  };
 
   const currency = settings?.currency ?? "USD";
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
@@ -66,7 +87,23 @@ export default async function CatalogPage({
             <ServiceFormDialog categories={categories} />
           </div>
         </div>
-        <SearchInput placeholder="Buscar ítem" />
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchInput placeholder="Buscar ítem" />
+          <div className="flex gap-1">
+            {typeTabs.map((t) => (
+              <Button
+                key={t.label}
+                asChild
+                size="sm"
+                variant={
+                  (type ?? undefined) === t.value ? "secondary" : "ghost"
+                }
+              >
+                <Link href={tabHref(t.value)}>{t.label}</Link>
+              </Button>
+            ))}
+          </div>
+        </div>
 
         {services.length === 0 ? (
           <EmptyState
@@ -112,11 +149,15 @@ export default async function CatalogPage({
                       )}
                     </TableCell>
                     <TableCell>
-                      {s.measureType === "duration"
-                        ? s.priceMode === "per_unit"
-                          ? "Duración (×hora)"
-                          : "Duración (fija)"
-                        : "Cantidad"}
+                      {s.measureType === "duration" ? (
+                        <Badge variant="outline">
+                          {s.priceMode === "per_unit"
+                            ? "Servicio · por hora"
+                            : "Servicio · fijo"}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Producto</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       {s.tracksStock ? (stock.get(s.id) ?? 0) : "—"}

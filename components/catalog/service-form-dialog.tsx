@@ -69,7 +69,7 @@ export function ServiceFormDialog({
       minPrice: String(form.get("minPrice") ?? "0"),
       measureType,
       priceMode,
-      tracksStock,
+      tracksStock: isDuration ? false : tracksStock,
       durationMinutes: String(form.get("durationMinutes") ?? "0"),
       categoryId: categoryId === NONE ? null : categoryId,
     };
@@ -197,26 +197,51 @@ export function ServiceFormDialog({
             </div>
           )}
           {!editing && (
-            <p className="text-muted-foreground text-xs">
-              Los precios y el stock se configuran en las variantes (tras crear el
-              ítem se crea una variante Estándar).
-            </p>
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="price">
+                  {isDuration && priceMode === "per_unit"
+                    ? "Precio por hora"
+                    : "Precio"}
+                </Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  defaultValue="0"
+                />
+              </div>
+              <p className="text-muted-foreground text-xs">
+                {isDuration
+                  ? "El precio queda en la tarifa Estándar; tras crear puedes añadir más tarifas (p. ej. por largo de cabello)."
+                  : "El precio queda en la variante Estándar; el resto de precios y el stock se configuran en las variantes."}
+              </p>
+            </>
           )}
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={tracksStock}
-              onChange={(e) => setTracksStock(e.target.checked)}
-            />
-            Descuenta stock al vender
-          </label>
+          {!isDuration && (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={tracksStock}
+                onChange={(e) => setTracksStock(e.target.checked)}
+              />
+              Descuenta stock al vender
+            </label>
+          )}
           {editing && service && (
             <ServiceImageManager
               serviceId={service.id}
               label="Imágenes principales"
             />
           )}
-          {editing && service && <VariantManager serviceId={service.id} />}
+          {editing && service && (
+            <VariantManager
+              serviceId={service.id}
+              kind={isDuration ? "service" : "product"}
+            />
+          )}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}

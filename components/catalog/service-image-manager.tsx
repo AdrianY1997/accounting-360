@@ -17,11 +17,14 @@ export function ServiceImageManager({
   serviceId,
   variantId,
   label = "Imágenes",
+  photoStock = true,
   onStockSaved,
 }: {
   serviceId: string;
   variantId?: string;
   label?: string;
+  /** Show the per-photo stock input on variant images (off for services). */
+  photoStock?: boolean;
   /** Called after a photo's stock is saved (e.g. to refresh the variant's total). */
   onStockSaved?: () => void;
 }) {
@@ -115,7 +118,7 @@ export function ServiceImageManager({
               >
                 <Trash2 className="size-3" />
               </button>
-              {variantId && (
+              {variantId && photoStock && (
                 <input
                   type="number"
                   min="0"

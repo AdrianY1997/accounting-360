@@ -22,7 +22,14 @@ const ALL = "__all__";
  * Store listing filters (category, price range, in-stock only), URL-synced
  * via shallow replaceState. Collapsed behind a "Filtros" button on mobile.
  */
-export function StoreFilters({ categories }: { categories: PublicCategory[] }) {
+export function StoreFilters({
+  categories,
+  showTypeFilter = false,
+}: {
+  categories: PublicCategory[];
+  /** Show the Productos/Servicios toggle (only when the catalog has both). */
+  showTypeFilter?: boolean;
+}) {
   const params = useSearchParams();
   const [open, setOpen] = useState(false);
 
@@ -30,12 +37,40 @@ export function StoreFilters({ categories }: { categories: PublicCategory[] }) {
   const min = params.get("min") ?? "";
   const max = params.get("max") ?? "";
   const stock = params.get("stock") === "1";
+  const type = params.get("type") ?? "";
 
   const activeCount =
-    (cat ? 1 : 0) + (min ? 1 : 0) + (max ? 1 : 0) + (stock ? 1 : 0);
+    (cat ? 1 : 0) +
+    (min ? 1 : 0) +
+    (max ? 1 : 0) +
+    (stock ? 1 : 0) +
+    (type ? 1 : 0);
+
+  const typeChip = (value: string, label: string) => (
+    <button
+      type="button"
+      aria-pressed={type === value}
+      onClick={() =>
+        setParams(params, { type: type === value ? null : value })
+      }
+      className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+        type === value
+          ? "bg-primary text-primary-foreground border-primary"
+          : "hover:bg-accent"
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   const controls = (
     <>
+      {showTypeFilter && (
+        <div className="flex gap-1.5">
+          {typeChip("product", "Productos")}
+          {typeChip("service", "Servicios")}
+        </div>
+      )}
       {categories.length > 0 && (
         <Select
           value={cat || ALL}
@@ -96,7 +131,13 @@ export function StoreFilters({ categories }: { categories: PublicCategory[] }) {
           variant="ghost"
           size="sm"
           onClick={() =>
-            setParams(params, { cat: null, min: null, max: null, stock: null })
+            setParams(params, {
+              cat: null,
+              min: null,
+              max: null,
+              stock: null,
+              type: null,
+            })
           }
         >
           <X className="size-4" />

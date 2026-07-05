@@ -120,7 +120,7 @@ function commissionCents(
   rule: Rule,
   lineTotalCents: number,
   costTotalCents: number,
-  quantity: number,
+  units: number,
 ) {
   const value = Number(rule.value);
   if (rule.type === "percent") {
@@ -130,8 +130,9 @@ function commissionCents(
         : lineTotalCents;
     return Math.round((baseCents * value) / 100);
   }
-  // fixed: flat amount per unit.
-  return toCents(value) * quantity;
+  // fixed: flat amount per unit. For duration services the caller passes 1 —
+  // the commission is per service performed, not per hour.
+  return Math.round(toCents(value) * units);
 }
 
 export type CommissionRow = {
@@ -170,6 +171,7 @@ export async function computeCommissions(
         lineTotal: saleItem.lineTotal,
         costPrice: saleItem.costPrice,
         quantity: saleItem.quantity,
+        measureType: saleItem.measureType,
         staffName: staffUser.name,
       })
       .from(saleItem)
@@ -191,9 +193,12 @@ export async function computeCommissions(
     const rule = bestRule(rules, it.staffId, it.serviceId);
     const lineCents = toCents(Number(it.lineTotal));
     const qty = Number(it.quantity);
-    const costTotalCents = toCents(Number(it.costPrice)) * qty;
+    const costTotalCents = Math.round(toCents(Number(it.costPrice)) * qty);
+    // Duration lines carry hours in `quantity`; a fixed rule pays per service
+    // performed, not per hour.
+    const units = it.measureType === "duration" ? 1 : qty;
     const commCents = rule
-      ? commissionCents(rule, lineCents, costTotalCents, qty)
+      ? commissionCents(rule, lineCents, costTotalCents, units)
       : 0;
     const cur =
       acc.get(it.staffId) ??

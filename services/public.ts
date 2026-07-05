@@ -25,6 +25,7 @@ export type PublicItem = {
   price: string;
   measureType: string;
   priceMode: string;
+  durationMinutes: number;
   tracksStock: boolean;
   totalStock: number;
   categoryId: string | null;
@@ -65,6 +66,7 @@ export const publicStore = cache(
           price: service.price,
           measureType: service.measureType,
           priceMode: service.priceMode,
+          durationMinutes: service.durationMinutes,
           tracksStock: service.tracksStock,
           categoryId: service.categoryId,
           description: service.description,

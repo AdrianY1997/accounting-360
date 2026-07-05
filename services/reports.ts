@@ -58,20 +58,23 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
     db
       .select({
         name: sql<string>`coalesce(${service.name}, 'Libre')`,
+        type: saleItem.measureType,
         count: sql<number>`count(*)`,
         total: sql<string>`coalesce(sum(${saleItem.lineTotal}), 0)`,
+        minutes: sql<number>`coalesce(sum(case when ${saleItem.measureType} = 'duration' then coalesce(${saleItem.durationMinutes}, 0) else 0 end), 0)`,
       })
       .from(saleItem)
       .innerJoin(sale, eq(sale.id, saleItem.saleId))
       .leftJoin(service, eq(service.id, saleItem.serviceId))
       .where(notVoid)
-      .groupBy(service.name)
+      .groupBy(service.name, saleItem.measureType)
       .orderBy(sql`sum(${saleItem.lineTotal}) desc`),
     db
       .select({
         name: user.name,
         count: sql<number>`count(*)`,
         total: sql<string>`coalesce(sum(${saleItem.lineTotal}), 0)`,
+        minutes: sql<number>`coalesce(sum(case when ${saleItem.measureType} = 'duration' then coalesce(${saleItem.durationMinutes}, 0) else 0 end), 0)`,
       })
       .from(saleItem)
       .innerJoin(sale, eq(sale.id, saleItem.saleId))
@@ -119,13 +122,16 @@ export async function salonReport(ctx: SalonContext, from: Date, to: Date) {
     },
     byService: byService.map((r) => ({
       name: r.name,
+      type: r.type,
       count: num(r.count),
       total: num(r.total),
+      minutes: num(r.minutes),
     })),
     byStaff: byStaff.map((r) => ({
       name: r.name ?? "—",
       count: num(r.count),
       total: num(r.total),
+      minutes: num(r.minutes),
     })),
     byMethod: byMethod.map((r) => ({
       method: r.method,

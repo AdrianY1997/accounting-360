@@ -83,11 +83,28 @@ export default async function ReportsPage({
 
       <Section title="Ventas por servicio">
         <BreakdownTable
-          rows={report.byService.map((r) => ({
-            label: r.name,
-            count: r.count,
-            total: r.total,
-          }))}
+          rows={report.byService
+            .filter((r) => r.type === "duration")
+            .map((r) => ({
+              label: r.name,
+              count: r.count,
+              total: r.total,
+              minutes: r.minutes,
+            }))}
+          fmt={fmt}
+          showHours
+        />
+      </Section>
+
+      <Section title="Ventas por producto">
+        <BreakdownTable
+          rows={report.byService
+            .filter((r) => r.type !== "duration")
+            .map((r) => ({
+              label: r.name,
+              count: r.count,
+              total: r.total,
+            }))}
           fmt={fmt}
         />
       </Section>
@@ -98,8 +115,10 @@ export default async function ReportsPage({
             label: r.name,
             count: r.count,
             total: r.total,
+            minutes: r.minutes,
           }))}
           fmt={fmt}
+          showHours
         />
       </Section>
 
@@ -164,14 +183,18 @@ function BreakdownTable({
   rows,
   fmt,
   footer,
+  showHours = false,
 }: {
-  rows: { label: string; count: number; total: number }[];
+  rows: { label: string; count: number; total: number; minutes?: number }[];
   fmt: Intl.NumberFormat;
   footer?: { label: string; total: number };
+  showHours?: boolean;
 }) {
   if (rows.length === 0) {
     return <p className="text-muted-foreground text-sm">Sin datos.</p>;
   }
+  const hours = (minutes?: number) =>
+    minutes && minutes > 0 ? `${(minutes / 60).toFixed(1)} h` : "—";
   return (
     <div className="rounded-md border">
       <Table>
@@ -179,6 +202,7 @@ function BreakdownTable({
           <TableRow>
             <TableHead>Concepto</TableHead>
             <TableHead className="text-right">Cant.</TableHead>
+            {showHours && <TableHead className="text-right">Horas</TableHead>}
             <TableHead className="text-right">Total</TableHead>
           </TableRow>
         </TableHeader>
@@ -187,12 +211,18 @@ function BreakdownTable({
             <TableRow key={r.label}>
               <TableCell className="font-medium">{r.label}</TableCell>
               <TableCell className="text-right">{r.count}</TableCell>
+              {showHours && (
+                <TableCell className="text-right">{hours(r.minutes)}</TableCell>
+              )}
               <TableCell className="text-right">{fmt.format(r.total)}</TableCell>
             </TableRow>
           ))}
           {footer && (
             <TableRow>
-              <TableCell colSpan={2} className="text-right font-semibold">
+              <TableCell
+                colSpan={showHours ? 3 : 2}
+                className="text-right font-semibold"
+              >
                 {footer.label}
               </TableCell>
               <TableCell className="text-right font-semibold">

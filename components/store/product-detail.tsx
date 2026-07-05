@@ -18,8 +18,13 @@ export function ProductDetail({
   currency: string;
 }) {
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
-  const [variantId, setVariantId] = useState<string>(ALL_VARIANTS);
+  // A single variant is auto-selected — the picker would be noise.
+  const [variantId, setVariantId] = useState<string>(
+    item.variants.length === 1 ? item.variants[0].id : ALL_VARIANTS,
+  );
   const [active, setActive] = useState(0);
+  const isService = item.measureType === "duration";
+  const perHour = isService && item.priceMode === "per_unit";
 
   const selected = item.variants.find((v) => v.id === variantId);
   const itemImages: PublicVariantImage[] = item.images.map((url) => ({
@@ -61,12 +66,24 @@ export function ProductDetail({
         <p className="text-2xl font-bold">
           {!selected && item.variants.length > 1 ? "desde " : ""}
           {fmt.format(Number(shownPrice))}
+          {perHour ? (
+            <span className="text-muted-foreground text-base font-normal">
+              {" "}
+              /hora
+            </span>
+          ) : null}
         </p>
 
-        {item.variants.length > 0 && (
+        {isService && item.durationMinutes > 0 && (
+          <p className="text-muted-foreground text-sm">
+            Duración aproximada: {item.durationMinutes} min
+          </p>
+        )}
+
+        {item.variants.length > 1 && (
           <div className="space-y-1.5">
             <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              Variantes
+              {isService ? "Tarifas" : "Variantes"}
             </p>
             <VariantPicker
               variants={item.variants}

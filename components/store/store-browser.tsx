@@ -14,6 +14,7 @@ type Filters = {
   min: string;
   max: string;
   stock: boolean;
+  type: string;
 };
 
 function filterItems(items: PublicItem[], f: Filters): PublicItem[] {
@@ -23,6 +24,8 @@ function filterItems(items: PublicItem[], f: Filters): PublicItem[] {
   return items.filter((it) => {
     if (q && !it.name.toLowerCase().includes(q)) return false;
     if (f.cat && it.categoryId !== f.cat) return false;
+    if (f.type === "service" && it.measureType !== "duration") return false;
+    if (f.type === "product" && it.measureType === "duration") return false;
     const price = Number(it.price);
     if (min !== null && !Number.isNaN(min) && price < min) return false;
     if (max !== null && !Number.isNaN(max) && price > max) return false;
@@ -55,27 +58,33 @@ export function StoreBrowser({
     min: params.get("min") ?? "",
     max: params.get("max") ?? "",
     stock: params.get("stock") === "1",
+    type: params.get("type") ?? "",
   });
   const categoryName = (id: string | null) =>
     categories.find((c) => c.id === id)?.name ?? null;
+  const hasServices = items.some((it) => it.measureType === "duration");
+  const hasProducts = items.some((it) => it.measureType !== "duration");
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <StoreFilters categories={categories} />
+        <StoreFilters
+          categories={categories}
+          showTypeFilter={hasServices && hasProducts}
+        />
         <ViewToggle />
       </div>
 
       <p className="text-muted-foreground text-sm">
         {filtered.length === 1
-          ? "1 producto"
-          : `${filtered.length} productos`}
+          ? "1 resultado"
+          : `${filtered.length} resultados`}
       </p>
 
       {filtered.length === 0 ? (
         <div className="space-y-3 py-16 text-center">
           <p className="text-muted-foreground">
-            No hay productos que coincidan con los filtros.
+            No hay resultados que coincidan con los filtros.
           </p>
           <Button
             type="button"
@@ -88,6 +97,7 @@ export function StoreBrowser({
                 min: null,
                 max: null,
                 stock: null,
+                type: null,
               })
             }
           >

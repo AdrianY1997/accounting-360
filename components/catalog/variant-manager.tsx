@@ -19,8 +19,20 @@ type Variant = {
   hasPhotoStock?: boolean;
 };
 
-/** Manage stock variants of an item (name, optional price, stock, images). */
-export function VariantManager({ serviceId }: { serviceId: string }) {
+/**
+ * Manage variants of a catalog entry (name, price tiers, stock, images).
+ * `kind="service"` (duration services) relabels them as "Tarifas" and hides
+ * all stock UI — services keep variants only as price tiers (e.g. hair
+ * length), never inventory.
+ */
+export function VariantManager({
+  serviceId,
+  kind = "product",
+}: {
+  serviceId: string;
+  kind?: "product" | "service";
+}) {
+  const isService = kind === "service";
   const [variants, setVariants] = useState<Variant[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -106,10 +118,13 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
   return (
     <div className="grid gap-3">
       <span className="text-sm font-medium">
-        Variantes y stock{" "}
-        <span className="text-muted-foreground font-normal">
-          (total: {total})
-        </span>
+        {isService ? "Tarifas" : "Variantes y stock"}
+        {!isService && (
+          <span className="text-muted-foreground font-normal">
+            {" "}
+            (total: {total})
+          </span>
+        )}
       </span>
 
       {variants.map((v) => (
@@ -167,19 +182,21 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
                 onChange={(e) => patch(v.id, { minPrice: e.target.value })}
               />
             </div>
-            <div className="grid gap-1">
-              <Label className="text-xs">
-                Stock{v.hasPhotoStock ? " (desde fotos)" : ""}
-              </Label>
-              <Input
-                className="w-20"
-                type="number"
-                min="0"
-                value={v.stock}
-                disabled={v.hasPhotoStock}
-                onChange={(e) => patch(v.id, { stock: Number(e.target.value) })}
-              />
-            </div>
+            {!isService && (
+              <div className="grid gap-1">
+                <Label className="text-xs">
+                  Stock{v.hasPhotoStock ? " (desde fotos)" : ""}
+                </Label>
+                <Input
+                  className="w-20"
+                  type="number"
+                  min="0"
+                  value={v.stock}
+                  disabled={v.hasPhotoStock}
+                  onChange={(e) => patch(v.id, { stock: Number(e.target.value) })}
+                />
+              </div>
+            )}
             <Button type="button" variant="outline" size="sm" onClick={() => save(v)}>
               Guardar
             </Button>
@@ -196,7 +213,12 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
           <ServiceImageManager
             serviceId={serviceId}
             variantId={v.id}
-            label="Imágenes de la variante (asigna stock por foto)"
+            label={
+              isService
+                ? "Imágenes de la tarifa"
+                : "Imágenes de la variante (asigna stock por foto)"
+            }
+            photoStock={!isService}
             onStockSaved={load}
           />
         </div>
@@ -204,11 +226,13 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
 
       <div className="flex flex-wrap items-end gap-2 rounded-md border border-dashed p-3">
         <div className="grid gap-1">
-          <Label className="text-xs">Nueva variante</Label>
+          <Label className="text-xs">
+            {isService ? "Nueva tarifa" : "Nueva variante"}
+          </Label>
           <Input
             className="w-40"
             value={name}
-            placeholder="Ej: M - Rojo"
+            placeholder={isService ? "Ej: Cabello largo" : "Ej: M - Rojo"}
             onChange={(e) => setName(e.target.value)}
           />
         </div>
@@ -256,16 +280,18 @@ export function VariantManager({ serviceId }: { serviceId: string }) {
             onChange={(e) => setMinPrice(e.target.value)}
           />
         </div>
-        <div className="grid gap-1">
-          <Label className="text-xs">Stock</Label>
-          <Input
-            className="w-20"
-            type="number"
-            min="0"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-          />
-        </div>
+        {!isService && (
+          <div className="grid gap-1">
+            <Label className="text-xs">Stock</Label>
+            <Input
+              className="w-20"
+              type="number"
+              min="0"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+            />
+          </div>
+        )}
         <Button type="button" size="sm" disabled={loading} onClick={add}>
           <Plus className="size-4" />
           Añadir
