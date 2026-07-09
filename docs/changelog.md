@@ -2,6 +2,13 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Store: selection summary resolves the photo's variant
+
+- On the item detail page with "Todas" active, picking a photo that belongs to
+  a variant now makes "Tu selección" show that variant's name and exact price
+  instead of the "desde" minimum. Photos without a variant (main item images)
+  keep the previous behavior.
+
 ## Salón logo file upload
 
 - Settings form: the logo can now be uploaded as a file (preview thumbnail,

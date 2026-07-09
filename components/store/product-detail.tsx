@@ -47,6 +47,17 @@ export function ProductDetail({
     setActive(0);
   }
 
+  // With "Todas" active the chosen photo may still belong to one variant —
+  // the selection summary then shows that variant's exact price, not "desde".
+  const activePhoto = gallery[active];
+  const photoVariant =
+    !selected && activePhoto
+      ? item.variants.find((v) =>
+          v.images.some((img) => img.url === activePhoto.url),
+        )
+      : undefined;
+  const summaryVariant = selected ?? photoVariant;
+
   const shownPrice = selected ? selected.price : item.price;
   const shownStock = selected ? selected.stock : item.totalStock;
   const lowStock = item.tracksStock && shownStock >= 1 && shownStock <= 5;
@@ -114,8 +125,8 @@ export function ProductDetail({
 
       <SelectionSummary
         item={item}
-        variant={selected}
-        photo={gallery[active]}
+        variant={summaryVariant}
+        photo={activePhoto}
         currency={currency}
       />
     </div>
