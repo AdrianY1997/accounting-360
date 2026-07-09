@@ -6,6 +6,7 @@ import {
   numeric,
   pgTable,
   text,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 import { organization, team } from "./auth";
@@ -49,6 +50,9 @@ export const service = pgTable(
       onDelete: "set null",
     }),
     name: text("name").notNull(),
+    // Auto-generated per salón: P-0001 (products) / S-0001 (services).
+    // Immutable once assigned.
+    sku: text("sku"),
     // Shown on the public storefront detail page.
     description: text("description"),
     // Price tiers. `price` is the suggested/retail price (default for direct
@@ -79,6 +83,7 @@ export const service = pgTable(
   (t) => [
     index("service_salon_idx").on(t.salonId),
     index("service_category_idx").on(t.categoryId),
+    uniqueIndex("service_sku_salon_uidx").on(t.salonId, t.sku),
   ],
 );
 
@@ -93,6 +98,8 @@ export const serviceVariant = pgTable(
       .notNull()
       .references(() => service.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    // Auto-generated: item SKU + 2-digit suffix (e.g. P-0001-02).
+    sku: text("sku"),
     // Price tiers live on the variant (the item base holds no pricing).
     price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
     costPrice: numeric("cost_price", { precision: 12, scale: 2 })
@@ -107,7 +114,10 @@ export const serviceVariant = pgTable(
     stock: integer("stock").notNull().default(0),
     ...timestamps,
   },
-  (t) => [index("service_variant_service_idx").on(t.serviceId)],
+  (t) => [
+    index("service_variant_service_idx").on(t.serviceId),
+    uniqueIndex("service_variant_sku_uidx").on(t.serviceId, t.sku),
+  ],
 );
 
 export const serviceVariantRelations = relations(serviceVariant, ({ one }) => ({

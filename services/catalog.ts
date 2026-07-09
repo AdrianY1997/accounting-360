@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  salonSettings,
   service,
   serviceCategory,
   serviceImage,
@@ -84,6 +85,54 @@ export async function deleteCategory(ctx: SalonContext, id: string) {
 
 // --- Services ---
 
+/**
+ * Next per-salón item SKU: P-0001 for products, S-0001 for duration services.
+ * Increments the salón's sequence atomically (upserting the settings row if
+ * missing) so concurrent creations can't collide. SKUs are immutable.
+ */
+async function nextItemSku(ctx: SalonContext, measureType: string) {
+  const isService = measureType === "duration";
+  const bump = isService
+    ? { skuSeqService: sql`${salonSettings.skuSeqService} + 1` }
+    : { skuSeqProduct: sql`${salonSettings.skuSeqProduct} + 1` };
+  let [row] = await db
+    .update(salonSettings)
+    .set(bump)
+    .where(eq(salonSettings.teamId, ctx.salonId))
+    .returning({
+      p: salonSettings.skuSeqProduct,
+      s: salonSettings.skuSeqService,
+    });
+  if (!row) {
+    await db
+      .insert(salonSettings)
+      .values({ teamId: ctx.salonId })
+      .onConflictDoNothing();
+    [row] = await db
+      .update(salonSettings)
+      .set(bump)
+      .where(eq(salonSettings.teamId, ctx.salonId))
+      .returning({
+        p: salonSettings.skuSeqProduct,
+        s: salonSettings.skuSeqService,
+      });
+  }
+  const n = isService ? row.s : row.p;
+  return `${isService ? "S" : "P"}-${String(n).padStart(4, "0")}`;
+}
+
+/** Next variant SKU for an item: item SKU + 2-digit suffix past the max used. */
+function nextVariantSku(itemSku: string | null, existing: (string | null)[]) {
+  if (!itemSku) return null;
+  const prefix = `${itemSku}-`;
+  const max = existing.reduce((m, s) => {
+    if (!s || !s.startsWith(prefix)) return m;
+    const n = Number(s.slice(prefix.length));
+    return Number.isInteger(n) && n > m ? n : m;
+  }, 0);
+  return `${prefix}${String(max + 1).padStart(2, "0")}`;
+}
+
 function normalizeService(input: ServiceInput) {
   return {
     name: input.name.trim(),
@@ -117,11 +166,13 @@ export async function listServices(ctx: SalonContext, q?: string) {
 }
 
 export async function createService(ctx: SalonContext, input: ServiceInput) {
+  const sku = await nextItemSku(ctx, input.measureType);
   const [created] = await db
     .insert(service)
     .values({
       organizationId: ctx.organizationId,
       salonId: ctx.salonId,
+      sku,
       ...normalizeService(input),
     })
     .returning();
@@ -129,6 +180,7 @@ export async function createService(ctx: SalonContext, input: ServiceInput) {
   await db.insert(serviceVariant).values({
     serviceId: created.id,
     name: "Estándar",
+    sku: `${sku}-01`,
     price: input.price.toFixed(2),
     costPrice: input.costPrice.toFixed(2),
     resellerPrice: input.resellerPrice.toFixed(2),
@@ -363,10 +415,21 @@ export async function createVariant(
   input: VariantInput,
 ) {
   if (!(await ownsService(ctx, serviceId))) return null;
+  const [[svc], siblings] = await Promise.all([
+    db
+      .select({ sku: service.sku })
+      .from(service)
+      .where(eq(service.id, serviceId)),
+    db
+      .select({ sku: serviceVariant.sku })
+      .from(serviceVariant)
+      .where(eq(serviceVariant.serviceId, serviceId)),
+  ]);
   const [created] = await db
     .insert(serviceVariant)
     .values({
       serviceId,
+      sku: nextVariantSku(svc?.sku ?? null, siblings.map((s) => s.sku)),
       name: input.name.trim(),
       price: input.price.toFixed(2),
       costPrice: input.costPrice.toFixed(2),

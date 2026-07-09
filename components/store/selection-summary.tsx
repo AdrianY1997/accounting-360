@@ -30,9 +30,14 @@ export function SelectionSummary({
   if (item.tracksStock) {
     if (photo?.stock != null) {
       availability =
-        photo.stock === 0 ? "Foto agotada" : `${photo.stock} de esta foto`;
+        photo.stock === 0
+          ? "Agotado"
+          : `${photo.stock} disponible${photo.stock === 1 ? "" : "s"}`;
     } else {
-      availability = stock === 0 ? "Agotado" : `${stock} disponibles`;
+      availability =
+        stock === 0
+          ? "Agotado"
+          : `${stock} disponible${stock === 1 ? "" : "s"}`;
     }
   }
 
@@ -63,13 +68,23 @@ export function SelectionSummary({
               </dd>
             </div>
           )}
+          {(variant?.sku ?? item.sku) && (
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-muted-foreground">SKU</dt>
+              <dd className="text-right font-mono text-xs font-medium">
+                {variant?.sku ?? item.sku}
+              </dd>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2">
             <dt className="text-muted-foreground">Precio</dt>
             <dd className="text-right font-semibold">
-              {!variant && item.variants.length > 1 ? "desde " : ""}
               {fmt.format(Number(price))}
               {perHour ? (
-                <span className="text-muted-foreground font-normal"> /hora</span>
+                <span className="text-muted-foreground font-normal">
+                  {" "}
+                  /hora
+                </span>
               ) : null}
             </dd>
           </div>

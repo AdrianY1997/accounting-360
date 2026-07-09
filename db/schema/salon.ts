@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { numeric, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
+import { integer, numeric, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 import { team } from "./auth";
 
@@ -26,6 +26,10 @@ export const salonSettings = pgTable(
     address: text("address"),
     phone: text("phone"),
     logoUrl: text("logo_url"),
+    // Per-salón SKU sequences (P-0001 products, S-0001 services). Incremented
+    // atomically on item creation; SKUs are immutable once assigned.
+    skuSeqProduct: integer("sku_seq_product").notNull().default(0),
+    skuSeqService: integer("sku_seq_service").notNull().default(0),
     ...timestamps,
   },
   (t) => [uniqueIndex("salon_settings_team_uidx").on(t.teamId)],

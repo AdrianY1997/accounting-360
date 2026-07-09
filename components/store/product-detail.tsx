@@ -72,10 +72,12 @@ export function ProductDetail({
       />
 
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold leading-tight">{item.name}</h1>
+        <h1 className="text-2xl font-semibold leading-tight capitalize">
+          {item.name}
+        </h1>
 
         <p className="text-2xl font-bold">
-          {!selected && item.variants.length > 1 ? "desde " : ""}
+          {!selected && item.variants.length > 1 ? "Desde " : ""}
           {fmt.format(Number(shownPrice))}
           {perHour ? (
             <span className="text-muted-foreground text-base font-normal">
@@ -91,36 +93,36 @@ export function ProductDetail({
           </p>
         )}
 
-        {item.variants.length > 1 && (
-          <div className="space-y-1.5">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              {isService ? "Tarifas" : "Variantes"}
-            </p>
-            <VariantPicker
-              variants={item.variants}
-              tracksStock={item.tracksStock}
-              value={variantId}
-              onChange={pickVariant}
-            />
-          </div>
-        )}
+        <div className="space-y-1.5">
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+            {isService ? "Tarifas" : "Variantes"}
+          </p>
+          <VariantPicker
+            variants={item.variants}
+            tracksStock={item.tracksStock}
+            value={variantId}
+            onChange={pickVariant}
+          />
+        </div>
 
         {lowStock && (
           <p className="text-sm font-medium text-amber-600 dark:text-amber-500">
-            ¡Solo {shownStock === 1 ? "queda 1 unidad" : `quedan ${shownStock} unidades`}!
+            ¡Solo{" "}
+            {shownStock === 1
+              ? "queda 1 unidad"
+              : `quedan ${shownStock} unidades`}
+            !
           </p>
         )}
 
-        {item.description && (
-          <div className="space-y-1.5">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              Descripción
-            </p>
-            <p className="whitespace-pre-line text-sm leading-relaxed">
-              {item.description}
-            </p>
-          </div>
-        )}
+        <div className="space-y-1.5">
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+            Descripción
+          </p>
+          <p className="whitespace-pre-line text-sm leading-relaxed">
+            {item.description || <span className="text-muted-foreground italic">Sin descripción</span>}
+          </p>
+        </div>
       </div>
 
       <SelectionSummary

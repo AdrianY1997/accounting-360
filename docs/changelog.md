@@ -2,6 +2,21 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Auto-generated SKUs
+
+- `service.sku` and `service_variant.sku` (migration `0020`): items get
+  `P-0001` (products) / `S-0001` (duration services) per salón, variants get
+  the item SKU + 2-digit suffix (`P-0001-02`). Unique per (salon, sku) /
+  (service, sku). Immutable, not user-editable.
+- Generation: `nextItemSku()` bumps `salon_settings.sku_seq_product|service`
+  atomically (row upserted if missing) on `createService`; `createVariant`
+  derives the next free suffix from existing sibling SKUs.
+- Backfill inside migration `0020`: existing items/variants numbered by
+  creation order per salón; sequences seeded from the highest assigned number.
+- Shown in `/catalog` (SKU column), `VariantManager` (per-variant label) and
+  the store's "Tu selección" panel (variant SKU, falling back to item SKU).
+  `PublicItem`/`PublicVariant` expose `sku`.
+
 ## Store: selection summary resolves the photo's variant
 
 - On the item detail page with "Todas" active, picking a photo that belongs to

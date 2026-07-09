@@ -15,6 +15,7 @@ export type PublicVariantImage = { url: string; stock: number | null };
 export type PublicVariant = {
   id: string;
   name: string;
+  sku: string | null;
   price: string;
   stock: number;
   images: PublicVariantImage[];
@@ -22,6 +23,7 @@ export type PublicVariant = {
 export type PublicItem = {
   id: string;
   name: string;
+  sku: string | null;
   price: string;
   measureType: string;
   priceMode: string;
@@ -63,6 +65,7 @@ export const publicStore = cache(
         .select({
           id: service.id,
           name: service.name,
+          sku: service.sku,
           price: service.price,
           measureType: service.measureType,
           priceMode: service.priceMode,
@@ -132,6 +135,7 @@ export const publicStore = cache(
           variants: itemVariants.map((v) => ({
             id: v.id,
             name: v.name,
+            sku: v.sku,
             price: v.price,
             stock: v.stock,
             images: images

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 type Variant = {
   id: string;
   name: string;
+  sku: string | null;
   price: string;
   costPrice: string;
   resellerPrice: string;
@@ -131,7 +132,15 @@ export function VariantManager({
         <div key={v.id} className="grid gap-2 rounded-md border p-3">
           <div className="flex flex-wrap items-end gap-2">
             <div className="grid gap-1">
-              <Label className="text-xs">Variante</Label>
+              <Label className="text-xs">
+                {isService ? "Tarifa" : "Variante"}
+                {v.sku && (
+                  <span className="text-muted-foreground font-mono font-normal">
+                    {" "}
+                    · {v.sku}
+                  </span>
+                )}
+              </Label>
               <Input
                 className="w-40"
                 value={v.name}

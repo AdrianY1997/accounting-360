@@ -116,6 +116,7 @@ export default async function CatalogPage({
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
+                  <TableHead>SKU</TableHead>
                   <TableHead>Categoría</TableHead>
                   <TableHead>Medida</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
@@ -138,6 +139,9 @@ export default async function CatalogPage({
                         ) : null}
                         {s.name}
                       </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-xs">
+                      {s.sku ?? "—"}
                     </TableCell>
                     <TableCell>
                       {s.categoryId ? (

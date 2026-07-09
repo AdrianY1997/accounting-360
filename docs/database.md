@@ -45,6 +45,7 @@ Per-salón accounting configuration. One row per `team`.
 | `address`     | text, nullable            |                                        |
 | `phone`       | text, nullable            |                                        |
 | `logo_url`    | text, nullable            | Shown on the printed receipt           |
+| `sku_seq_product` / `sku_seq_service` | integer, default `0` | Per-salón SKU sequences (P-#### / S-####), bumped atomically on item creation |
 | `created_at`  | timestamp                 | from `timestamps` helper               |
 | `updated_at`  | timestamp                 | auto-updates on write                  |
 
@@ -89,6 +90,7 @@ Pricing lives on `service_variant` — the item base holds no price.
 | `salon_id`         | text → `team.id`              | cascade; indexed            |
 | `category_id`      | text → `service_category.id`  | nullable; on delete set null; indexed |
 | `name`             | text, not null                |                             |
+| `sku`              | text                          | nullable; auto-generated per salón (`P-0001` products / `S-0001` duration services), immutable; unique per (salon_id, sku) |
 | `description`      | text                          | nullable; shown on the public store detail page |
 | `price` / `cost_price` / `reseller_price` / `min_price` | numeric(12,2), default `0` | legacy/unused now that pricing lives on variants |
 | `measure_type`     | text, default `quantity`      | `quantity` \| `duration`    |
@@ -108,6 +110,7 @@ here; every `service` has at least one variant ("Estándar").
 | `id`              | text (uuid)                    | PK                             |
 | `service_id`      | text → `service.id`            | cascade; indexed               |
 | `name`            | text, not null                 | free text (e.g. "M - Rojo")    |
+| `sku`             | text                           | nullable; item SKU + 2-digit suffix (`P-0001-02`), auto-generated; unique per (service_id, sku) |
 | `price` / `cost_price` / `reseller_price` / `min_price` | numeric(12,2), default `0` | price tiers |
 | `stock`           | integer, default `0`           | total units; if any of its `service_image` rows track stock per photo, this is the sum of those |
 | `created_at` / `updated_at` | timestamp             | from `timestamps`               |
