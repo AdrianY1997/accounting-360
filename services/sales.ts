@@ -129,6 +129,20 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
   });
   const taxRate = Number(settings?.taxRate ?? 0);
 
+  // Resellers (intermediarios) buy at their own tier, which may legitimately
+  // sit below the retail minimum — the min-price floor only applies to
+  // direct clients.
+  const buyer = input.clientId
+    ? await db.query.client.findFirst({
+        where: and(
+          eq(client.id, input.clientId),
+          eq(client.organizationId, ctx.organizationId),
+          eq(client.salonId, ctx.salonId),
+        ),
+      })
+    : undefined;
+  const enforceMinPrice = buyer?.type !== "reseller";
+
   // Load referenced items to authoritatively know their measure/price mode.
   const serviceIds = input.items
     .map((it) => it.serviceId)
@@ -221,7 +235,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       variantId = variant.id;
       costCents = toCents(Number(variant.costPrice));
       const minCents = toCents(Number(variant.minPrice));
-      if (minCents > 0 && unitCents < minCents) {
+      if (enforceMinPrice && minCents > 0 && unitCents < minCents) {
         throw new SaleError(
           `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
         );

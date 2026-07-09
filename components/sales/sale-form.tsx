@@ -260,7 +260,9 @@ export function SaleForm({
       setError("El total debe ser mayor a 0.");
       return;
     }
+    // Resellers buy at their own tier — the retail minimum doesn't apply.
     if (
+      clientType !== "reseller" &&
       rows.some(
         (r) => Number(r.minPrice) > 0 && Number(r.unitPrice) < Number(r.minPrice),
       )

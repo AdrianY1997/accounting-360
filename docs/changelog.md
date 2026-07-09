@@ -2,6 +2,13 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Min-price floor no longer applies to resellers
+
+- Sales to a client of type `reseller` (intermediario) skip the `min_price`
+  floor, both in the sale form validation and in `createSale` (the server
+  loads the buyer's type; the guard stays authoritative for direct clients).
+  Reseller tiers can legitimately sit below the retail minimum.
+
 ## Service (duration) parity with products
 
 - Catalog form: create mode gains a price field (feeds the Estándar variant —
