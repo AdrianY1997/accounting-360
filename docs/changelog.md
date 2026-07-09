@@ -2,6 +2,15 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Salón logo file upload
+
+- Settings form: the logo can now be uploaded as a file (preview thumbnail,
+  "Subir imagen", "Quitar"), besides the manual external URL. Upload persists
+  immediately via `POST /api/salon-settings/logo` (Vercel Blob under
+  `logos/<salonId>/`, image-only, ≤4 MB); replacing or clearing deletes the
+  previous blob when it was an upload (external URLs untouched). New
+  `setLogoUrl()` in `services/settings.ts`.
+
 ## Min-price floor no longer applies to resellers
 
 - Sales to a client of type `reseller` (intermediario) skip the `min_price`

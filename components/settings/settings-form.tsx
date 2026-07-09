@@ -19,6 +19,44 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState(settings?.logoUrl ?? "");
+  const [uploading, setUploading] = useState(false);
+
+  async function onUploadLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const fd = new FormData();
+    fd.append("file", file);
+    setUploading(true);
+    const res = await fetch("/api/salon-settings/logo", {
+      method: "POST",
+      body: fd,
+    });
+    setUploading(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error ?? "No se pudo subir el logo");
+      return;
+    }
+    const data = await res.json();
+    setLogoUrl(data.logoUrl ?? "");
+    toast.success("Logo actualizado");
+    router.refresh();
+  }
+
+  async function onRemoveLogo() {
+    setUploading(true);
+    const res = await fetch("/api/salon-settings/logo", { method: "DELETE" });
+    setUploading(false);
+    if (!res.ok) {
+      toast.error("No se pudo quitar el logo");
+      return;
+    }
+    setLogoUrl("");
+    toast.success("Logo eliminado");
+    router.refresh();
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,7 +68,7 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
       timezone: String(form.get("timezone") ?? ""),
       address: String(form.get("address") ?? ""),
       phone: String(form.get("phone") ?? ""),
-      logoUrl: String(form.get("logoUrl") ?? ""),
+      logoUrl,
     };
     setLoading(true);
     const res = await fetch("/api/salon-settings", {
@@ -109,13 +147,56 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
             <Input id="phone" name="phone" defaultValue={settings?.phone ?? ""} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="logoUrl">URL del logo (recibo)</Label>
+            <Label>Logo (recibo)</Label>
+            <div className="flex items-center gap-3">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt="Logo del salón"
+                  className="bg-muted size-16 rounded-md border object-contain"
+                />
+              ) : (
+                <div className="bg-muted text-muted-foreground grid size-16 place-items-center rounded-md border text-xs">
+                  Sin logo
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <label className="inline-flex">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={onUploadLogo}
+                    disabled={uploading}
+                  />
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <span>{uploading ? "Subiendo…" : "Subir imagen"}</span>
+                  </Button>
+                </label>
+                {logoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={onRemoveLogo}
+                  >
+                    Quitar
+                  </Button>
+                )}
+              </div>
+            </div>
+            <Label htmlFor="logoUrl" className="text-muted-foreground">
+              o URL externa
+            </Label>
             <Input
               id="logoUrl"
               name="logoUrl"
               type="url"
               placeholder="https://…"
-              defaultValue={settings?.logoUrl ?? ""}
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
             />
           </div>
           {error && (

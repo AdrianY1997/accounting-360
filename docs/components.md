@@ -91,7 +91,7 @@ installed.
 | `EnterCompanyButton` | `platform/enter-company-button.tsx` | Client (platform admin). Impersonate a company. Prop `organizationId`. POST `/api/active-org` → `/dashboard`. |
 | `ImpersonationBanner` | `impersonation-banner.tsx` | Client. Banner shown while impersonating; Salir → DELETE `/api/active-org` → `/platform`. |
 | `ProductTour` | `product-tour.tsx` | Client. First-run driver.js tour, role-aware (prop `caps`). Auto-starts, skips off-screen steps, POSTs `/api/onboarding/complete` on end. Mounted in layout when `!onboarded`. Nav links use `data-tour` selectors. |
-| `SettingsForm` | `settings/settings-form.tsx` | Client. Edit salón settings (currency, tax %, timezone, address, phone). Prop `settings?`. PUT `/api/salon-settings`. |
+| `SettingsForm` | `settings/settings-form.tsx` | Client. Edit salón settings (currency, tax %, timezone, address, phone, logo). Logo: preview + file upload (POST `/api/salon-settings/logo`, persists immediately) + Quitar (DELETE) or manual external URL (saved with the form). Prop `settings?`. PUT `/api/salon-settings`. |
 | `CreateSalonDialog` | `settings/create-salon-dialog.tsx` | Client. Admin creates a salón (name). POST `/api/salons`. |
 | `StaffFormDialog` | `staff/staff-form-dialog.tsx` | Client. Admin creates staff (name, email, password, role). POST `/api/staff`. |
 | `StaffEditDialog` | `staff/staff-edit-dialog.tsx` | Client. Admin edits role / resets password. Prop `staff`. PATCH `/api/staff/:id`. Owner role locked. |

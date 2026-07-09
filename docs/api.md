@@ -238,6 +238,8 @@ Body (zod, `lib/validations/settings.ts`): `currency` (3-letter), `taxRatePercen
 | ------ | --------------------- | --------------------------------- |
 | GET    | `/api/salon-settings` | Current salón settings            |
 | PUT    | `/api/salon-settings` | Update (upsert) salón settings    |
+| POST   | `/api/salon-settings/logo` | Upload logo image (multipart `file`, ≤4 MB) to Vercel Blob and persist `logoUrl`; deletes the replaced uploaded blob |
+| DELETE | `/api/salon-settings/logo` | Clear the logo (deletes the blob if it was an upload) |
 
 ## Reports
 

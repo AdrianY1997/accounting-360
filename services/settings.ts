@@ -41,3 +41,24 @@ export async function updateSettings(
     .returning();
   return created;
 }
+
+/**
+ * Sets (or clears) only the salón logo URL, upserting the row if needed.
+ * Returns the previous URL so callers can delete a replaced blob.
+ */
+export async function setLogoUrl(ctx: SalonContext, logoUrl: string | null) {
+  const existing = await getSettings(ctx);
+  if (existing) {
+    const [updated] = await db
+      .update(salonSettings)
+      .set({ logoUrl })
+      .where(eq(salonSettings.teamId, ctx.salonId))
+      .returning();
+    return { settings: updated, previousUrl: existing.logoUrl };
+  }
+  const [created] = await db
+    .insert(salonSettings)
+    .values({ teamId: ctx.salonId, logoUrl })
+    .returning();
+  return { settings: created, previousUrl: null };
+}
