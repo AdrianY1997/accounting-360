@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { categoryTree } from "@/lib/categories";
 import type { PublicCategory } from "@/services/public";
 import { setParams } from "./set-params";
 
@@ -81,11 +82,16 @@ export function StoreFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Todas las categorías</SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
-              </SelectItem>
-            ))}
+            {categoryTree(categories).flatMap(({ root, children }) => [
+              <SelectItem key={root.id} value={root.id}>
+                {root.name}
+              </SelectItem>,
+              ...children.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  <span className="pl-3">— {c.name}</span>
+                </SelectItem>
+              )),
+            ])}
           </SelectContent>
         </Select>
       )}

@@ -24,7 +24,7 @@ export function StoreHeader({
         </Link>
         <div className="ml-auto w-full sm:w-auto">
           <SearchInput
-            placeholder="Buscar productos…"
+            placeholder="Buscar productos, categorías o referencias…"
             shallow
             basePath={`/store/${salonId}`}
           />

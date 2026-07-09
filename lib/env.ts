@@ -8,6 +8,9 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
+  // Public-store WhatsApp fallback when a salón has no number configured.
+  // Read server-side only (store pages resolve it and pass a prop down).
+  NEXT_PUBLIC_WHATSAPP_FALLBACK: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);

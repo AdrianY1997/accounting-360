@@ -2,6 +2,36 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Store v2: mockup-style detail page, store types, subcategories, product page, WhatsApp
+
+- **PDP redesign** (no cart — informational): gallery + info column (price,
+  availability badge, `summary`, reactive detail rows — Variante, store-type
+  attributes, Ref/SKU, Categoría path — and always-visible variant chips),
+  then chip-tabs (Descripción with ✓ `features`, Detalles, longtext-attribute
+  tabs like Cuidados/Modo de uso, Envíos from salón `shipping_info`), share
+  buttons (WhatsApp/Facebook/copy — Instagram omitted, no web intent),
+  "¿Tienes dudas?" WhatsApp CTA and "También te puede interesar"
+  recommendations (`recommendItems`: same category family + in stock first).
+  `SelectionSummary` removed (folded into the reactive rows).
+- **Store types** (`salon_settings.store_type`, registry `lib/store-types.ts`):
+  Genérica / Ropa / Belleza templates decide which product attributes exist
+  (text = detail row, longtext = tab). Values in `service.attributes` (jsonb)
+  survive template switches.
+- **Subcategories**: `service_category.parent_id` (one level max, enforced
+  server-side; deleting a parent promotes children). Category dialog gains a
+  parent Select; admin list nests children; store filter Select is
+  hierarchical and selecting a parent matches its subcategories; PDP
+  breadcrumb shows the full path + "Volver a <categoría>".
+- **Dedicated product pages** `/catalog/new` and `/catalog/[id]` with
+  `ProductForm` (summary, features one-per-line, store-type attributes,
+  images, variants); `ServiceFormDialog` deleted.
+- **WhatsApp**: `salon_settings.whatsapp` (+ floating button on the store and
+  CTA on the PDP), fallback `NEXT_PUBLIC_WHATSAPP_FALLBACK`; migration `0021`
+  backfills `+573213015880` into existing salons (per-salón editable). First
+  hand-edited migration and first jsonb columns in the repo.
+- Store search `q` now also matches item/variant SKUs and category labels;
+  header placeholder updated. `service.summary` feeds page metadata.
+
 ## Auto-generated SKUs
 
 - `service.sku` and `service_variant.sku` (migration `0020`): items get

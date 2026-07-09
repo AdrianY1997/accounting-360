@@ -25,6 +25,53 @@ export type ServiceVariant = typeof serviceVariant.$inferSelect;
 
 // --- Categories ---
 
+/** Domain error for category rules (routes map it to HTTP 400). */
+export class CategoryError extends Error {}
+
+/**
+ * One level of nesting only. Throws CategoryError when the parent is missing,
+ * is itself a subcategory, is the category itself, or when the category being
+ * updated already has children.
+ */
+async function assertValidParent(
+  ctx: SalonContext,
+  parentId: string | null | undefined,
+  selfId?: string,
+) {
+  if (!parentId) return;
+  if (selfId && parentId === selfId) {
+    throw new CategoryError("Una categoría no puede ser su propio padre.");
+  }
+  const [parent] = await db
+    .select({ id: serviceCategory.id, parentId: serviceCategory.parentId })
+    .from(serviceCategory)
+    .where(
+      and(
+        eq(serviceCategory.id, parentId),
+        eq(serviceCategory.organizationId, ctx.organizationId),
+        eq(serviceCategory.salonId, ctx.salonId),
+      ),
+    );
+  if (!parent) throw new CategoryError("Categoría padre no encontrada.");
+  if (parent.parentId) {
+    throw new CategoryError(
+      "Solo se permite un nivel de subcategorías (el padre ya es subcategoría).",
+    );
+  }
+  if (selfId) {
+    const [child] = await db
+      .select({ id: serviceCategory.id })
+      .from(serviceCategory)
+      .where(eq(serviceCategory.parentId, selfId))
+      .limit(1);
+    if (child) {
+      throw new CategoryError(
+        "Esta categoría tiene subcategorías; no puede convertirse en subcategoría.",
+      );
+    }
+  }
+}
+
 export async function listCategories(ctx: SalonContext) {
   return db
     .select()
@@ -39,12 +86,14 @@ export async function listCategories(ctx: SalonContext) {
 }
 
 export async function createCategory(ctx: SalonContext, input: CategoryInput) {
+  await assertValidParent(ctx, input.parentId);
   const [created] = await db
     .insert(serviceCategory)
     .values({
       organizationId: ctx.organizationId,
       salonId: ctx.salonId,
       name: input.name.trim(),
+      parentId: input.parentId ?? null,
     })
     .returning();
   return created;
@@ -55,9 +104,10 @@ export async function updateCategory(
   id: string,
   input: CategoryInput,
 ) {
+  await assertValidParent(ctx, input.parentId, id);
   const [updated] = await db
     .update(serviceCategory)
-    .set({ name: input.name.trim() })
+    .set({ name: input.name.trim(), parentId: input.parentId ?? null })
     .where(
       and(
         eq(serviceCategory.id, id),
@@ -136,7 +186,20 @@ function nextVariantSku(itemSku: string | null, existing: (string | null)[]) {
 function normalizeService(input: ServiceInput) {
   return {
     name: input.name.trim(),
+    summary: input.summary?.trim() || null,
     description: input.description?.trim() || null,
+    features: (() => {
+      const list = input.features?.map((f) => f.trim()).filter(Boolean) ?? [];
+      return list.length ? list : null;
+    })(),
+    // Values are kept for every key ever saved — switching the salón's store
+    // type must not destroy data; rendering is template-driven.
+    attributes: (() => {
+      const entries = Object.entries(input.attributes ?? {})
+        .map(([k, v]) => [k, v.trim()] as const)
+        .filter(([, v]) => v);
+      return entries.length ? Object.fromEntries(entries) : null;
+    })(),
     categoryId: input.categoryId || null,
     price: input.price.toFixed(2),
     costPrice: input.costPrice.toFixed(2),
@@ -163,6 +226,21 @@ export async function listServices(ctx: SalonContext, q?: string) {
       ),
     )
     .orderBy(asc(service.name));
+}
+
+/** Single catalog entry, salón-scoped (edit page). */
+export async function getService(ctx: SalonContext, id: string) {
+  const [row] = await db
+    .select()
+    .from(service)
+    .where(
+      and(
+        eq(service.id, id),
+        eq(service.organizationId, ctx.organizationId),
+        eq(service.salonId, ctx.salonId),
+      ),
+    );
+  return row ?? null;
 }
 
 export async function createService(ctx: SalonContext, input: ServiceInput) {

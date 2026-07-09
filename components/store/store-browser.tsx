@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { categoryLabel, descendantsAndSelf } from "@/lib/categories";
 import type { PublicCategory, PublicItem } from "@/services/public";
 import { ProductCard } from "./product-card";
 import { setParams } from "./set-params";
@@ -17,13 +18,27 @@ type Filters = {
   type: string;
 };
 
-function filterItems(items: PublicItem[], f: Filters): PublicItem[] {
+function filterItems(
+  items: PublicItem[],
+  categories: PublicCategory[],
+  f: Filters,
+): PublicItem[] {
   const q = f.q.trim().toLowerCase();
   const min = f.min ? Number(f.min) : null;
   const max = f.max ? Number(f.max) : null;
+  // Selecting a parent category also matches its subcategories (top-down).
+  const catIds = f.cat ? descendantsAndSelf(categories, f.cat) : null;
+  const catText = new Map(
+    categories.map((c) => [c.id, categoryLabel(categories, c.id).toLowerCase()]),
+  );
+  const matchesQ = (it: PublicItem) =>
+    it.name.toLowerCase().includes(q) ||
+    (it.sku?.toLowerCase().includes(q) ?? false) ||
+    it.variants.some((v) => v.sku?.toLowerCase().includes(q)) ||
+    (it.categoryId ? (catText.get(it.categoryId)?.includes(q) ?? false) : false);
   return items.filter((it) => {
-    if (q && !it.name.toLowerCase().includes(q)) return false;
-    if (f.cat && it.categoryId !== f.cat) return false;
+    if (q && !matchesQ(it)) return false;
+    if (catIds && (!it.categoryId || !catIds.has(it.categoryId))) return false;
     if (f.type === "service" && it.measureType !== "duration") return false;
     if (f.type === "product" && it.measureType === "duration") return false;
     const price = Number(it.price);
@@ -52,7 +67,7 @@ export function StoreBrowser({
 }) {
   const params = useSearchParams();
   const view = params.get("view") === "list" ? "list" : "grid";
-  const filtered = filterItems(items, {
+  const filtered = filterItems(items, categories, {
     q: params.get("q") ?? "",
     cat: params.get("cat") ?? "",
     min: params.get("min") ?? "",
@@ -61,7 +76,7 @@ export function StoreBrowser({
     type: params.get("type") ?? "",
   });
   const categoryName = (id: string | null) =>
-    categories.find((c) => c.id === id)?.name ?? null;
+    id ? categoryLabel(categories, id) || null : null;
   const hasServices = items.some((it) => it.measureType === "duration");
   const hasProducts = items.some((it) => it.measureType !== "duration");
 

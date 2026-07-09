@@ -1,8 +1,10 @@
 import { relations } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
+  jsonb,
   numeric,
   pgTable,
   text,
@@ -29,9 +31,17 @@ export const serviceCategory = pgTable(
       .notNull()
       .references(() => team.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    // One level of nesting only (categoría > subcategoría, enforced in
+    // services/catalog.ts). Deleting a parent promotes children to root.
+    parentId: text("parent_id").references((): AnyPgColumn => serviceCategory.id, {
+      onDelete: "set null",
+    }),
     ...timestamps,
   },
-  (t) => [index("service_category_salon_idx").on(t.salonId)],
+  (t) => [
+    index("service_category_salon_idx").on(t.salonId),
+    index("service_category_parent_idx").on(t.parentId),
+  ],
 );
 
 export const service = pgTable(
@@ -53,8 +63,14 @@ export const service = pgTable(
     // Auto-generated per salón: P-0001 (products) / S-0001 (services).
     // Immutable once assigned.
     sku: text("sku"),
-    // Shown on the public storefront detail page.
+    // Storefront copy: short blurb above the price, long text in the
+    // Descripción tab.
+    summary: text("summary"),
     description: text("description"),
+    // Short selling points rendered as ✓ checks on the detail page.
+    features: jsonb("features").$type<string[]>(),
+    // Store-type attribute values (lib/store-types.ts) keyed by attribute key.
+    attributes: jsonb("attributes").$type<Record<string, string>>(),
     // Price tiers. `price` is the suggested/retail price (default for direct
     // clients); resellerPrice for intermediarios; minPrice is a hard floor;
     // costPrice (proveedor) feeds margin + margin-based commissions.

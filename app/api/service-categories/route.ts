@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createCategory, listCategories } from "@/services/catalog";
+import { CategoryError, createCategory, listCategories } from "@/services/catalog";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { categoryInputSchema } from "@/lib/validations/catalog";
@@ -21,7 +21,14 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  return NextResponse.json(await createCategory(ctx, parsed.data), {
-    status: 201,
-  });
+  try {
+    return NextResponse.json(await createCategory(ctx, parsed.data), {
+      status: 201,
+    });
+  } catch (e) {
+    if (e instanceof CategoryError) {
+      return NextResponse.json({ error: e.message }, { status: 400 });
+    }
+    throw e;
+  }
 }

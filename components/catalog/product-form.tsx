@@ -1,20 +1,20 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ServiceImageManager } from "@/components/catalog/service-image-manager";
 import { VariantManager } from "@/components/catalog/variant-manager";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -22,6 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { categoryTree } from "@/lib/categories";
+import { getStoreType } from "@/lib/store-types";
 import {
   measureTypeLabels,
   measureTypes,
@@ -29,24 +32,25 @@ import {
   priceModes,
 } from "@/lib/validations/catalog";
 import type { Service, ServiceCategory } from "@/services/catalog";
-import { Pencil, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
 
 const NONE = "__none__";
 
-export function ServiceFormDialog({
+/**
+ * Dedicated product/service create-edit form (pages /catalog/new and
+ * /catalog/[id]). Sections: básicos, descripción + features, atributos del
+ * tipo de tienda, imágenes y variantes (edit only).
+ */
+export function ProductForm({
   service,
   categories,
-  mode = "create",
+  storeType,
 }: {
   service?: Service;
   categories: ServiceCategory[];
-  mode?: "edit" | "create";
+  /** The salón's store type id (salon_settings.store_type). */
+  storeType: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState(service?.categoryId ?? NONE);
   const [measureType, setMeasureType] = useState(
@@ -54,19 +58,31 @@ export function ServiceFormDialog({
   );
   const [priceMode, setPriceMode] = useState(service?.priceMode ?? "per_unit");
   const [tracksStock, setTracksStock] = useState(service?.tracksStock ?? false);
+  const [attributes, setAttributes] = useState<Record<string, string>>(
+    service?.attributes ?? {},
+  );
   const editing = Boolean(service);
   const isDuration = measureType === "duration";
+  const template = getStoreType(storeType);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    const features = String(form.get("features") ?? "")
+      .split("\n")
+      .map((f) => f.trim())
+      .filter(Boolean)
+      .slice(0, 12);
     const body = {
       name: String(form.get("name") ?? ""),
+      summary: String(form.get("summary") ?? ""),
       description: String(form.get("description") ?? ""),
+      features,
+      attributes,
       price: String(form.get("price") ?? "0"),
-      costPrice: String(form.get("costPrice") ?? "0"),
-      resellerPrice: String(form.get("resellerPrice") ?? "0"),
-      minPrice: String(form.get("minPrice") ?? "0"),
+      costPrice: "0",
+      resellerPrice: "0",
+      minPrice: "0",
       measureType,
       priceMode,
       tracksStock: isDuration ? false : tracksStock,
@@ -88,50 +104,41 @@ export function ServiceFormDialog({
       toast.error(data.error ?? "No se pudo guardar");
       return;
     }
-    toast.success(editing ? "Ítem actualizado" : "Ítem creado");
-    setOpen(false);
-    router.refresh();
+    if (editing) {
+      toast.success("Ítem actualizado");
+      router.refresh();
+      return;
+    }
+    const created = await res.json();
+    toast.success("Ítem creado — ahora agrega imágenes y variantes");
+    router.push(`/catalog/${created.id}`);
   }
 
+  // Roots first with their children indented, like the store filter.
+  const categoryOptions = categoryTree(categories).flatMap(
+    ({ root, children }) => [root, ...children],
+  );
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {mode === "edit" ? ( <Button variant="ghost" size="icon" aria-label="Editar">
-          <Pencil className="size-4" />
-        </Button>) : (
-          <Button>
-            <Plus className="size-4" />
-            Nuevo ítem
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-h-[90svh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{editing ? "Editar ítem" : "Nuevo ítem"}</DialogTitle>
-          <DialogDescription>
-            Agrega un nuevo ítem al catálogo o edita uno existente.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="grid gap-4">
+    <form onSubmit={onSubmit} className="grid gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Información básica</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Nombre</Label>
-            <Input
-              id="name"
-              name="name"
-              required
-              defaultValue={service?.name ?? ""}
-            />
+            <Input id="name" name="name" required defaultValue={service?.name ?? ""} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="description">
-              Descripción (visible en la tienda)
-            </Label>
+            <Label htmlFor="summary">Resumen</Label>
             <Textarea
-              id="description"
-              name="description"
-              rows={3}
-              maxLength={2000}
-              defaultValue={service?.description ?? ""}
+              id="summary"
+              name="summary"
+              rows={2}
+              maxLength={300}
+              placeholder="Frase corta que se muestra arriba del precio en la tienda"
+              defaultValue={service?.summary ?? ""}
             />
           </div>
           <div className="grid gap-2">
@@ -142,9 +149,9 @@ export function ServiceFormDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NONE}>Sin categoría</SelectItem>
-                {categories.map((c) => (
+                {categoryOptions.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
+                    {c.parentId ? `— ${c.name}` : c.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -230,25 +237,105 @@ export function ServiceFormDialog({
               Descuenta stock al vender
             </label>
           )}
-          {editing && service && (
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Descripción</CardTitle>
+          <CardDescription>
+            Se muestra en la pestaña Descripción de la tienda.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="description">Descripción</Label>
+            <Textarea
+              id="description"
+              name="description"
+              rows={5}
+              maxLength={2000}
+              defaultValue={service?.description ?? ""}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="features">Puntos destacados</Label>
+            <Textarea
+              id="features"
+              name="features"
+              rows={4}
+              placeholder={"Tela fresca y ligera\nNo se encoge ni destiñe"}
+              defaultValue={(service?.features ?? []).join("\n")}
+            />
+            <p className="text-muted-foreground text-xs">
+              Uno por línea (máx. 12) — se muestran con ✓ en la tienda.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {template.attributes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Atributos ({template.label})</CardTitle>
+            <CardDescription>
+              Según el tipo de tienda configurado. Los campos largos salen como
+              pestaña propia en el detalle.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {template.attributes.map((attr) => (
+              <div key={attr.key} className="grid gap-2">
+                <Label htmlFor={`attr-${attr.key}`}>{attr.label}</Label>
+                {attr.kind === "longtext" ? (
+                  <Textarea
+                    id={`attr-${attr.key}`}
+                    rows={4}
+                    maxLength={4000}
+                    placeholder={attr.placeholder}
+                    value={attributes[attr.key] ?? ""}
+                    onChange={(e) =>
+                      setAttributes((p) => ({ ...p, [attr.key]: e.target.value }))
+                    }
+                  />
+                ) : (
+                  <Input
+                    id={`attr-${attr.key}`}
+                    maxLength={200}
+                    placeholder={attr.placeholder}
+                    value={attributes[attr.key] ?? ""}
+                    onChange={(e) =>
+                      setAttributes((p) => ({ ...p, [attr.key]: e.target.value }))
+                    }
+                  />
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {editing && service && (
+        <Card>
+          {/* ServiceImageManager and VariantManager render their own labels. */}
+          <CardContent className="grid gap-6 pt-6">
             <ServiceImageManager
               serviceId={service.id}
               label="Imágenes principales"
             />
-          )}
-          {editing && service && (
             <VariantManager
               serviceId={service.id}
               kind={isDuration ? "service" : "product"}
             />
-          )}
-          <DialogFooter>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Guardando…" : "Guardar"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </CardContent>
+        </Card>
+      )}
+
+      <div>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Guardando…" : editing ? "Guardar cambios" : "Crear ítem"}
+        </Button>
+      </div>
+    </form>
   );
 }

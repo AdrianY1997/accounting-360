@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteCategory, updateCategory } from "@/services/catalog";
+import { CategoryError, deleteCategory, updateCategory } from "@/services/catalog";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
 import { categoryInputSchema } from "@/lib/validations/catalog";
@@ -20,11 +20,21 @@ export async function PUT(
       { status: 400 },
     );
   }
-  const updated = await updateCategory(salon, id, parsed.data);
-  if (!updated) {
-    return NextResponse.json({ error: "Categoría no encontrada" }, { status: 404 });
+  try {
+    const updated = await updateCategory(salon, id, parsed.data);
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Categoría no encontrada" },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json(updated);
+  } catch (e) {
+    if (e instanceof CategoryError) {
+      return NextResponse.json({ error: e.message }, { status: 400 });
+    }
+    throw e;
   }
-  return NextResponse.json(updated);
 }
 
 export async function DELETE(

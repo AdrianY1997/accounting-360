@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { storeTypeIds } from "@/lib/store-types";
 
 export const salonSettingsSchema = z.object({
   currency: z
@@ -18,6 +19,9 @@ export const salonSettingsSchema = z.object({
     .max(500)
     .optional()
     .or(z.literal("")),
+  storeType: z.enum(storeTypeIds).default("generic"),
+  whatsapp: z.string().trim().max(30).optional().or(z.literal("")),
+  shippingInfo: z.string().trim().max(4000).optional().or(z.literal("")),
 });
 
 export type SalonSettingsInput = z.infer<typeof salonSettingsSchema>;

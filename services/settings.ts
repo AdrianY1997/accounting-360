@@ -24,6 +24,9 @@ export async function updateSettings(
     address: input.address?.trim() || null,
     phone: input.phone?.trim() || null,
     logoUrl: input.logoUrl?.trim() || null,
+    storeType: input.storeType,
+    whatsapp: input.whatsapp?.trim() || null,
+    shippingInfo: input.shippingInfo?.trim() || null,
   };
 
   const existing = await getSettings(ctx);

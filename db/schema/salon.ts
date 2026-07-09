@@ -26,6 +26,13 @@ export const salonSettings = pgTable(
     address: text("address"),
     phone: text("phone"),
     logoUrl: text("logo_url"),
+    // Storefront presentation (lib/store-types.ts template id).
+    storeType: text("store_type").notNull().default("generic"),
+    // Public-store WhatsApp contact (floating button + CTA). Fallback:
+    // NEXT_PUBLIC_WHATSAPP_FALLBACK env var.
+    whatsapp: text("whatsapp"),
+    // Shown as the "Envíos" tab on every item detail page when set.
+    shippingInfo: text("shipping_info"),
     // Per-salón SKU sequences (P-0001 products, S-0001 services). Incremented
     // atomically on item creation; SKUs are immutable once assigned.
     skuSeqProduct: integer("sku_seq_product").notNull().default(0),

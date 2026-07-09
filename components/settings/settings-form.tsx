@@ -14,12 +14,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { storeTypes } from "@/lib/store-types";
 
 export function SettingsForm({ settings }: { settings?: SalonSettings }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState(settings?.logoUrl ?? "");
+  const [storeType, setStoreType] = useState(settings?.storeType ?? "generic");
   const [uploading, setUploading] = useState(false);
 
   async function onUploadLogo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -69,6 +79,9 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
       address: String(form.get("address") ?? ""),
       phone: String(form.get("phone") ?? ""),
       logoUrl,
+      storeType,
+      whatsapp: String(form.get("whatsapp") ?? ""),
+      shippingInfo: String(form.get("shippingInfo") ?? ""),
     };
     setLoading(true);
     const res = await fetch("/api/salon-settings", {
@@ -145,6 +158,52 @@ export function SettingsForm({ settings }: { settings?: SalonSettings }) {
           <div className="grid gap-2">
             <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" name="phone" defaultValue={settings?.phone ?? ""} />
+          </div>
+          <div className="grid gap-2">
+            <Label>Tipo de tienda</Label>
+            <Select value={storeType} onValueChange={setStoreType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {storeTypes.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Define qué atributos extra piden los productos y muestra la
+              tienda (material, medidas, modo de uso…).
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="whatsapp">WhatsApp (tienda)</Label>
+            <Input
+              id="whatsapp"
+              name="whatsapp"
+              placeholder="+57 300 000 0000"
+              defaultValue={settings?.whatsapp ?? ""}
+            />
+            <p className="text-muted-foreground text-xs">
+              Botón flotante y &quot;¿Tienes dudas?&quot; de la tienda pública.
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="shippingInfo">Información de envíos</Label>
+            <Textarea
+              id="shippingInfo"
+              name="shippingInfo"
+              rows={4}
+              maxLength={4000}
+              placeholder="Envíos a todo el país, 2 a 3 días hábiles…"
+              defaultValue={settings?.shippingInfo ?? ""}
+            />
+            <p className="text-muted-foreground text-xs">
+              Se muestra como pestaña &quot;Envíos&quot; en cada producto de la
+              tienda.
+            </p>
           </div>
           <div className="grid gap-2">
             <Label>Logo (recibo)</Label>

@@ -1,6 +1,8 @@
 import { cache } from "react";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
+import { categoryPath, familyIds } from "@/lib/categories";
+import { env } from "@/lib/env";
 import {
   organization,
   salonSettings,
@@ -31,15 +33,25 @@ export type PublicItem = {
   tracksStock: boolean;
   totalStock: number;
   categoryId: string | null;
+  summary: string | null;
   description: string | null;
+  features: string[];
+  attributes: Record<string, string>;
   images: string[];
   variants: PublicVariant[];
 };
-export type PublicCategory = { id: string; name: string };
+export type PublicCategory = {
+  id: string;
+  name: string;
+  parentId: string | null;
+};
 export type PublicStore = {
   company: string;
   salon: string;
   currency: string;
+  storeType: string;
+  whatsapp: string | null;
+  shippingInfo: string | null;
   categories: PublicCategory[];
   items: PublicItem[];
 };
@@ -72,13 +84,20 @@ export const publicStore = cache(
           durationMinutes: service.durationMinutes,
           tracksStock: service.tracksStock,
           categoryId: service.categoryId,
+          summary: service.summary,
           description: service.description,
+          features: service.features,
+          attributes: service.attributes,
         })
         .from(service)
         .where(and(eq(service.salonId, salonId), eq(service.active, true)))
         .orderBy(asc(service.name)),
       db
-        .select({ id: serviceCategory.id, name: serviceCategory.name })
+        .select({
+          id: serviceCategory.id,
+          name: serviceCategory.name,
+          parentId: serviceCategory.parentId,
+        })
         .from(serviceCategory)
         .where(eq(serviceCategory.salonId, salonId))
         .orderBy(asc(serviceCategory.name)),
@@ -107,14 +126,23 @@ export const publicStore = cache(
         : [],
     ]);
 
+    // Used categories plus their parents (paths and the hierarchical filter
+    // must always resolve).
     const usedCategoryIds = new Set(
       items.map((i) => i.categoryId).filter(Boolean),
     );
+    for (const c of categories) {
+      if (usedCategoryIds.has(c.id) && c.parentId) usedCategoryIds.add(c.parentId);
+    }
 
     return {
       company: org?.name ?? "salon360",
       salon: salon.name,
       currency: settings?.currency ?? "USD",
+      storeType: settings?.storeType ?? "generic",
+      whatsapp:
+        settings?.whatsapp ?? env.NEXT_PUBLIC_WHATSAPP_FALLBACK ?? null,
+      shippingInfo: settings?.shippingInfo ?? null,
       categories: categories.filter((c) => usedCategoryIds.has(c.id)),
       items: items.map((it) => {
         const itemVariants = variants.filter((v) => v.serviceId === it.id);
@@ -127,6 +155,8 @@ export const publicStore = cache(
           : it.price;
         return {
           ...it,
+          features: it.features ?? [],
+          attributes: it.attributes ?? {},
           price: fromPrice,
           totalStock: itemVariants.reduce((acc, v) => acc + v.stock, 0),
           images: images
@@ -151,7 +181,8 @@ export const publicStore = cache(
 export type PublicStoreItem = {
   store: PublicStore;
   item: PublicItem;
-  categoryName: string | null;
+  /** `[parent, child]` (or `[cat]`) — empty when the item has no category. */
+  categoryPath: PublicCategory[];
 };
 
 /** One item of the public storefront (detail page). */
@@ -162,7 +193,35 @@ export async function publicStoreItem(
   const store = await publicStore(salonId);
   const item = store?.items.find((i) => i.id === itemId);
   if (!store || !item) return null;
-  const categoryName =
-    store.categories.find((c) => c.id === item.categoryId)?.name ?? null;
-  return { store, item, categoryName };
+  return {
+    store,
+    item,
+    categoryPath: item.categoryId
+      ? categoryPath(store.categories, item.categoryId)
+      : [],
+  };
+}
+
+/**
+ * Related items for the detail page: same category family (parent + siblings
+ * + children) and in stock first, then the rest of the catalog. In-memory —
+ * catalogs are small and `publicStore` is request-cached.
+ */
+export function recommendItems(
+  store: PublicStore,
+  current: PublicItem,
+  limit = 5,
+): PublicItem[] {
+  const family = current.categoryId
+    ? familyIds(store.categories, current.categoryId)
+    : new Set<string>();
+  const available = (it: PublicItem) => !it.tracksStock || it.totalStock > 0;
+  const score = (it: PublicItem) => {
+    const related = it.categoryId !== null && family.has(it.categoryId);
+    return (related ? 0 : 2) + (available(it) ? 0 : 1);
+  };
+  return store.items
+    .filter((it) => it.id !== current.id)
+    .sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name))
+    .slice(0, limit);
 }

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { StoreHeader } from "@/components/store/store-header";
+import { WhatsappFloat } from "@/components/store/whatsapp-link";
 import { publicStore } from "@/services/public";
 
 export default async function StoreLayout({
@@ -20,6 +21,7 @@ export default async function StoreLayout({
       <footer className="text-muted-foreground pb-6 pt-2 text-center text-xs">
         Catálogo en línea · {store.company}
       </footer>
+      <WhatsappFloat phone={store.whatsapp} />
     </div>
   );
 }

@@ -16,19 +16,41 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Pencil, Plus } from "lucide-react";
+
+const NONE = "__none__";
 
 export function CategoryFormDialog({
   category,
+  categories = [],
   mode = "create",
 }: {
   category?: ServiceCategory;
+  /** All salon categories — used to offer a parent (roots only). */
+  categories?: ServiceCategory[];
   mode?: "create" | "edit";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [parentId, setParentId] = useState(category?.parentId ?? NONE);
   const editing = Boolean(category);
+
+  // Only one level of nesting: parents must be root categories, and a
+  // category that already has children can't become a subcategory.
+  const hasChildren = editing
+    ? categories.some((c) => c.parentId === category!.id)
+    : false;
+  const parentOptions = categories.filter(
+    (c) => !c.parentId && c.id !== category?.id,
+  );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,7 +63,10 @@ export function CategoryFormDialog({
       {
         method: editing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: String(form.get("name") ?? "") }),
+        body: JSON.stringify({
+          name: String(form.get("name") ?? ""),
+          parentId: parentId === NONE ? null : parentId,
+        }),
       },
     );
     setLoading(false);
@@ -87,6 +112,31 @@ export function CategoryFormDialog({
               required
               defaultValue={category?.name ?? ""}
             />
+          </div>
+          <div className="grid gap-2">
+            <Label>Categoría padre</Label>
+            <Select
+              value={parentId}
+              onValueChange={setParentId}
+              disabled={hasChildren}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sin padre (raíz)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>Sin padre (raíz)</SelectItem>
+                {parentOptions.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasChildren && (
+              <p className="text-muted-foreground text-xs">
+                Tiene subcategorías — no puede convertirse en subcategoría.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading}>

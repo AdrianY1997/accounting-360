@@ -54,8 +54,13 @@ client-side, URL-synced query params: `q`, `cat` (category id), `min`/`max`
 (price), `stock=1` (in stock only), `type` (`product`|`service`), `view`
 (`grid`|`list`).
 `/store/:salonId/:itemId` is the public item detail page (gallery, variant
-chips, selection summary — no cart) fed by `publicStoreItem()`. Cost, reseller
-and min prices are never exposed on either page.
+chips, availability badge, summary + description tabs, store-type attributes,
+share buttons, WhatsApp CTA and related items — no cart) fed by
+`publicStoreItem()` + `recommendItems()`. The listing `q` also matches item /
+variant SKUs and category labels, and `cat` matches a category **and its
+subcategories**. `publicStore` additionally exposes `storeType`, `whatsapp`
+(salón setting, fallback `NEXT_PUBLIC_WHATSAPP_FALLBACK`) and `shippingInfo`.
+Cost, reseller and min prices are never exposed on either page.
 
 ## Tenant scope
 
@@ -77,9 +82,14 @@ context — the salón is never taken from the request body.
 
 ## Service catalog
 
-Categories — body `{ name }`. Services — body (zod, `lib/validations/catalog.ts`):
-`name` (required), `categoryId?` (null = none), `price` (number ≥ 0, coerced),
-`durationMinutes` (int ≥ 0, coerced), `active?`.
+Categories — body `{ name, parentId? }`. One level of nesting only: a parent
+must be a root category, and a category with children can't become a
+subcategory (400 with a Spanish message on violations). Services — body (zod,
+`lib/validations/catalog.ts`): `name` (required), `summary?` (≤300),
+`description?` (≤2000), `features?` (string[] ≤12, shown as ✓ checks),
+`attributes?` (record keyed by `lib/store-types.ts` attribute keys),
+`categoryId?` (null = none), `price` (number ≥ 0, coerced), `durationMinutes`
+(int ≥ 0, coerced), `active?`.
 
 | Method | Path                          | Description                |
 | ------ | ----------------------------- | -------------------------- |
@@ -237,7 +247,7 @@ Body (zod, `lib/validations/settings.ts`): `currency` (3-letter), `taxRatePercen
 | Method | Path                  | Description                       |
 | ------ | --------------------- | --------------------------------- |
 | GET    | `/api/salon-settings` | Current salón settings            |
-| PUT    | `/api/salon-settings` | Update (upsert) salón settings    |
+| PUT    | `/api/salon-settings` | Update (upsert) salón settings — incl. `storeType` (`lib/store-types.ts` id), `whatsapp` (public store), `shippingInfo` ("Envíos" tab) |
 | POST   | `/api/salon-settings/logo` | Upload logo image (multipart `file`, ≤4 MB) to Vercel Blob and persist `logoUrl`; deletes the replaced uploaded blob |
 | DELETE | `/api/salon-settings/logo` | Clear the logo (deletes the blob if it was an upload) |
 
