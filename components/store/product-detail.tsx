@@ -14,7 +14,6 @@ import { DetailTabs, type DetailTab } from "./detail-tabs";
 import { orderGallery, ProductGallery } from "./product-gallery";
 import { ShareButtons } from "./share-buttons";
 import { ALL_VARIANTS, VariantPicker } from "./variant-picker";
-import { WhatsappCta } from "./whatsapp-link";
 
 /**
  * Detail-page orchestrator: gallery + info column (price, availability,
@@ -103,7 +102,10 @@ export function ProductDetail({
       label: isService ? "Tarifa" : "Variante",
       value: summaryVariant ? summaryVariant.name : "Todas",
     },
-    ...textAttrs.map((a) => ({ label: a.label, value: item.attributes[a.key] })),
+    ...textAttrs.map((a) => ({
+      label: a.label,
+      value: item.attributes[a.key],
+    })),
     {
       label: "Ref / SKU",
       value: (
@@ -146,7 +148,10 @@ export function ProductDetail({
       content: (
         <dl className="grid gap-2 text-sm sm:max-w-md">
           {detailRows.map((r) => (
-            <div key={r.label} className="flex items-start justify-between gap-4">
+            <div
+              key={r.label}
+              className="flex items-start justify-between gap-4"
+            >
               <dt className="text-muted-foreground">{r.label}</dt>
               <dd className="text-right font-medium">{r.value}</dd>
             </div>
@@ -163,24 +168,24 @@ export function ProductDetail({
         </p>
       ),
     })),
-    ...(shippingInfo
-      ? [
-          {
-            id: "envios",
-            label: "Envíos",
-            content: (
-              <p className="whitespace-pre-line text-sm leading-relaxed">
-                {shippingInfo}
-              </p>
-            ),
-          },
-        ]
-      : []),
+    // ...(shippingInfo
+    //   ? [
+    //       {
+    //         id: "envios",
+    //         label: "Envíos",
+    //         content: (
+    //           <p className="whitespace-pre-line text-sm leading-relaxed">
+    //             {shippingInfo}
+    //           </p>
+    //         ),
+    //       },
+    //     ]
+    //   : []),
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 lg:grid-cols-2">
+    <div className="space-y-8 rounded-lg">
+      <div className="grid gap-6 lg:grid-cols-2 bg-white p-4 rounded-lg shadow">
         <ProductGallery
           images={gallery}
           alt={item.name}
@@ -256,7 +261,10 @@ export function ProductDetail({
 
           <dl className="grid gap-2 border-t pt-4 text-sm">
             {detailRows.map((r) => (
-              <div key={r.label} className="flex items-start justify-between gap-4">
+              <div
+                key={r.label}
+                className="flex items-start justify-between gap-4"
+              >
                 <dt className="text-muted-foreground">{r.label}</dt>
                 <dd className="text-right font-medium">{r.value}</dd>
               </div>
@@ -277,14 +285,11 @@ export function ProductDetail({
         </div>
       </div>
 
-      <DetailTabs tabs={tabs} />
+      <div className="flex gap-4 justify-between items-stretch">
+        <DetailTabs tabs={tabs} />
 
-      <ShareButtons itemName={item.name} />
-
-      <WhatsappCta
-        phone={whatsapp}
-        message={`Hola, me interesa ${item.name}`}
-      />
+        <ShareButtons whatsapp={whatsapp} itemName={item.name} />
+      </div>
     </div>
   );
 }

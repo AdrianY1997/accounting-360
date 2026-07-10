@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { PublicItem } from "@/services/public";
 import type { StoreView } from "./view-toggle";
+import { cn } from "@/lib/utils";
 
 /**
  * Store listing card linking to the item detail page. `view` switches between
@@ -30,7 +31,7 @@ export function ProductCard({
 
   const priceLine = (
     <p className="text-sm font-semibold">
-      {item.variants.length > 1 ? "desde " : ""}
+      {item.variants.length > 1 ? "Desde " : ""}
       {fmt.format(Number(item.price))}
       {perHour ? (
         <span className="text-muted-foreground font-normal"> /hora</span>
@@ -83,7 +84,7 @@ export function ProductCard({
   return (
     <Link
       href={href}
-      className="bg-card hover:border-primary overflow-hidden rounded-lg border transition-colors"
+      className="bg-card block hover:border-primary overflow-hidden rounded-lg border transition-colors"
     >
       <div className="bg-muted relative aspect-square">
         {cover ? (
@@ -95,18 +96,26 @@ export function ProductCard({
           />
         ) : null}
         {soldOut && (
-          <Badge variant="destructive" className="absolute right-2 top-2 shadow">
+          <Badge
+            variant="destructive"
+            className="absolute right-2 top-2 shadow"
+          >
             Agotado
           </Badge>
         )}
       </div>
       <div className="space-y-0.5 p-3">
-        <p className="font-medium leading-tight">{item.name}</p>
+        <p className="font-medium leading-tight truncate">{item.name}</p>
         {priceLine}
         {durationLine}
-        {item.tracksStock && !soldOut && (
-          <p className="text-muted-foreground text-xs">
-            {item.totalStock} disponibles
+        {item.tracksStock && (
+          <p
+            className={cn(
+              "text-muted-foreground text-xs",
+              soldOut && "text-red-500",
+            )}
+          >
+            {soldOut ? "Agotado" : `${item.totalStock} disponibles`}
           </p>
         )}
       </div>

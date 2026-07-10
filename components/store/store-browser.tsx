@@ -82,7 +82,7 @@ export function StoreBrowser({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2 bg-white p-4 rounded-lg shadow">
         <StoreFilters
           categories={categories}
           showTypeFilter={hasServices && hasProducts}

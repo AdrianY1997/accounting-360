@@ -37,7 +37,7 @@ export default async function StoreItemPage({ params }: Props) {
   const leaf = categoryPath[categoryPath.length - 1];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Breadcrumb>
           <BreadcrumbList>

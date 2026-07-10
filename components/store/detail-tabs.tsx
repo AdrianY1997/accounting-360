@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useState, type ReactNode } from "react";
 
 export type DetailTab = { id: string; label: string; content: ReactNode };
@@ -14,19 +15,18 @@ export function DetailTabs({ tabs }: { tabs: DetailTab[] }) {
   const current = tabs.find((t) => t.id === active) ?? tabs[0];
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 overflow-x-auto border-b pb-2">
+    <div className="flex-1 space-y-4 rounded-lg border bg-white p-4 shadow">
+      <div className="flex gap-2 overflow-x-auto pb-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             aria-pressed={t.id === current.id}
             onClick={() => setActive(t.id)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors ${
-              t.id === current.id
-                ? "bg-primary text-primary-foreground border-primary"
-                : "hover:bg-accent"
-            }`}
+            className={cn(
+              "transition-colors border-b px-4 py-2 border-transparent",
+              t.id === current.id && "border-pink-500",
+            )}
           >
             {t.label}
           </button>
