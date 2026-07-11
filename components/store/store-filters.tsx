@@ -26,10 +26,13 @@ const ALL = "__all__";
 export function StoreFilters({
   categories,
   showTypeFilter = false,
+  showPriceFilter = true,
 }: {
   categories: PublicCategory[];
   /** Show the Productos/Servicios toggle (only when the catalog has both). */
   showTypeFilter?: boolean;
+  /** Hidden on priceless reseller links. */
+  showPriceFilter?: boolean;
 }) {
   const params = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -96,27 +99,29 @@ export function StoreFilters({
         </Select>
       )}
 
-      <div className="flex items-center gap-1.5">
-        <Input
-          type="number"
-          inputMode="decimal"
-          min={0}
-          placeholder="Mín"
-          value={min}
-          onChange={(e) => setParams(params, { min: e.target.value })}
-          className="w-20"
-        />
-        <span className="text-muted-foreground text-sm">–</span>
-        <Input
-          type="number"
-          inputMode="decimal"
-          min={0}
-          placeholder="Máx"
-          value={max}
-          onChange={(e) => setParams(params, { max: e.target.value })}
-          className="w-20"
-        />
-      </div>
+      {showPriceFilter && (
+        <div className="flex items-center gap-1.5">
+          <Input
+            type="number"
+            inputMode="decimal"
+            min={0}
+            placeholder="Mín"
+            value={min}
+            onChange={(e) => setParams(params, { min: e.target.value })}
+            className="w-20"
+          />
+          <span className="text-muted-foreground text-sm">–</span>
+          <Input
+            type="number"
+            inputMode="decimal"
+            min={0}
+            placeholder="Máx"
+            value={max}
+            onChange={(e) => setParams(params, { max: e.target.value })}
+            className="w-20"
+          />
+        </div>
+      )}
 
       <button
         type="button"

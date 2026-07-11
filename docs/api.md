@@ -61,6 +61,12 @@ variant SKUs and category labels, and `cat` matches a category **and its
 subcategories**. `publicStore` additionally exposes `storeType`, `whatsapp`
 (salón setting, fallback `NEXT_PUBLIC_WHATSAPP_FALLBACK`) and `shippingInfo`.
 Cost, reseller and min prices are never exposed on either page.
+`/s/:token` (+ `/s/:token/:itemId`) is the **priceless reseller share link**
+(`reseller_link` table, one per reseller client): same storefront with all
+prices stripped server-side, WhatsApp pointing to the reseller's phone (hidden
+without one), `noindex`, and no salonId in any URL. Manage via
+`POST /api/reseller-links` `{ clientId, rotate? }` (catalog:write) → `{ token }`;
+rotating kills the previous URL.
 
 ## Tenant scope
 

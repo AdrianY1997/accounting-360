@@ -11,12 +11,18 @@ import { ProductCard } from "./product-card";
  */
 export function Recommendations({
   store,
+  basePath,
+  hidePrices = false,
   item,
   salonId,
 }: {
   store: PublicStore;
   item: PublicItem;
   salonId: string;
+  /** Detail-link base — reseller links use `/s/<token>`. */
+  basePath?: string;
+  /** Priceless mode (reseller share links). */
+  hidePrices?: boolean;
 }) {
   const related = recommendItems(store, item, 5);
   if (related.length === 0) return null;
@@ -34,6 +40,8 @@ export function Recommendations({
               currency={store.currency}
               salonId={salonId}
               view="grid"
+              basePath={basePath}
+              hidePrices={hidePrices}
             />
           </div>
         ))}

@@ -5,7 +5,9 @@ import { type AiKind, isAiKind } from "@/lib/ai-images";
 import { categoryPath, familyIds } from "@/lib/categories";
 import { env } from "@/lib/env";
 import {
+  client,
   organization,
+  resellerLink,
   salonSettings,
   service,
   serviceCategory,
@@ -238,6 +240,40 @@ export async function publicStoreItem(
     categoryPath: item.categoryId
       ? categoryPath(store.categories, item.categoryId)
       : [],
+  };
+}
+
+/**
+ * Priceless storefront for a reseller share link (`/s/<token>`). Prices are
+ * stripped SERVER-SIDE — they never reach the HTML/RSC payload, so the link
+ * recipient can't uncover them. WhatsApp contact becomes the reseller's own
+ * phone (null = hide the buttons); the salón's number is never exposed here.
+ */
+export async function publicStoreByResellerToken(
+  token: string,
+): Promise<PublicStore | null> {
+  const [link] = await db
+    .select({
+      salonId: resellerLink.salonId,
+      phone: client.phone,
+      type: client.type,
+      active: client.active,
+    })
+    .from(resellerLink)
+    .innerJoin(client, eq(client.id, resellerLink.clientId))
+    .where(eq(resellerLink.id, token));
+  if (!link || link.type !== "reseller" || !link.active) return null;
+
+  const store = await publicStore(link.salonId);
+  if (!store) return null;
+  return {
+    ...store,
+    whatsapp: link.phone?.trim() || null,
+    items: store.items.map((it) => ({
+      ...it,
+      price: "",
+      variants: it.variants.map((v) => ({ ...v, price: "" })),
+    })),
   };
 }
 

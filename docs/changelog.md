@@ -2,6 +2,24 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Priceless catalog links for resellers
+
+- New `reseller_link` table (migration `0023`): one opaque token per reseller
+  client; `/s/<token>` renders the storefront with **all prices stripped
+  server-side** (`publicStoreByResellerToken`) — prices never reach the
+  HTML/RSC payload, and no URL under `/s/` contains the salonId, so the link
+  recipient can't reconstruct the priced store URL.
+- WhatsApp on `/s/` uses the reseller client's registered phone (floating
+  button + CTA hidden when they have none); the salón's number is never
+  exposed there. Pages are `noindex`.
+- Price-range filter and every price line hidden in priceless mode
+  (`hidePrices`/`basePath` props across store components).
+- `/catalog` header: `ResellerLinkCopier` — pick an intermediario, "Copiar"
+  (creates the link on first use via `POST /api/reseller-links`) or rotate it
+  (old URL dies). Links only work for active reseller-type clients.
+- Residual risk (documented): the normal store stays public; someone who
+  already knows `/store/<salonId>` sees real prices.
+
 ## AI-image disclosure per photo
 
 - `service_image.ai_kind` (migration `0022`): null = real photo,

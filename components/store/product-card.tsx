@@ -19,19 +19,25 @@ export function ProductCard({
   salonId,
   view = "grid",
   categoryName,
+  basePath,
+  hidePrices = false,
 }: {
   item: PublicItem;
   currency: string;
   salonId: string;
   view?: StoreView;
   categoryName?: string | null;
+  /** Detail-link base — reseller links use `/s/<token>` so the salonId never leaks. */
+  basePath?: string;
+  /** Priceless mode (reseller share links) — the data has no prices either. */
+  hidePrices?: boolean;
 }) {
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
   const cover = item.cover;
   const soldOut = item.tracksStock && item.totalStock === 0;
   const isService = item.measureType === "duration";
   const perHour = isService && item.priceMode === "per_unit";
-  const href = `/store/${salonId}/${item.id}`;
+  const href = `${basePath ?? `/store/${salonId}`}/${item.id}`;
   const isNewItem = isNew(item.createdAt);
   const aiBadge = item.coverAiKind ? (
     <Tooltip>
@@ -47,7 +53,7 @@ export function ProductCard({
     </Tooltip>
   ) : null;
 
-  const priceLine = (
+  const priceLine = hidePrices ? null : (
     <p className="text-sm font-semibold">
       {item.variants.length > 1 ? "Desde " : ""}
       {fmt.format(Number(item.price))}

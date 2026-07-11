@@ -69,6 +69,20 @@ Salon customers. Scoped by `organization_id` + `salon_id` (`team`).
 | `created_at`      | timestamp                  | from `timestamps`           |
 | `updated_at`      | timestamp                  | auto-updates                |
 
+### `reseller_link`
+
+Priceless catalog share links (`/s/<id>`), one per reseller client. The id IS
+the opaque token; rotating replaces the row so the old URL dies. Rendering
+strips all prices server-side and uses the reseller's phone for WhatsApp.
+
+| Column            | Type                     | Notes                          |
+| ----------------- | ------------------------ | ------------------------------ |
+| `id`              | text (uuid)              | PK = token                     |
+| `organization_id` | text → `organization.id` | cascade                        |
+| `salon_id`        | text → `team.id`         | cascade                        |
+| `client_id`       | text → `client.id`       | cascade; unique (one per reseller) |
+| `created_at` / `updated_at` | timestamp      | from `timestamps`              |
+
 ### `service_category`
 
 Service categories. Scoped by `organization_id` + `salon_id` (`team`).

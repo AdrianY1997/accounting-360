@@ -5,6 +5,7 @@ import { Pencil, Plus } from "lucide-react";
 import { db } from "@/db";
 import { salonSettings } from "@/db/schema";
 import { CategoryFormDialog } from "@/components/catalog/category-form-dialog";
+import { ResellerLinkCopier } from "@/components/catalog/reseller-link-copier";
 import { EmptyState } from "@/components/empty-state";
 import { SearchInput } from "@/components/search-input";
 import { ResourceDeleteButton } from "@/components/resource-delete-button";
@@ -25,6 +26,7 @@ import {
   priceFromForServices,
   stockForServices,
 } from "@/services/catalog";
+import { listClients } from "@/services/clients";
 import { categoryLabel, categoryTree } from "@/lib/categories";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
@@ -39,13 +41,17 @@ export default async function CatalogPage({
   const ctx = await requireSalonContext();
   if (!can(ctx, "catalog:write")) redirect("/dashboard");
   const { q, type } = await searchParams;
-  const [categories, allServices, settings] = await Promise.all([
+  const [categories, allServices, settings, clients] = await Promise.all([
     listCategories(ctx),
     listServices(ctx, q),
     db.query.salonSettings.findFirst({
       where: eq(salonSettings.teamId, ctx.salonId),
     }),
+    listClients(ctx),
   ]);
+  const resellers = clients
+    .filter((c) => c.type === "reseller" && c.active)
+    .map((c) => ({ id: c.id, fullName: c.fullName }));
 
   const services = allServices.filter((s) =>
     type === "products"
@@ -81,8 +87,9 @@ export default async function CatalogPage({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Productos y servicios</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <Copy text={`${env.BETTER_AUTH_URL}/store/${ctx.salonId}`} />
+            <ResellerLinkCopier resellers={resellers} />
             <Button asChild>
               <Link href="/catalog/new">
                 <Plus className="size-4" />

@@ -59,11 +59,17 @@ export function StoreBrowser({
   categories,
   currency,
   salonId,
+  basePath,
+  hidePrices = false,
 }: {
   items: PublicItem[];
   categories: PublicCategory[];
   currency: string;
   salonId: string;
+  /** Detail-link base — reseller links use `/s/<token>`. */
+  basePath?: string;
+  /** Priceless mode: no price lines, no price-range filter. */
+  hidePrices?: boolean;
 }) {
   const params = useSearchParams();
   const view = params.get("view") === "list" ? "list" : "grid";
@@ -86,6 +92,7 @@ export function StoreBrowser({
         <StoreFilters
           categories={categories}
           showTypeFilter={hasServices && hasProducts}
+          showPriceFilter={!hidePrices}
         />
         <ViewToggle />
       </div>
@@ -129,6 +136,8 @@ export function StoreBrowser({
               salonId={salonId}
               view="list"
               categoryName={categoryName(item.categoryId)}
+              basePath={basePath}
+              hidePrices={hidePrices}
             />
           ))}
         </div>
@@ -141,6 +150,8 @@ export function StoreBrowser({
               currency={currency}
               salonId={salonId}
               view="grid"
+              basePath={basePath}
+              hidePrices={hidePrices}
             />
           ))}
         </div>

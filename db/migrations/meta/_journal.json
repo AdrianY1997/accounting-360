@@ -162,6 +162,13 @@
       "when": 1783750312006,
       "tag": "0022_smooth_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1783792400312,
+      "tag": "0023_wet_the_liberteens",
+      "breakpoints": true
     }
   ]
 }

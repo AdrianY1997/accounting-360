@@ -24,6 +24,7 @@ export function ProductDetail({
   storeTypeId,
   shippingInfo,
   whatsapp,
+  hidePrices = false,
 }: {
   item: PublicItem;
   currency: string;
@@ -31,6 +32,8 @@ export function ProductDetail({
   storeTypeId: string;
   shippingInfo: string | null;
   whatsapp: string | null;
+  /** Priceless mode (reseller share links) — data carries no prices either. */
+  hidePrices?: boolean;
 }) {
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
   const [variantId, setVariantId] = useState<string>(
@@ -216,16 +219,18 @@ export function ProductDetail({
             </div>
           </div>
 
-          <p className="text-2xl font-bold">
-            {!summaryVariant && item.variants.length > 1 ? "Desde " : ""}
-            {fmt.format(Number(shownPrice))}
-            {perHour ? (
-              <span className="text-muted-foreground text-base font-normal">
-                {" "}
-                /hora
-              </span>
-            ) : null}
-          </p>
+          {!hidePrices && (
+            <p className="text-2xl font-bold">
+              {!summaryVariant && item.variants.length > 1 ? "Desde " : ""}
+              {fmt.format(Number(shownPrice))}
+              {perHour ? (
+                <span className="text-muted-foreground text-base font-normal">
+                  {" "}
+                  /hora
+                </span>
+              ) : null}
+            </p>
+          )}
 
           {item.tracksStock && (
             <div className="flex flex-wrap items-center gap-2">
