@@ -232,6 +232,11 @@ export function ProductDetail({
                   <Badge className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
                     Disponible
                   </Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {shownStock === 1
+                      ? "1 unidad disponible"
+                      : `${shownStock} unidades disponibles`}
+                  </span>
                 </>
               )}
             </div>
