@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
+import { type AiKind, isAiKind } from "@/lib/ai-images";
 import { categoryPath, familyIds } from "@/lib/categories";
 import { env } from "@/lib/env";
 import {
@@ -17,6 +18,8 @@ export type PublicVariantImage = {
   url: string;
   stock: number | null;
   createdAt: Date;
+  /** AI disclosure: null = real photo (lib/ai-images.ts). */
+  aiKind: AiKind | null;
 };
 export type PublicVariant = {
   id: string;
@@ -46,6 +49,8 @@ export type PublicItem = {
   images: PublicVariantImage[];
   /** Cover image: the item's own main photo, else the first in-stock variant photo. */
   cover: string | null;
+  /** AI disclosure of the cover photo. */
+  coverAiKind: AiKind | null;
   variants: PublicVariant[];
 };
 export type PublicCategory = {
@@ -122,6 +127,7 @@ export const publicStore = cache(
               url: serviceImage.url,
               stock: serviceImage.stock,
               createdAt: serviceImage.createdAt,
+              aiKind: serviceImage.aiKind,
             })
             .from(serviceImage)
             .where(inArray(serviceImage.serviceId, ids))
@@ -163,19 +169,28 @@ export const publicStore = cache(
         const fromPrice = prices.length
           ? Math.min(...prices).toFixed(2)
           : it.price;
+        const toPublicImage = (im: (typeof images)[number]) => ({
+          url: im.url,
+          stock: im.variantId ? im.stock : null,
+          createdAt: im.createdAt,
+          aiKind: isAiKind(im.aiKind) ? im.aiKind : null,
+        });
         const itemImages = images
           .filter((im) => im.serviceId === it.id && !im.variantId)
-          .map((im) => ({ url: im.url, stock: null, createdAt: im.createdAt }));
+          .map(toPublicImage);
         // In-stock (or untracked) variant photos, in upload order — used to
         // fall back to a cover photo when the item has no main image.
         const availableVariantImages = itemVariants
           .flatMap((v) => images.filter((im) => im.variantId === v.id))
           .filter((im) => im.stock !== 0);
-        const cover =
-          itemImages[0]?.url ??
-          availableVariantImages[0]?.url ??
-          images.find((im) => im.serviceId === it.id)?.url ??
+        const coverRow =
+          images.find((im) => im.serviceId === it.id && !im.variantId) ??
+          availableVariantImages[0] ??
+          images.find((im) => im.serviceId === it.id) ??
           null;
+        const cover = coverRow?.url ?? null;
+        const coverAiKind =
+          coverRow && isAiKind(coverRow.aiKind) ? coverRow.aiKind : null;
         return {
           ...it,
           features: it.features ?? [],
@@ -184,6 +199,7 @@ export const publicStore = cache(
           totalStock: itemVariants.reduce((acc, v) => acc + v.stock, 0),
           images: itemImages,
           cover,
+          coverAiKind,
           variants: itemVariants.map((v) => ({
             id: v.id,
             name: v.name,
@@ -193,7 +209,7 @@ export const publicStore = cache(
             createdAt: v.createdAt,
             images: images
               .filter((im) => im.variantId === v.id)
-              .map((im) => ({ url: im.url, stock: im.stock, createdAt: im.createdAt })),
+              .map(toPublicImage),
           })),
         };
       }),

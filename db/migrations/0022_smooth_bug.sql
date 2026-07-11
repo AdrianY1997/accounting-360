@@ -1,0 +1,1 @@
+ALTER TABLE "service_image" ADD COLUMN "ai_kind" text;

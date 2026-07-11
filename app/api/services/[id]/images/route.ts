@@ -1,5 +1,6 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import { isAiKind } from "@/lib/ai-images";
 import { addImage, listImages } from "@/services/catalog";
 import { can } from "@/lib/roles";
 import { requireSalonContext } from "@/lib/tenant";
@@ -32,6 +33,8 @@ export async function POST(
   const form = await req.formData();
   const files = form.getAll("files").filter((f): f is File => f instanceof File);
   const variantId = (form.get("variantId") as string) || null;
+  const aiKindRaw = form.get("aiKind");
+  const aiKind = isAiKind(aiKindRaw) ? aiKindRaw : null;
   if (files.length === 0) {
     return NextResponse.json({ error: "Sin archivos" }, { status: 400 });
   }
@@ -43,7 +46,14 @@ export async function POST(
       addRandomSuffix: true,
       token,
     });
-    const row = await addImage(salon, id, blob.url, blob.pathname, variantId);
+    const row = await addImage(
+      salon,
+      id,
+      blob.url,
+      blob.pathname,
+      variantId,
+      aiKind,
+    );
     if (!row) {
       return NextResponse.json({ error: "Ítem no encontrado" }, { status: 404 });
     }

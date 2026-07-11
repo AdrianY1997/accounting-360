@@ -58,8 +58,13 @@ export const variantInputSchema = z.object({
 });
 export type VariantInput = z.infer<typeof variantInputSchema>;
 
-/** Per-photo stock for a variant image. Null clears photo-level tracking. */
-export const imageStockInputSchema = z.object({
-  stock: z.coerce.number().int().min(0).nullable(),
+/**
+ * Per-photo update: `stock` (null clears photo-level tracking; variant photos
+ * only) and/or `aiKind` (AI disclosure: reference | generated | null = real
+ * photo). At least one field must be present (enforced in the route).
+ */
+export const imageUpdateSchema = z.object({
+  stock: z.coerce.number().int().min(0).nullable().optional(),
+  aiKind: z.enum(["reference", "generated"]).nullable().optional(),
 });
-export type ImageStockInput = z.infer<typeof imageStockInputSchema>;
+export type ImageUpdateInput = z.infer<typeof imageUpdateSchema>;

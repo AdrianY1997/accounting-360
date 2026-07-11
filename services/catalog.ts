@@ -354,13 +354,40 @@ export async function addImage(
   url: string,
   pathname: string,
   variantId?: string | null,
+  aiKind?: string | null,
 ) {
   if (!(await ownsService(ctx, serviceId))) return null;
   const [created] = await db
     .insert(serviceImage)
-    .values({ serviceId, url, pathname, variantId: variantId ?? null })
+    .values({
+      serviceId,
+      url,
+      pathname,
+      variantId: variantId ?? null,
+      aiKind: aiKind ?? null,
+    })
     .returning();
   return created;
+}
+
+/** Sets/clears the AI-disclosure kind of a photo (any photo, salón-scoped). */
+export async function updateImageAiKind(
+  ctx: SalonContext,
+  imageId: string,
+  aiKind: string | null,
+) {
+  const [row] = await db
+    .select({ id: serviceImage.id })
+    .from(serviceImage)
+    .innerJoin(service, eq(service.id, serviceImage.serviceId))
+    .where(and(eq(serviceImage.id, imageId), eq(service.salonId, ctx.salonId)));
+  if (!row) return null;
+  const [updated] = await db
+    .update(serviceImage)
+    .set({ aiKind })
+    .where(eq(serviceImage.id, imageId))
+    .returning();
+  return updated;
 }
 
 export async function deleteImage(ctx: SalonContext, imageId: string) {

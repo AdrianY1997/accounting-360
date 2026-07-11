@@ -163,6 +163,9 @@ export const serviceImage = pgTable(
     // variant's own `stock` is used instead). When set, the variant's total
     // stock is the sum of its images' stock.
     stock: integer("stock"),
+    // AI disclosure: null = real photo; "reference" = AI reference image (the
+    // real product may vary); "generated" = fully AI-generated image.
+    aiKind: text("ai_kind"),
     ...timestamps,
   },
   (t) => [index("service_image_service_idx").on(t.serviceId)],

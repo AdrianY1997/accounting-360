@@ -2,6 +2,22 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## AI-image disclosure per photo
+
+- `service_image.ai_kind` (migration `0022`): null = real photo,
+  `reference` = AI reference image (real product may vary), `generated` =
+  fully AI-generated. Labels/disclosure texts in `lib/ai-images.ts`.
+- Catalog uploader (`ServiceImageManager`): a select next to "Subir imágenes"
+  tags the upload batch (Foto real / IA — referencia / IA — generada) and each
+  photo gets a mini select to change it later; tagged thumbs show a ✨ marker.
+  `PUT /api/service-images/:id` accepts `aiKind` besides `stock`
+  (`imageUpdateSchema` replaces `imageStockInputSchema`).
+- Store: ✨ "IA" badge (bottom-left, black translucent) on the listing cover
+  and gallery main image/thumbnails, with the disclosure as a native tooltip
+  ("Imagen de referencia generada con IA — el producto real puede variar" /
+  "Imagen generada con IA"). `PublicVariantImage.aiKind` +
+  `PublicItem.coverAiKind`.
+
 ## Suggested price tiers from cost
 
 - `lib/pricing.ts`: `suggestPrices(cost)` — sugerido = costo × 1.5 rounded up

@@ -135,6 +135,7 @@ images can additionally track stock per photo.
 | `url`         | text, not null                  | public Blob URL                |
 | `pathname`    | text, not null                  | Blob pathname (for delete)     |
 | `stock`       | integer, nullable               | per-photo stock; null = not tracked per photo (variant's own `stock` is the manual total). Selling decrements this and the variant total together; the storefront shows photos with `stock = 0` last, marked "Agotado" |
+| `ai_kind`     | text, nullable                  | AI disclosure (`lib/ai-images.ts`): `reference` (producto real puede variar) \| `generated`; null = foto real. Storefront shows a ✨ "IA" badge + tooltip |
 | `created_at` / `updated_at` | timestamp              | from `timestamps`              |
 
 ### `sale`

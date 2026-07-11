@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { aiKindDisclosures } from "@/lib/ai-images";
 import type { PublicItem } from "@/services/public";
 import type { StoreView } from "./view-toggle";
 import { cn, isNew } from "@/lib/utils";
@@ -28,6 +30,15 @@ export function ProductCard({
   const perHour = isService && item.priceMode === "per_unit";
   const href = `/store/${salonId}/${item.id}`;
   const isNewItem = isNew(item.createdAt);
+  const aiBadge = item.coverAiKind ? (
+    <span
+      title={aiKindDisclosures[item.coverAiKind]}
+      className="absolute bottom-1.5 left-1.5 inline-flex cursor-help items-center gap-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-medium text-white"
+    >
+      <Sparkles className="size-3" />
+      IA
+    </span>
+  ) : null;
 
   const priceLine = (
     <p className="text-sm font-semibold">
@@ -60,6 +71,7 @@ export function ProductCard({
               className={`size-full object-cover ${soldOut ? "opacity-40" : ""}`}
             />
           ) : null}
+          {aiBadge}
         </div>
         <div className="min-w-0 space-y-0.5 self-center">
           <p className="flex items-center gap-1.5 font-medium leading-tight">
@@ -115,6 +127,7 @@ export function ProductCard({
             Nuevo
           </Badge>
         )}
+        {aiBadge}
       </div>
       <div className="space-y-0.5 p-3">
         <p className="font-medium leading-tight truncate">{item.name}</p>

@@ -1,5 +1,7 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
+import { aiKindDisclosures } from "@/lib/ai-images";
 import { isNew } from "@/lib/utils";
 import type { PublicVariantImage } from "@/services/public";
 
@@ -50,6 +52,15 @@ export function ProductGallery({
             Nuevo
           </span>
         )}
+        {current?.aiKind && (
+          <span
+            title={aiKindDisclosures[current.aiKind]}
+            className="absolute bottom-2 left-2 inline-flex cursor-help items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-xs font-medium text-white"
+          >
+            <Sparkles className="size-3.5" />
+            IA
+          </span>
+        )}
       </div>
 
       {images.length > 1 && (
@@ -77,6 +88,14 @@ export function ProductGallery({
               {img.stock !== 0 && isNew(img.createdAt) && (
                 <span className="absolute right-0.5 top-0.5 rounded bg-blue-600 px-1 text-[9px] font-semibold leading-tight text-white">
                   N
+                </span>
+              )}
+              {img.aiKind && (
+                <span
+                  title={aiKindDisclosures[img.aiKind]}
+                  className="absolute bottom-0.5 left-0.5 rounded bg-black/60 p-0.5 text-white"
+                >
+                  <Sparkles className="size-3" />
                 </span>
               )}
             </button>
