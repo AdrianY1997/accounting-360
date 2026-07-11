@@ -145,8 +145,10 @@ export function ProductDetail({
               key={r.label}
               className="flex items-start justify-between gap-4"
             >
-              <dt className="text-muted-foreground">{r.label}</dt>
-              <dd className="text-right font-medium">{r.value}</dd>
+              <dt className="text-muted-foreground shrink-0">{r.label}</dt>
+              <dd className="min-w-0 wrap-break-word text-right font-medium">
+                {r.value}
+              </dd>
             </div>
           ))}
         </dl>
@@ -178,7 +180,9 @@ export function ProductDetail({
 
   return (
     <div className="space-y-8 rounded-lg">
-      <div className="grid gap-6 lg:grid-cols-2 bg-white p-4 rounded-lg shadow">
+      {/* minmax(0,1fr): grid items default to min-width auto, so the
+          thumbnail strip would otherwise stretch the page sideways. */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bg-white p-4 rounded-lg shadow">
         <ProductGallery
           images={gallery}
           alt={item.name}
@@ -186,7 +190,7 @@ export function ProductDetail({
           onSelect={setActive}
         />
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold leading-tight capitalize">
@@ -284,7 +288,7 @@ export function ProductDetail({
         </div>
       </div>
 
-      <div className="flex gap-4 justify-between items-stretch">
+      <div className="flex gap-4 justify-between items-stretch flex-col md:flex-row">
         <DetailTabs tabs={tabs} />
 
         <ShareButtons whatsapp={whatsapp} itemName={item.name} />

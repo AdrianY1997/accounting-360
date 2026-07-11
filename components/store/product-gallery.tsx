@@ -32,7 +32,7 @@ export function ProductGallery({
   const current = images[active];
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 max-w-full space-y-2">
       <div className="bg-muted relative aspect-square overflow-hidden rounded-lg border">
         {current ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -64,7 +64,7 @@ export function ProductGallery({
       </div>
 
       {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
           {images.map((img, i) => (
             <button
               key={img.url}

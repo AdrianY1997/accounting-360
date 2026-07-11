@@ -24,15 +24,18 @@ export function Recommendations({
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">También te puede interesar</h2>
-      <div className="flex snap-x gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-5">
+      <div className="flex max-w-full snap-x gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-5">
         {related.map((r) => (
-          <ProductCard
-            key={r.id}
-            item={r}
-            currency={store.currency}
-            salonId={salonId}
-            view="grid"
-          />
+          // Fixed width on the mobile strip — flex would otherwise squash or
+          // overflow the cards; the sm+ grid controls its own sizing.
+          <div key={r.id} className="w-40 shrink-0 snap-start sm:w-auto sm:min-w-0">
+            <ProductCard
+              item={r}
+              currency={store.currency}
+              salonId={salonId}
+              view="grid"
+            />
+          </div>
         ))}
       </div>
     </section>

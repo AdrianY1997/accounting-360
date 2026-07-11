@@ -58,7 +58,9 @@ export default async function StoreItemPage({ params }: Props) {
             ))}
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{item.name}</BreadcrumbPage>
+              <BreadcrumbPage className="max-w-[45vw] truncate sm:max-w-xs">
+                {item.name}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

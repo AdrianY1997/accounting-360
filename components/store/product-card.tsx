@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +110,7 @@ export function ProductCard({
   return (
     <Link
       href={href}
-      className="bg-card block hover:border-primary overflow-hidden rounded-lg border transition-colors"
+      className="bg-card block min-w-0 hover:border-primary overflow-hidden rounded-lg border transition-colors"
     >
       <div className="bg-muted relative aspect-square">
         {cover ? (
