@@ -1,5 +1,6 @@
 "use client";
 
+import { isNew } from "@/lib/utils";
 import type { PublicVariantImage } from "@/services/public";
 
 /** Sold-out photos (stock === 0) move to the end, in-stock/untracked first. */
@@ -44,6 +45,11 @@ export function ProductGallery({
             Agotado
           </span>
         )}
+        {current && current.stock !== 0 && isNew(current.createdAt) && (
+          <span className="absolute right-2 top-2 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow">
+            Nuevo
+          </span>
+        )}
       </div>
 
       {images.length > 1 && (
@@ -66,6 +72,11 @@ export function ProductGallery({
               {img.stock === 0 && (
                 <span className="bg-destructive/90 absolute inset-x-0 bottom-0 text-center text-[9px] font-semibold leading-tight text-white">
                   Agotado
+                </span>
+              )}
+              {img.stock !== 0 && isNew(img.createdAt) && (
+                <span className="absolute right-0.5 top-0.5 rounded bg-blue-600 px-1 text-[9px] font-semibold leading-tight text-white">
+                  N
                 </span>
               )}
             </button>

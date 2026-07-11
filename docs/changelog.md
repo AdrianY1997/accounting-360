@@ -2,6 +2,16 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Store: cover-photo fallback + "Nuevo" badges
+
+- `PublicItem.cover` (`services/public.ts`): main item photo, else the first
+  variant photo that still has stock, else any photo (never blank). Replaces
+  `ProductCard`'s old "first variant image regardless of stock" logic.
+- `PublicItem`, `PublicVariant` and `PublicVariantImage` now carry `createdAt`.
+  New `isNew()` helper (`lib/utils.ts`, < 2 weeks) drives "Nuevo" badges on the
+  store listing card, the PDP title, gallery photos/thumbnails, and variant
+  chips.
+
 ## Store v2: mockup-style detail page, store types, subcategories, product page, WhatsApp
 
 - **PDP redesign** (no cart — informational): gallery + info column (price,

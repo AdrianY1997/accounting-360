@@ -13,13 +13,18 @@ import {
   team,
 } from "@/db/schema";
 
-export type PublicVariantImage = { url: string; stock: number | null };
+export type PublicVariantImage = {
+  url: string;
+  stock: number | null;
+  createdAt: Date;
+};
 export type PublicVariant = {
   id: string;
   name: string;
   sku: string | null;
   price: string;
   stock: number;
+  createdAt: Date;
   images: PublicVariantImage[];
 };
 export type PublicItem = {
@@ -37,7 +42,10 @@ export type PublicItem = {
   description: string | null;
   features: string[];
   attributes: Record<string, string>;
-  images: string[];
+  createdAt: Date;
+  images: PublicVariantImage[];
+  /** Cover image: the item's own main photo, else the first in-stock variant photo. */
+  cover: string | null;
   variants: PublicVariant[];
 };
 export type PublicCategory = {
@@ -88,6 +96,7 @@ export const publicStore = cache(
           description: service.description,
           features: service.features,
           attributes: service.attributes,
+          createdAt: service.createdAt,
         })
         .from(service)
         .where(and(eq(service.salonId, salonId), eq(service.active, true)))
@@ -112,6 +121,7 @@ export const publicStore = cache(
               variantId: serviceImage.variantId,
               url: serviceImage.url,
               stock: serviceImage.stock,
+              createdAt: serviceImage.createdAt,
             })
             .from(serviceImage)
             .where(inArray(serviceImage.serviceId, ids))
@@ -153,24 +163,37 @@ export const publicStore = cache(
         const fromPrice = prices.length
           ? Math.min(...prices).toFixed(2)
           : it.price;
+        const itemImages = images
+          .filter((im) => im.serviceId === it.id && !im.variantId)
+          .map((im) => ({ url: im.url, stock: null, createdAt: im.createdAt }));
+        // In-stock (or untracked) variant photos, in upload order — used to
+        // fall back to a cover photo when the item has no main image.
+        const availableVariantImages = itemVariants
+          .flatMap((v) => images.filter((im) => im.variantId === v.id))
+          .filter((im) => im.stock !== 0);
+        const cover =
+          itemImages[0]?.url ??
+          availableVariantImages[0]?.url ??
+          images.find((im) => im.serviceId === it.id)?.url ??
+          null;
         return {
           ...it,
           features: it.features ?? [],
           attributes: it.attributes ?? {},
           price: fromPrice,
           totalStock: itemVariants.reduce((acc, v) => acc + v.stock, 0),
-          images: images
-            .filter((im) => im.serviceId === it.id && !im.variantId)
-            .map((im) => im.url),
+          images: itemImages,
+          cover,
           variants: itemVariants.map((v) => ({
             id: v.id,
             name: v.name,
             sku: v.sku,
             price: v.price,
             stock: v.stock,
+            createdAt: v.createdAt,
             images: images
               .filter((im) => im.variantId === v.id)
-              .map((im) => ({ url: im.url, stock: im.stock })),
+              .map((im) => ({ url: im.url, stock: im.stock, createdAt: im.createdAt })),
           })),
         };
       }),

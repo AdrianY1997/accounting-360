@@ -1,5 +1,6 @@
 "use client";
 
+import { isNew } from "@/lib/utils";
 import type { PublicVariant } from "@/services/public";
 
 export const ALL_VARIANTS = "__all__";
@@ -46,6 +47,11 @@ export function VariantPicker({
         >
           {v.name}
           {tracksStock ? ` (${v.stock})` : ""}
+          {isNew(v.createdAt) && (
+            <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              Nuevo
+            </span>
+          )}
         </button>
       ))}
     </div>

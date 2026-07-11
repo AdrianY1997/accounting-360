@@ -5,11 +5,8 @@ import { Check, StarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/lib/categories";
 import { getStoreType } from "@/lib/store-types";
-import type {
-  PublicCategory,
-  PublicItem,
-  PublicVariantImage,
-} from "@/services/public";
+import { isNew } from "@/lib/utils";
+import type { PublicCategory, PublicItem } from "@/services/public";
 import { DetailTabs, type DetailTab } from "./detail-tabs";
 import { orderGallery, ProductGallery } from "./product-gallery";
 import { ShareButtons } from "./share-buttons";
@@ -45,18 +42,14 @@ export function ProductDetail({
   const template = getStoreType(storeTypeId);
 
   const selected = item.variants.find((v) => v.id === variantId);
-  const itemImages: PublicVariantImage[] = item.images.map((url) => ({
-    url,
-    stock: null,
-  }));
   // Gallery: the selected variant's images, else the item's main images,
   // else fall back to any variant image so the page is never blank. Sold-out
   // photos (stock 0) are pushed to the end but still shown.
   const gallery = orderGallery(
     selected && selected.images.length > 0
       ? selected.images
-      : itemImages.length > 0
-        ? itemImages
+      : item.images.length > 0
+        ? item.images
         : item.variants.flatMap((v) => v.images),
   );
 
@@ -79,10 +72,10 @@ export function ProductDetail({
   const shownPrice = summaryVariant ? summaryVariant.price : item.price;
   const shownStock = summaryVariant ? summaryVariant.stock : item.totalStock;
   const lowStock = item.tracksStock && shownStock >= 1 && shownStock <= 5;
-  const soldOut =
-    item.tracksStock && (activePhoto?.stock === 0 || shownStock === 0);
-  const availableUnits =
-    activePhoto?.stock != null ? activePhoto.stock : shownStock;
+  // Availability reflects the selected variant (or the item total) — never
+  // the active photo — so it stays coherent with the low-stock line below.
+  // A sold-out photo still shows its own "Agotado" overlay in the gallery.
+  const soldOut = item.tracksStock && shownStock === 0;
 
   const categoryText = item.categoryId
     ? categoryLabel(categoryPath, item.categoryId) ||
@@ -195,9 +188,16 @@ export function ProductDetail({
 
         <div className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold leading-tight capitalize">
-              {item.name}
-            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold leading-tight capitalize">
+                {item.name}
+              </h1>
+              {isNew(item.createdAt) && (
+                <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
+                  Nuevo
+                </Badge>
+              )}
+            </div>
 
             <div className="">
               <span className="flex items-center gap-1 text-xs">
@@ -232,12 +232,6 @@ export function ProductDetail({
                   <Badge className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
                     Disponible
                   </Badge>
-                  <span className="text-muted-foreground text-sm">
-                    {availableUnits}{" "}
-                    {availableUnits === 1
-                      ? "unidad disponible"
-                      : "unidades disponibles"}
-                  </span>
                 </>
               )}
             </div>
