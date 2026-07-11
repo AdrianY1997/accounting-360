@@ -7,6 +7,10 @@ import { ServiceImageManager } from "@/components/catalog/service-image-manager"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { suggestPrices } from "@/lib/pricing";
+
+/** Empty or zero — safe to overwrite with a suggestion. */
+const blank = (v: string) => !v || Number(v) === 0;
 
 type Variant = {
   id: string;
@@ -42,6 +46,29 @@ export function VariantManager({
   const [minPrice, setMinPrice] = useState("");
   const [stock, setStock] = useState("0");
   const [loading, setLoading] = useState(false);
+
+  // Leaving the cost field suggests the other tiers (sugerido = costo × 1.5
+  // redondeado, intermediario 85% / mínimo 90% del sugerido) — only into
+  // blank/zero fields, so anything already set (or later edited) is kept.
+  function suggestFromNewCost() {
+    const s = suggestPrices(Number(costPrice));
+    if (!s) return;
+    if (blank(price)) setPrice(String(s.price));
+    if (blank(resellerPrice)) setResellerPrice(String(s.resellerPrice));
+    if (blank(minPrice)) setMinPrice(String(s.minPrice));
+  }
+
+  function suggestFromRowCost(v: Variant) {
+    const s = suggestPrices(Number(v.costPrice));
+    if (!s) return;
+    patch(v.id, {
+      ...(blank(v.price) ? { price: String(s.price) } : {}),
+      ...(blank(v.resellerPrice)
+        ? { resellerPrice: String(s.resellerPrice) }
+        : {}),
+      ...(blank(v.minPrice) ? { minPrice: String(s.minPrice) } : {}),
+    });
+  }
 
   async function load() {
     const res = await fetch(`/api/services/${serviceId}/variants`);
@@ -167,6 +194,7 @@ export function VariantManager({
                 min="0"
                 value={v.costPrice}
                 onChange={(e) => patch(v.id, { costPrice: e.target.value })}
+                onBlur={() => suggestFromRowCost(v)}
               />
             </div>
             <div className="grid gap-1">
@@ -265,6 +293,7 @@ export function VariantManager({
             min="0"
             value={costPrice}
             onChange={(e) => setCostPrice(e.target.value)}
+            onBlur={suggestFromNewCost}
           />
         </div>
         <div className="grid gap-1">

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { categoryTree } from "@/lib/categories";
+import { suggestPrices, tiersFromPrice } from "@/lib/pricing";
 import { getStoreType } from "@/lib/store-types";
 import {
   measureTypeLabels,
@@ -61,9 +62,18 @@ export function ProductForm({
   const [attributes, setAttributes] = useState<Record<string, string>>(
     service?.attributes ?? {},
   );
+  // Create-only pricing: typing a cost suggests the retail price (costo × 1.5
+  // rounded; intermediario/mínimo derive from it server-bound below).
+  const [costPrice, setCostPrice] = useState("");
+  const [price, setPrice] = useState("");
   const editing = Boolean(service);
   const isDuration = measureType === "duration";
   const template = getStoreType(storeType);
+
+  function suggestFromCost() {
+    const s = suggestPrices(Number(costPrice));
+    if (s && (!price || Number(price) === 0)) setPrice(String(s.price));
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,16 +83,20 @@ export function ProductForm({
       .map((f) => f.trim())
       .filter(Boolean)
       .slice(0, 12);
+    // Intermediario/mínimo derive from the final price (85% / 90%) on create;
+    // all tiers stay editable per variant afterwards.
+    const finalPrice = !editing ? price || "0" : "0";
+    const suggested = !editing ? tiersFromPrice(Number(finalPrice)) : null;
     const body = {
       name: String(form.get("name") ?? ""),
       summary: String(form.get("summary") ?? ""),
       description: String(form.get("description") ?? ""),
       features,
       attributes,
-      price: String(form.get("price") ?? "0"),
-      costPrice: "0",
-      resellerPrice: "0",
-      minPrice: "0",
+      price: finalPrice,
+      costPrice: !editing ? costPrice || "0" : "0",
+      resellerPrice: suggested ? String(suggested.resellerPrice) : "0",
+      minPrice: suggested ? String(suggested.minPrice) : "0",
       measureType,
       priceMode,
       tracksStock: isDuration ? false : tracksStock,
@@ -205,25 +219,40 @@ export function ProductForm({
           )}
           {!editing && (
             <>
-              <div className="grid gap-2">
-                <Label htmlFor="price">
-                  {isDuration && priceMode === "per_unit"
-                    ? "Precio por hora"
-                    : "Precio"}
-                </Label>
-                <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue="0"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="costPrice">Costo (proveedor)</Label>
+                  <Input
+                    id="costPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={costPrice}
+                    onChange={(e) => setCostPrice(e.target.value)}
+                    onBlur={suggestFromCost}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="price">
+                    {isDuration && priceMode === "per_unit"
+                      ? "Precio por hora"
+                      : "Precio"}
+                  </Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                </div>
               </div>
               <p className="text-muted-foreground text-xs">
-                {isDuration
-                  ? "El precio queda en la tarifa Estándar; tras crear puedes añadir más tarifas (p. ej. por largo de cabello)."
-                  : "El precio queda en la variante Estándar; el resto de precios y el stock se configuran en las variantes."}
+                Al poner el costo se sugiere el precio (costo × 1.5 redondeado)
+                y se generan intermediario (85%) y mínimo (90%) del precio
+                final — todo editable luego en{" "}
+                {isDuration ? "las tarifas" : "las variantes"}.
               </p>
             </>
           )}

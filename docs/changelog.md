@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Suggested price tiers from cost
+
+- `lib/pricing.ts`: `suggestPrices(cost)` — sugerido = costo × 1.5 rounded up
+  to a "nice" step (one order of magnitude below the price, so it works for
+  COP and USD alike), intermediario = 85% and mínimo = 90% of the sugerido
+  (`tiersFromPrice`). Matches the salón's real pricing (13000 → 20000 /
+  17000 / 18000).
+- `VariantManager`: leaving the Costo field fills blank/zero tiers with the
+  suggestion (existing rows and the new-variant form); non-zero values are
+  never overwritten.
+- `ProductForm` (create): new Costo field suggests the Precio on blur;
+  intermediario/mínimo derive from the final price into the Estándar variant.
+  Everything stays editable.
+
 ## Store: cover-photo fallback + "Nuevo" badges
 
 - `PublicItem.cover` (`services/public.ts`): main item photo, else the first
