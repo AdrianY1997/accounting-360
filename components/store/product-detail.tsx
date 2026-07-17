@@ -45,15 +45,20 @@ export function ProductDetail({
   const template = getStoreType(storeTypeId);
 
   const selected = item.variants.find((v) => v.id === variantId);
-  // Gallery: the selected variant's images, else the item's main images,
-  // else fall back to any variant image so the page is never blank. Sold-out
-  // photos (stock 0) are pushed to the end but still shown.
+  // Gallery: with a variant selected, its own photos (falling back to the
+  // item's main photos so it's never blank). With "Todas" active, main photos
+  // PLUS every variant's photos — otherwise items whose photos live on the
+  // variants would open with a hidden thumbnail strip. Sold-out photos
+  // (stock 0) are pushed to the end but still shown.
+  const variantImages = item.variants.flatMap((v) => v.images);
   const gallery = orderGallery(
-    selected && selected.images.length > 0
-      ? selected.images
-      : item.images.length > 0
-        ? item.images
-        : item.variants.flatMap((v) => v.images),
+    selected
+      ? selected.images.length > 0
+        ? selected.images
+        : item.images.length > 0
+          ? item.images
+          : variantImages
+      : [...item.images, ...variantImages],
   );
 
   function pickVariant(id: string) {
