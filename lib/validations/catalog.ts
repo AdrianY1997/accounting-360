@@ -54,6 +54,8 @@ export const variantInputSchema = z.object({
   costPrice: z.coerce.number().min(0).default(0),
   resellerPrice: z.coerce.number().min(0).default(0),
   minPrice: z.coerce.number().min(0).default(0),
+  // Active discount; null/0/empty clears it.
+  discountPrice: z.coerce.number().min(0).nullable().optional(),
   stock: z.coerce.number().int().min(0).default(0),
 });
 export type VariantInput = z.infer<typeof variantInputSchema>;

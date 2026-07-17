@@ -2,6 +2,20 @@
 
 All relevant project changes are recorded here (most recent first).
 
+## Per-variant discounts
+
+- `service_variant.discount_price` (migration `0024`, nullable — null = no
+  discount). Edited in `VariantManager` ("Descuento" field; focusing it empty
+  defaults to the variant's min price, custom values allowed).
+- Sale: the POS loads the discount as the default unit price for direct
+  clients (resellers keep their tier), and the min-price floor becomes
+  `min(minPrice, discountPrice)` — enforced client-side and authoritatively
+  in `createSale`.
+- Store: item display price is the lowest EFFECTIVE variant price;
+  `PublicItem.compareAtPrice` carries the regular price for the
+  struck-through display + "-X%" tag on cards and the PDP (variant-reactive).
+  Priceless reseller links strip `discountPrice`/`compareAtPrice` too.
+
 ## Priceless catalog links for resellers
 
 - New `reseller_link` table (migration `0023`): one opaque token per reseller

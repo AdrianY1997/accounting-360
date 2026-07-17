@@ -53,10 +53,27 @@ export function ProductCard({
     </Tooltip>
   ) : null;
 
+  const discountPct = item.compareAtPrice
+    ? Math.round(
+        (1 - Number(item.price) / Number(item.compareAtPrice)) * 100,
+      )
+    : 0;
   const priceLine = hidePrices ? null : (
     <p className="text-sm font-semibold">
       {item.variants.length > 1 ? "Desde " : ""}
       {fmt.format(Number(item.price))}
+      {item.compareAtPrice && (
+        <>
+          <span className="text-muted-foreground ml-1.5 font-normal line-through">
+            {fmt.format(Number(item.compareAtPrice))}
+          </span>
+          {discountPct > 0 && (
+            <span className="ml-1.5 text-xs font-semibold text-pink-600">
+              -{discountPct}%
+            </span>
+          )}
+        </>
+      )}
       {perHour ? (
         <span className="text-muted-foreground font-normal"> /hora</span>
       ) : null}

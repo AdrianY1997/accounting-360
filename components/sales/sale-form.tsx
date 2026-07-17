@@ -24,6 +24,7 @@ type VariantOpt = {
   price: string;
   resellerPrice: string;
   minPrice: string;
+  discountPrice: string | null;
   stock: number;
   images: VariantImageOpt[];
 };
@@ -95,11 +96,25 @@ function defaultQuantity(v?: VariantOpt): string {
   return String(photoQtyTotal(defaultPhotoQty(v)));
 }
 
-/** Variant price for a client type: resellers get the intermediario price. */
+/**
+ * Variant price for a client type: resellers get the intermediario price;
+ * direct clients get the active discount when one is set.
+ */
 function variantTier(v: VariantOpt, clientType: string): string {
-  return clientType === "reseller" && Number(v.resellerPrice) > 0
-    ? v.resellerPrice
+  if (clientType === "reseller" && Number(v.resellerPrice) > 0) {
+    return v.resellerPrice;
+  }
+  return v.discountPrice && Number(v.discountPrice) > 0
+    ? v.discountPrice
     : v.price;
+}
+
+/** Sale floor: the min price, lowered by the discount when it sits below. */
+function variantFloor(v: VariantOpt): string {
+  const min = Number(v.minPrice);
+  const disc = v.discountPrice ? Number(v.discountPrice) : NaN;
+  if (Number.isFinite(disc) && disc > 0 && disc < min) return v.discountPrice!;
+  return v.minPrice;
 }
 
 /** Line total for the live preview (mirrors the server math). */
@@ -207,7 +222,7 @@ export function SaleForm({
       variantId: firstVar?.id ?? NONE,
       photoQty: defaultPhotoQty(firstVar),
       unitPrice: firstVar ? variantTier(firstVar, clientType) : "0",
-      minPrice: firstVar?.minPrice ?? "0",
+      minPrice: firstVar ? variantFloor(firstVar) : "0",
       measureType: svc?.measureType ?? "quantity",
       priceMode: svc?.priceMode ?? "per_unit",
       durationMinutes: String(svc?.durationMinutes ?? 0),
@@ -222,7 +237,7 @@ export function SaleForm({
       variantId,
       photoQty: defaultPhotoQty(v),
       unitPrice: v ? variantTier(v, clientType) : rows[i].unitPrice,
-      minPrice: v?.minPrice ?? "0",
+      minPrice: v ? variantFloor(v) : "0",
       quantity: defaultQuantity(v),
     });
   }

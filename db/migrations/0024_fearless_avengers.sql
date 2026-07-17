@@ -1,0 +1,1 @@
+ALTER TABLE "service_variant" ADD COLUMN "discount_price" numeric(12, 2);

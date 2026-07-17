@@ -133,6 +133,7 @@ here; every `service` has at least one variant ("Estándar").
 | `name`            | text, not null                 | free text (e.g. "M - Rojo")    |
 | `sku`             | text                           | nullable; item SKU + 2-digit suffix (`P-0001-02`), auto-generated; unique per (service_id, sku) |
 | `price` / `cost_price` / `reseller_price` / `min_price` | numeric(12,2), default `0` | price tiers |
+| `discount_price`  | numeric(12,2), nullable        | active discount; storefront shows `price` struck through; sale floor = min(min_price, discount_price) |
 | `stock`           | integer, default `0`           | total units; if any of its `service_image` rows track stock per photo, this is the sum of those |
 | `created_at` / `updated_at` | timestamp             | from `timestamps`               |
 

@@ -176,6 +176,7 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
           name: serviceVariant.name,
           costPrice: serviceVariant.costPrice,
           minPrice: serviceVariant.minPrice,
+          discountPrice: serviceVariant.discountPrice,
         })
         .from(serviceVariant)
         .innerJoin(service, eq(service.id, serviceVariant.serviceId))
@@ -234,8 +235,14 @@ export async function createSale(ctx: SalonContext, input: SaleInput) {
       }
       variantId = variant.id;
       costCents = toCents(Number(variant.costPrice));
+      // Floor = min price, lowered by an active discount that sits below it.
+      const discCents = variant.discountPrice
+        ? toCents(Number(variant.discountPrice))
+        : 0;
       const minCents = toCents(Number(variant.minPrice));
-      if (enforceMinPrice && minCents > 0 && unitCents < minCents) {
+      const floorCents =
+        discCents > 0 && discCents < minCents ? discCents : minCents;
+      if (enforceMinPrice && floorCents > 0 && unitCents < floorCents) {
         throw new SaleError(
           `El precio de "${it.description.trim()}" está por debajo del mínimo permitido.`,
         );

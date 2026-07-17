@@ -127,6 +127,10 @@ export const serviceVariant = pgTable(
     minPrice: numeric("min_price", { precision: 12, scale: 2 })
       .notNull()
       .default("0"),
+    // Active discount (null = none). Storefront shows it with the regular
+    // price struck through; the sale min-price floor becomes
+    // min(minPrice, discountPrice).
+    discountPrice: numeric("discount_price", { precision: 12, scale: 2 }),
     stock: integer("stock").notNull().default(0),
     ...timestamps,
   },

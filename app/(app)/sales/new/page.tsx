@@ -46,6 +46,7 @@ export default async function NewSalePage() {
               price: v.price,
               resellerPrice: v.resellerPrice,
               minPrice: v.minPrice,
+              discountPrice: v.discountPrice,
               stock: v.stock,
               images: v.images,
             })),

@@ -20,6 +20,7 @@ type Variant = {
   costPrice: string;
   resellerPrice: string;
   minPrice: string;
+  discountPrice: string | null;
   stock: number;
   hasPhotoStock?: boolean;
 };
@@ -118,6 +119,7 @@ export function VariantManager({
         costPrice: v.costPrice || 0,
         resellerPrice: v.resellerPrice || 0,
         minPrice: v.minPrice || 0,
+        discountPrice: v.discountPrice || null,
         stock: v.stock,
       }),
     });
@@ -217,6 +219,26 @@ export function VariantManager({
                 min="0"
                 value={v.minPrice}
                 onChange={(e) => patch(v.id, { minPrice: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs text-pink-600">Descuento</Label>
+              <Input
+                className="w-24"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="—"
+                value={v.discountPrice ?? ""}
+                onFocus={() => {
+                  // Default discount = the variant's min price.
+                  if (!v.discountPrice && Number(v.minPrice) > 0) {
+                    patch(v.id, { discountPrice: v.minPrice });
+                  }
+                }}
+                onChange={(e) =>
+                  patch(v.id, { discountPrice: e.target.value || null })
+                }
               />
             </div>
             {!isService && (

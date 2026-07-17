@@ -72,7 +72,23 @@ export function ProductDetail({
       : undefined;
   const summaryVariant = selected ?? photoVariant;
 
-  const shownPrice = summaryVariant ? summaryVariant.price : item.price;
+  // Effective price: an active variant discount replaces the regular price,
+  // which then shows struck through next to it.
+  const variantDiscount =
+    summaryVariant?.discountPrice && Number(summaryVariant.discountPrice) > 0
+      ? summaryVariant.discountPrice
+      : null;
+  const shownPrice = summaryVariant
+    ? (variantDiscount ?? summaryVariant.price)
+    : item.price;
+  const compareAt = summaryVariant
+    ? variantDiscount && Number(variantDiscount) < Number(summaryVariant.price)
+      ? summaryVariant.price
+      : null
+    : item.compareAtPrice;
+  const discountPct = compareAt
+    ? Math.round((1 - Number(shownPrice) / Number(compareAt)) * 100)
+    : 0;
   const shownStock = summaryVariant ? summaryVariant.stock : item.totalStock;
   const lowStock = item.tracksStock && shownStock >= 1 && shownStock <= 5;
   // Availability reflects the selected variant (or the item total) — never
@@ -220,9 +236,19 @@ export function ProductDetail({
           </div>
 
           {!hidePrices && (
-            <p className="text-2xl font-bold">
-              {!summaryVariant && item.variants.length > 1 ? "Desde " : ""}
-              {fmt.format(Number(shownPrice))}
+            <p className="flex flex-wrap items-baseline gap-2 text-2xl font-bold">
+              <span>
+                {!summaryVariant && item.variants.length > 1 ? "Desde " : ""}
+                {fmt.format(Number(shownPrice))}
+              </span>
+              {compareAt && (
+                <span className="text-muted-foreground text-base font-normal line-through">
+                  {fmt.format(Number(compareAt))}
+                </span>
+              )}
+              {compareAt && discountPct > 0 && (
+                <Badge className="bg-pink-600 text-white">-{discountPct}%</Badge>
+              )}
               {perHour ? (
                 <span className="text-muted-foreground text-base font-normal">
                   {" "}

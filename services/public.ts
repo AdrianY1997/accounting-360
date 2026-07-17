@@ -28,6 +28,8 @@ export type PublicVariant = {
   name: string;
   sku: string | null;
   price: string;
+  /** Active discount (shown with `price` struck through); null = none. */
+  discountPrice: string | null;
   stock: number;
   createdAt: Date;
   images: PublicVariantImage[];
@@ -36,7 +38,10 @@ export type PublicItem = {
   id: string;
   name: string;
   sku: string | null;
+  /** Display price — the lowest EFFECTIVE (discounted) variant price. */
   price: string;
+  /** Regular price of that same variant when it's discounted; null = no deal. */
+  compareAtPrice: string | null;
   measureType: string;
   priceMode: string;
   durationMinutes: number;
@@ -164,13 +169,23 @@ export const publicStore = cache(
       categories: categories.filter((c) => usedCategoryIds.has(c.id)),
       items: items.map((it) => {
         const itemVariants = variants.filter((v) => v.serviceId === it.id);
-        // Display price = lowest variant price (the item base has no price).
-        const prices = itemVariants
-          .map((v) => Number(v.price))
-          .filter((n) => n > 0);
-        const fromPrice = prices.length
-          ? Math.min(...prices).toFixed(2)
-          : it.price;
+        // Display price = lowest EFFECTIVE variant price (an active discount
+        // replaces the regular price). compareAtPrice = that variant's
+        // regular price when discounted, for the struck-through display.
+        const priced = itemVariants
+          .map((v) => {
+            const regular = Number(v.price);
+            const disc = v.discountPrice ? Number(v.discountPrice) : 0;
+            const effective = disc > 0 ? disc : regular;
+            return { effective, regular, hasDiscount: disc > 0 && disc < regular };
+          })
+          .filter((p) => p.effective > 0)
+          .sort((a, b) => a.effective - b.effective);
+        const cheapest = priced[0];
+        const fromPrice = cheapest ? cheapest.effective.toFixed(2) : it.price;
+        const compareAtPrice = cheapest?.hasDiscount
+          ? cheapest.regular.toFixed(2)
+          : null;
         const toPublicImage = (im: (typeof images)[number]) => ({
           url: im.url,
           stock: im.variantId ? im.stock : null,
@@ -198,6 +213,7 @@ export const publicStore = cache(
           features: it.features ?? [],
           attributes: it.attributes ?? {},
           price: fromPrice,
+          compareAtPrice,
           totalStock: itemVariants.reduce((acc, v) => acc + v.stock, 0),
           images: itemImages,
           cover,
@@ -207,6 +223,7 @@ export const publicStore = cache(
             name: v.name,
             sku: v.sku,
             price: v.price,
+            discountPrice: v.discountPrice,
             stock: v.stock,
             createdAt: v.createdAt,
             images: images
@@ -272,7 +289,12 @@ export async function publicStoreByResellerToken(
     items: store.items.map((it) => ({
       ...it,
       price: "",
-      variants: it.variants.map((v) => ({ ...v, price: "" })),
+      compareAtPrice: null,
+      variants: it.variants.map((v) => ({
+        ...v,
+        price: "",
+        discountPrice: null,
+      })),
     })),
   };
 }

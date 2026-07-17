@@ -169,6 +169,13 @@
       "when": 1783792400312,
       "tag": "0023_wet_the_liberteens",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784261573544,
+      "tag": "0024_fearless_avengers",
+      "breakpoints": true
     }
   ]
 }

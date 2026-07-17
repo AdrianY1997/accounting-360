@@ -540,6 +540,7 @@ export async function createVariant(
       costPrice: input.costPrice.toFixed(2),
       resellerPrice: input.resellerPrice.toFixed(2),
       minPrice: input.minPrice.toFixed(2),
+      discountPrice: input.discountPrice ? input.discountPrice.toFixed(2) : null,
       stock: input.stock,
     })
     .returning();
@@ -572,6 +573,7 @@ export async function updateVariant(
       costPrice: input.costPrice.toFixed(2),
       resellerPrice: input.resellerPrice.toFixed(2),
       minPrice: input.minPrice.toFixed(2),
+      discountPrice: input.discountPrice ? input.discountPrice.toFixed(2) : null,
       stock: input.stock,
     })
     .where(eq(serviceVariant.id, variantId))
