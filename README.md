@@ -3,9 +3,9 @@
 Complete accounting system for beauty salons, built to scale from one salón to a
 chain. Next.js 16 + Drizzle (Neon Postgres) + Better Auth.
 
-Documentation lives in [`AGENTS.md`](./AGENTS.md) and [`docs/`](./docs). Start
-there — the docs are kept in sync with the code (see the Documentation
-Maintenance Rule).
+Documentation for AI agents lives in [`AGENTS.md`](./AGENTS.md) and in
+`recall` (`.recall/`) — verified facts, conventions and gotchas surfaced
+automatically at the start of a task.
 
 ## Getting started
 
@@ -22,4 +22,4 @@ See the **Commands** section in [`AGENTS.md`](./AGENTS.md#commands).
 
 ## Status
 
-Phase 0 (Foundation) complete. See [`docs/roadmap.md`](./docs/roadmap.md).
+Phase 0 (Foundation) complete.

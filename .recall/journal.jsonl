@@ -1,0 +1,14 @@
+{"ts":"2026-07-30T05:00:05.557Z","event":"write","id":"reference-recall-e-trabajo-recall-is-the-memory-system-now-not-the-old","type":"reference","scope":"global","tokens":201,"superseded":[],"source":"cli"}
+{"ts":"2026-07-30T05:03:58.294Z","event":"write","id":"gotcha-access-control-is-fully-custom-per-member-permissions-not","type":"gotcha","scope":"project","tokens":332,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:02.083Z","event":"write","id":"convention-all-money-math-runs-in-integer-cents-via-lib-money-ts-even","type":"convention","scope":"project","tokens":189,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:07.827Z","event":"write","id":"gotcha-neon-http-driver-has-no-real-transactions-multi-statement","type":"gotcha","scope":"project","tokens":141,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:12.592Z","event":"write","id":"gotcha-next-config-ts-staletimes-is-30-30-not-0-0-as-roadmap-md","type":"gotcha","scope":"project","tokens":213,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:19.486Z","event":"write","id":"gotcha-blob-read-write-token-is-read-directly-from-process-env-in","type":"gotcha","scope":"project","tokens":201,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:22.921Z","event":"write","id":"convention-cash-session-expected-cash-calc-uses-expense-createdat-not","type":"convention","scope":"project","tokens":165,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:30.384Z","event":"write","id":"reference-docs-database-md-and-docs-api-md-omit-real-schema-behavior","type":"reference","scope":"project","tokens":230,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:34.839Z","event":"write","id":"convention-catalog-pricing-lives-entirely-on-service-variant-not-on","type":"convention","scope":"project","tokens":199,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:51.952Z","event":"write","id":"reference-agents-md-s-accounting-domain-section-doesn-t-mention-the","type":"reference","scope":"project","tokens":282,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:04:55.901Z","event":"write","id":"convention-every-domain-route-handler-must-call-requiresaloncontext","type":"convention","scope":"project","tokens":187,"superseded":[],"source":"init"}
+{"ts":"2026-07-30T05:05:37.585Z","event":"verify","stale":0}
+{"ts":"2026-07-30T05:06:14.924Z","event":"audit","report":".recall/audits/2026-07-30T00-05-init.md","categories":["init"],"findings":10,"files":25}
+{"ts":"2026-07-30T05:07:25.230Z","event":"recall-hit","query":"modifica la documentación de la IA, osea todo lo que haga referencia a docs/ se elimina, ahora todo se maneja con recall","ids":["reference-recall-e-trabajo-recall-is-the-memory-system-now-not-the-old","reference-docs-database-md-and-docs-api-md-omit-real-schema-behavior","gotcha-access-control-is-fully-custom-per-member-permissions-not"],"scores":[17.39,7.42,4.63]}

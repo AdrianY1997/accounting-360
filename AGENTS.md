@@ -1,30 +1,12 @@
-# Documentation Maintenance Rule
+# Agent Memory
 
-The project documentation must evolve together with the codebase.
-
-When a phase, feature, module, API endpoint, database change, or major business
-rule is completed:
-
-- Update all relevant documentation immediately.
-- Mark completed roadmap phases and tasks.
-- Document architectural decisions and their rationale.
-- Keep API documentation synchronized with the implementation.
-- Keep database schema documentation synchronized with migrations.
-- Record any deviations from the original plan.
-- Document newly introduced dependencies and their purpose.
-- Update future roadmap items if priorities or requirements change.
-
-Documentation must never lag behind the implementation.
-
-The repository should always allow a new developer or AI agent to understand the
-current state of the project by reading the documentation — without inspecting
-the entire codebase.
-
-When uncertain whether a change requires documentation updates, update the
-documentation.
-
-Documentation lives in the `docs/` folder. This file (`AGENTS.md`) is the master
-overview; `docs/` holds the detail.
+This project's documentation for AI agents lives in `recall` (`.recall/`), not
+in hand-maintained markdown files. Verified facts, conventions, gotchas and
+decisions are stored as memory nodes; relevant ones surface automatically at
+the start of a task. Run `/audit` after finishing a task so memory stays
+current, and `/remember` to store a fact on the spot. This file (`AGENTS.md`)
+stays as the stable, rarely-changing project overview — no per-feature doc
+maintenance is required here or anywhere else.
 
 ---
 
@@ -120,7 +102,6 @@ salon, one user, or one currency. Every accounting record is scoped by
   (no self sign-up / invitation emails). Org admins create staff at `/staff`; the
   platform admin (`user.platform_admin`) onboards client companies at `/platform`.
 - Active org/salón persisted in `activeOrgId` / `activeSalonId` cookies.
-- See [docs/api.md](./docs/api.md#authentication).
 
 ## Validation
 
@@ -141,14 +122,19 @@ salon360 maps its domain onto Better Auth's organization primitives:
 | Plataforma (SaaS)     | `user.platform_admin` | Super admin above all orgs; onboards companies |
 
 Per-salón accounting config (currency, tax rate, timezone, address, logo) lives
-in `salon_settings` (one row per `team`). See [docs/database.md](./docs/database.md).
+in `salon_settings` (one row per `team`).
 
-**Roles** (`lib/roles.ts`): `owner`, `admin`, `manager` (per salón), `cashier`,
-`staff` (stylist). Access is checked with a capability matrix `can(role,
-permission)` (e.g. `catalog:write`, `sales:void`, `cash:manage`, `reports:view`);
-`isAdmin` (`owner`|`admin`) covers config / staff / commission rules. Every
-operational route enforces a permission server-side; the UI mirrors it (nav,
-page redirects, hidden write actions).
+**Roles** (`lib/roles.ts`, verified current as of this writing — this replaced
+an earlier fixed owner/admin/manager/cashier/staff matrix): `member.role` is only
+`owner` or `staff`. Owners get implicit full access. Every other member gets a
+**fully custom set of permissions** chosen by the owner, stored per member in
+`member_permission` (not a role→permission matrix) — `catalog:write`,
+`sales:write`, `sales:void`, `payments:write`, `cash:manage`, `expenses:write`,
+`reports:view`, `commissions:manage`, `settings:manage`, `staff:manage`,
+`salon:manage`. `can(ctx, permission)` checks `ctx.permissions` for non-owners;
+`requireSalonContext()` loads them. Every operational route enforces a
+permission server-side; the UI mirrors it (nav, page redirects, hidden write
+actions, staff form uses permission checkboxes, not a role select).
 
 ---
 
@@ -168,9 +154,6 @@ These are the Phase 1 entities (income/expense model). Double-entry comes later.
 - **Categories** — income and expense categories.
 - **Reports** — daily close, P&L per salón/period, sales by staff/service, tax
   summary.
-
-See [docs/roadmap.md](./docs/roadmap.md) for what is built vs planned and
-[docs/database.md](./docs/database.md) for the schema as implemented.
 
 ---
 
@@ -194,14 +177,12 @@ Keep components small and separate UI, data fetching, and business logic.
 All UI must be built from components — no ad-hoc inline markup duplicated across
 screens. Before creating any new UI element:
 
-1. Consult the component map in [docs/components.md](./docs/components.md) first.
-2. Never reuse or extend a component you don't actually understand. If the map
-   row lacks detail you need, open that one component file, confirm, then
-   improve its row.
+1. Check `components/` (and recall for any noted conventions) for an existing
+   component that fits.
+2. Never reuse or extend a component you don't actually understand — open the
+   file and confirm first.
 3. Reuse as-is if it fits; extend/adapt (a `cva` variant, optional prop, or
    wrapper) if it nearly fits; only create new when nothing reasonable exists.
-
-Keep `docs/components.md` in sync in the same change.
 
 ## Server Logic
 
@@ -242,7 +223,7 @@ services/            business logic per resource (consumed by route handlers)
 components/
   ui/                shadcn primitives
   <feature>/         feature components (e.g. clients/)
-docs/                see Documentation Maintenance Rule
+.recall/             agent memory (see Agent Memory above)
 ```
 
 ---
@@ -277,12 +258,11 @@ When implementing features:
 4. Keep multi-tenant scoping (`organizationId` / `salonId`) on every record.
 5. Do not hard-code currency or tax — read `salon_settings`.
 6. Never introduce breaking schema changes without a migration.
-7. Componentize all UI; check [docs/components.md](./docs/components.md) before
-   creating a component and keep the map in sync.
-8. Update documentation in the same change (Documentation Maintenance Rule).
-9. Record notable changes in [docs/changelog.md](./docs/changelog.md).
-10. Commits are at the agent's discretion — commit completed, verified units of
-    work using Conventional Commits. Do not push unless explicitly requested.
+7. Componentize all UI; check `components/` before creating a component.
+8. Commits are at the agent's discretion — commit completed, verified units of
+   work using Conventional Commits. Do not push unless explicitly requested.
+9. Run `/audit` after finishing a task (see Agent Memory above) so recall
+   captures conventions/gotchas learned along the way.
 
 <!-- BEGIN:nextjs-agent-rules -->
 ## This is NOT the Next.js you know
