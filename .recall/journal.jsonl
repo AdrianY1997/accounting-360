@@ -20,3 +20,25 @@
 {"ts":"2026-07-31T14:23:54.461Z","event":"supersede","id":"gotcha-store-photo-thumbnail-swatch-markup-border-2-size-16-agotado","by":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","layer":"project"}
 {"ts":"2026-07-31T14:23:54.467Z","event":"supersede","id":"convention-every-store-facing-photo-tile-must-show-the-aikind","by":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","layer":"project"}
 {"ts":"2026-07-31T14:23:54.471Z","event":"write","id":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","type":"convention","scope":"project","tokens":454,"superseded":["gotcha-store-photo-thumbnail-swatch-markup-border-2-size-16-agotado","convention-every-store-facing-photo-tile-must-show-the-aikind"],"source":"cli"}
+{"ts":"2026-07-31T14:27:46.520Z","event":"recall-hit","query":"# PLAN DE REDISEÑO UX - CATÁLOGO INTERACTIVO\n\n## Objetivo\n\nTransformar el catálogo de una experiencia tipo \"tienda online\" a un \"catálogo interactivo para WhatsApp\". El usuario NO debe descubrir funci","ids":["reference-agents-md-s-accounting-domain-section-doesn-t-mention-the","convention-components-store-photo-badges-tsx-photobadges-is-the-shared","convention-all-money-math-runs-in-integer-cents-via-lib-money-ts-even"],"scores":[7.78,7.71,4.82]}
+{"ts":"2026-07-31T17:26:58.256Z","event":"verify","stale":0}
+{"ts":"2026-07-31T17:31:14.670Z","event":"write","id":"pattern-storefront-items-with-more-than-one-combined-photo-use-a","type":"pattern","scope":"project","tokens":339,"superseded":[],"source":"audit"}
+{"ts":"2026-07-31T17:31:22.278Z","event":"write","id":"gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0","type":"gotcha","scope":"project","tokens":304,"superseded":[],"source":"audit"}
+{"ts":"2026-07-31T17:31:26.503Z","event":"write","id":"gotcha-whatsappfloat-hides-the-floating-button-on-3-path-segment","type":"gotcha","scope":"project","tokens":202,"superseded":[],"source":"audit"}
+{"ts":"2026-07-31T17:31:47.075Z","event":"audit","report":".recall/audits/2026-07-31T17-30-elige-tu-modelo-redesign.md","categories":["correctness","duplication","resource-leak","convention"],"findings":5,"files":12}
+{"ts":"2026-07-31T17:33:49.723Z","event":"supersede","id":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","by":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","layer":"project"}
+{"ts":"2026-07-31T17:33:49.728Z","event":"update","id":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","type":"convention","scope":"project","tokens":325,"superseded":["convention-components-store-photo-badges-tsx-photobadges-is-the-shared"],"source":"audit"}
+{"ts":"2026-07-31T17:33:53.414Z","event":"verify","stale":0}
+{"ts":"2026-07-31T17:35:08.009Z","event":"recall-hit","query":"perfecto, revisa la creación de links para intermediarios y haz uno también pero con precios. osea quedaría link de tienda y 2 link de intermediario, precio y sin","ids":["gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0"],"scores":[1.79]}
+{"ts":"2026-07-31T18:10:09.056Z","event":"verify","stale":0}
+{"ts":"2026-07-31T18:11:43.122Z","event":"audit","report":".recall/audits/2026-07-31T18-15-reseller-priced-links-and-model-gallery-fixes.md","categories":["duplication"],"findings":2,"files":14}
+{"ts":"2026-07-31T18:15:46.998Z","event":"supersede","id":"gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0","by":"gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0","layer":"project"}
+{"ts":"2026-07-31T18:15:47.002Z","event":"update","id":"gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0","type":"gotcha","scope":"project","tokens":350,"superseded":["gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0"],"source":"audit"}
+{"ts":"2026-07-31T18:15:50.284Z","event":"verify","stale":0}
+{"ts":"2026-07-31T18:22:59.616Z","event":"recall-hit","query":"photo badge","ids":["pattern-storefront-items-with-more-than-one-combined-photo-use-a"],"scores":[6.09]}
+{"ts":"2026-07-31T18:23:27.406Z","event":"restore","id":"gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0","layer":"project"}
+{"ts":"2026-07-31T18:23:30.753Z","event":"recall-hit","query":"discountPrice","ids":["gotcha-a-variant-s-discountprice-can-be-a-valid-non-null-literal-0"],"scores":[15.1]}
+{"ts":"2026-07-31T18:23:34.893Z","event":"restore","id":"convention-components-store-photo-badges-tsx-photobadges-is-the-shared","layer":"project"}
+{"ts":"2026-07-31T18:23:35.050Z","event":"recall-hit","query":"photo badge","ids":["convention-components-store-photo-badges-tsx-photobadges-is-the-shared","pattern-storefront-items-with-more-than-one-combined-photo-use-a"],"scores":[12.81,5.6]}
+{"ts":"2026-07-31T18:23:38.858Z","event":"verify","stale":0}
+{"ts":"2026-07-31T18:23:53.031Z","event":"write","id":"gotcha-recall-write-supersedes-with-a-same-slug-title-mis-archives","type":"gotcha","scope":"project","tokens":268,"superseded":[],"source":"manual"}

@@ -6,12 +6,14 @@ title: components/store/photo-badges.tsx (PhotoBadges) is the shared Agotado/Nue
 triggers: ["photo badge","swatch","thumbnail","aiKind","ai disclosure","model selector","model preview"]
 anchors: [{"path":"components/store/photo-badges.tsx","symbol":"PhotoBadges"}]
 asserted: 2026-07-31
-invalidated: null
-superseded_by: null
+invalidated: 2026-07-31
+superseded_by: convention-components-store-photo-badges-tsx-photobadges-is-the-shared
 supersedes: ["convention-components-store-photo-badges-tsx-photobadges-is-the-shared"]
 confidence: medium
 pin: false
 source: audit
+archived_at: 2026-07-31
+archived_reason: superseded-by:convention-components-store-photo-badges-tsx-photobadges-is-the-shared
 ---
 Current call sites (as of the 2026-07-31 "elige tu modelo" redesign):
 `product-card.tsx` (listing cover), `components/store/model-selector.tsx`
