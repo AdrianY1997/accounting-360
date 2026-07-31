@@ -309,8 +309,18 @@ export function ProductDetail({
           </dl>
 
           <div className="space-y-1.5 border-t pt-4">
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              {isService ? "Tarifas" : "Variantes"}
+            <p
+              className={
+                item.variants.length > 1
+                  ? "text-sm font-medium"
+                  : "text-muted-foreground text-xs font-medium uppercase tracking-wide"
+              }
+            >
+              {item.variants.length > 1
+                ? `Toca ${isService ? "una tarifa" : "una opción"} para ver fotos y detalles`
+                : isService
+                  ? "Tarifa"
+                  : "Variante"}
             </p>
             <VariantPicker
               variants={item.variants}

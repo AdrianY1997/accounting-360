@@ -1,13 +1,18 @@
 "use client";
 
+import { LayoutGrid } from "lucide-react";
 import { isNew } from "@/lib/utils";
 import type { PublicVariant } from "@/services/public";
 
 export const ALL_VARIANTS = "__all__";
 
 /**
- * Variant chips: "Todas" plus one per variant with its stock count; chips
- * with tracked stock at 0 are disabled.
+ * Variant picker as photo swatches (image + label) instead of text pills —
+ * the tap target visibly looks like "an option with a picture," so shoppers
+ * who wouldn't think to click a gallery thumbnail still see an obvious way
+ * to switch. "Todas" gets a neutral icon in place of a photo. Disabled
+ * (out-of-tracked-stock) swatches show an "Agotado" ribbon, matching the
+ * gallery's own sold-out styling.
  */
 export function VariantPicker({
   variants,
@@ -23,37 +28,76 @@ export function VariantPicker({
   if (variants.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-3">
       {variants.length > 1 && (
         <button
           type="button"
           onClick={() => onChange(ALL_VARIANTS)}
-          className={`rounded-full border px-3 py-1 text-sm ${
-            value === ALL_VARIANTS ? "bg-primary text-primary-foreground" : ""
+          className={`flex w-20 flex-col items-center gap-1 rounded-lg border-2 p-1 transition-colors ${
+            value === ALL_VARIANTS ? "border-primary" : "border-transparent"
           }`}
         >
-          Todas
+          <span className="bg-muted text-muted-foreground grid size-16 place-items-center rounded-md border">
+            <LayoutGrid className="size-6" />
+          </span>
+          <span
+            className={`line-clamp-2 text-center text-[11px] leading-tight ${
+              value === ALL_VARIANTS ? "text-primary font-semibold" : "font-medium"
+            }`}
+          >
+            Todas
+          </span>
         </button>
       )}
-      {variants.map((v) => (
-        <button
-          key={v.id}
-          type="button"
-          onClick={() => onChange(v.id)}
-          disabled={tracksStock && v.stock <= 0}
-          className={`rounded-full border px-3 py-1 text-sm disabled:opacity-40 ${
-            value === v.id ? "bg-primary text-primary-foreground" : ""
-          }`}
-        >
-          {v.name}
-          {tracksStock ? ` (${v.stock})` : ""}
-          {isNew(v.createdAt) && (
-            <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-              Nuevo
+      {variants.map((v) => {
+        const photo = v.images[0]?.url;
+        const soldOut = tracksStock && v.stock <= 0;
+        const selected = value === v.id;
+        return (
+          <button
+            key={v.id}
+            type="button"
+            onClick={() => onChange(v.id)}
+            disabled={soldOut}
+            className={`flex w-20 flex-col items-center gap-1 rounded-lg border-2 p-1 transition-colors disabled:opacity-40 ${
+              selected ? "border-primary" : "border-transparent"
+            }`}
+          >
+            <span className="bg-muted relative size-16 overflow-hidden rounded-md border">
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="text-muted-foreground grid size-full place-items-center text-lg font-semibold">
+                  {v.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+              {isNew(v.createdAt) && (
+                <span className="absolute -right-1 -top-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-[8px] font-semibold leading-none text-white shadow">
+                  Nuevo
+                </span>
+              )}
+              {soldOut && (
+                <span className="bg-destructive/90 absolute inset-x-0 bottom-0 text-center text-[8px] font-semibold leading-tight text-white">
+                  Agotado
+                </span>
+              )}
             </span>
-          )}
-        </button>
-      ))}
+            <span
+              className={`line-clamp-2 text-center text-[11px] leading-tight ${
+                selected ? "text-primary font-semibold" : "font-medium"
+              }`}
+            >
+              {v.name}
+            </span>
+            {tracksStock && !soldOut && (
+              <span className="text-muted-foreground text-[10px] leading-none">
+                {v.stock} disp.
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
