@@ -86,6 +86,9 @@ export default async function ResellerStoreItemPage({ params }: Props) {
         storeTypeId={store.storeType}
         shippingInfo={store.shippingInfo}
         whatsapp={store.whatsapp}
+        salonId=""
+        itemId={itemId}
+        basePath={base}
         hidePrices
       />
 

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { buildModelGallery } from "@/lib/model-gallery";
 import type { PublicItem } from "@/services/public";
 import type { StoreView } from "./view-toggle";
-import { cn, isNew } from "@/lib/utils";
+import { isNew } from "@/lib/utils";
 import { PhotoBadges } from "./photo-badges";
 
 /**
@@ -38,6 +39,8 @@ export function ProductCard({
   const href = `${basePath ?? `/store/${salonId}`}/${item.id}`;
   const isNewItem = isNew(item.createdAt);
   const aiBadge = <PhotoBadges aiKind={item.coverAiKind} />;
+  const modelCount = buildModelGallery(item).length;
+  const hasModels = modelCount > 1;
 
   const discountPct = item.compareAtPrice
     ? Math.round(
@@ -87,6 +90,11 @@ export function ProductCard({
               className={`size-full object-cover ${soldOut ? "opacity-40" : ""}`}
             />
           ) : null}
+          {hasModels && (
+            <span className="absolute left-1 top-1 rounded bg-pink-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
+              +{modelCount}
+            </span>
+          )}
           {aiBadge}
         </div>
         <div className="min-w-0 space-y-0.5 self-center">
@@ -101,16 +109,17 @@ export function ProductCard({
           {categoryName && (
             <p className="text-muted-foreground text-xs">{categoryName}</p>
           )}
+          {hasModels && (
+            <p className="text-xs font-medium text-pink-600">
+              ⭐ {modelCount} modelos disponibles
+            </p>
+          )}
           {priceLine}
           {durationLine}
-          {item.tracksStock &&
-            (soldOut ? (
-              <Badge variant="destructive">Agotado</Badge>
-            ) : (
-              <p className="text-muted-foreground text-xs">
-                {item.totalStock} disponibles
-              </p>
-            ))}
+          {item.tracksStock && soldOut && <Badge variant="destructive">Agotado</Badge>}
+          {hasModels && (
+            <p className="text-primary text-xs font-semibold">VER MODELOS →</p>
+          )}
         </div>
       </Link>
     );
@@ -143,20 +152,28 @@ export function ProductCard({
             Nuevo
           </Badge>
         )}
+        {hasModels && (
+          <Badge className="absolute left-2 top-2 bg-pink-600 text-white shadow">
+            +{modelCount} MODELOS
+          </Badge>
+        )}
         {aiBadge}
       </div>
       <div className="space-y-0.5 p-3">
         <p className="font-medium leading-tight truncate">{item.name}</p>
+        {hasModels && (
+          <p className="text-xs font-medium text-pink-600">
+            ⭐ {modelCount} modelos disponibles
+          </p>
+        )}
         {priceLine}
         {durationLine}
-        {item.tracksStock && (
-          <p
-            className={cn(
-              "text-muted-foreground text-xs",
-              soldOut && "text-red-500",
-            )}
-          >
-            {soldOut ? "Agotado" : `${item.totalStock} disponibles`}
+        {item.tracksStock && soldOut && (
+          <p className="text-xs font-medium text-red-500">Agotado</p>
+        )}
+        {hasModels && (
+          <p className="text-primary mt-1 text-xs font-semibold">
+            VER MODELOS →
           </p>
         )}
       </div>

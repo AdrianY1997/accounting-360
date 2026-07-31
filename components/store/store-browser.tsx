@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { CheckSquare, Eye, MessageCircle, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categoryLabel, descendantsAndSelf } from "@/lib/categories";
 import type { PublicCategory, PublicItem } from "@/services/public";
@@ -8,6 +9,13 @@ import { ProductCard } from "./product-card";
 import { setParams } from "./set-params";
 import { StoreFilters } from "./store-filters";
 import { ViewToggle } from "./view-toggle";
+
+const howToBuySteps = [
+  { icon: Eye, label: "Explora el catálogo" },
+  { icon: MousePointerClick, label: 'Toca "Ver modelos"' },
+  { icon: CheckSquare, label: "Elige tus favoritos" },
+  { icon: MessageCircle, label: "Pide por WhatsApp" },
+];
 
 type Filters = {
   q: string;
@@ -97,6 +105,11 @@ export function StoreBrowser({
         <ViewToggle />
       </div>
 
+      <div className="rounded-lg border border-pink-200 bg-pink-50 p-3 text-center text-sm text-pink-800">
+        👆 Toca <strong>&quot;Ver modelos&quot;</strong> en cualquier producto
+        para ver todos los diseños disponibles ✨
+      </div>
+
       <p className="text-muted-foreground text-sm">
         {filtered.length === 1
           ? "1 resultado"
@@ -156,6 +169,23 @@ export function StoreBrowser({
           ))}
         </div>
       )}
+
+      <div className="grid grid-cols-2 gap-4 rounded-lg bg-white p-4 shadow sm:grid-cols-4">
+        <h3 className="col-span-full text-sm font-semibold">¿Cómo comprar?</h3>
+        {howToBuySteps.map((step, i) => (
+          <div
+            key={step.label}
+            className="flex flex-col items-center gap-1 text-center"
+          >
+            <span className="grid size-10 place-items-center rounded-full bg-pink-100 text-pink-600">
+              <step.icon className="size-5" />
+            </span>
+            <span className="text-muted-foreground text-xs">
+              {i + 1}. {step.label}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

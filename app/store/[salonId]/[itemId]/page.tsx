@@ -81,6 +81,8 @@ export default async function StoreItemPage({ params }: Props) {
         storeTypeId={store.storeType}
         shippingInfo={store.shippingInfo}
         whatsapp={store.whatsapp}
+        salonId={salonId}
+        itemId={itemId}
       />
 
       <Recommendations store={store} item={item} salonId={salonId} />

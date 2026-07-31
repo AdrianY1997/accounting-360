@@ -1,8 +1,11 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { SiWhatsapp } from "@icons-pack/react-simple-icons";
 import { MessageCircle } from "lucide-react";
 
 /** wa.me only accepts digits — strip +, spaces, dashes. */
-function waHref(phone: string, message?: string) {
+export function waHref(phone: string, message?: string) {
   const digits = phone.replace(/\D/g, "");
   const text = message ? `?text=${encodeURIComponent(message)}` : "";
   return `https://wa.me/${digits}${text}`;
@@ -34,9 +37,16 @@ export function WhatsappCta({
   );
 }
 
-/** Floating WhatsApp button — mounted in the store layout. */
+/**
+ * Floating WhatsApp button — mounted in the store layout. Hidden on
+ * item-detail routes (`/store/:salonId/:itemId`, `/s/:token/:itemId` — both 3
+ * path segments): those pages have their own fixed "Pedir por WhatsApp" bar
+ * in the same bottom-right band, and the two would overlap on short screens.
+ */
 export function WhatsappFloat({ phone }: { phone: string | null }) {
-  if (!phone) return null;
+  const pathname = usePathname();
+  const isItemDetail = pathname.split("/").filter(Boolean).length === 3;
+  if (!phone || isItemDetail) return null;
   return (
     <a
       href={waHref(phone)}

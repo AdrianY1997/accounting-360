@@ -1,21 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { Check, StarIcon } from "lucide-react";
+import { Check, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { categoryLabel } from "@/lib/categories";
+import { buildModelGallery } from "@/lib/model-gallery";
+import { buildOrderMessage } from "@/lib/store-order-message";
 import { getStoreType } from "@/lib/store-types";
 import { isNew } from "@/lib/utils";
 import type { PublicCategory, PublicItem } from "@/services/public";
 import { DetailTabs, type DetailTab } from "./detail-tabs";
-import { orderGallery, ProductGallery } from "./product-gallery";
+import { ModelSelector } from "./model-selector";
 import { ShareButtons } from "./share-buttons";
-import { ALL_VARIANTS, VariantPicker } from "./variant-picker";
+import { waHref } from "./whatsapp-link";
 
 /**
- * Detail-page orchestrator: gallery + info column (price, availability,
- * summary, reactive detail rows, variant picker) and full-width sections
- * (tabs, features, share, WhatsApp CTA). No cart — informational only.
+ * Detail-page orchestrator: "elige tu modelo" grid (items with more than one
+ * combined photo) or a minimal fallback (services / simple items), tabs,
+ * share row and a fixed "Pedir por WhatsApp" bar. No cart — informational
+ * only, the WhatsApp message is the actual order.
  */
 export function ProductDetail({
   item,
@@ -24,6 +27,9 @@ export function ProductDetail({
   storeTypeId,
   shippingInfo,
   whatsapp,
+  salonId,
+  itemId,
+  basePath,
   hidePrices = false,
 }: {
   item: PublicItem;
@@ -32,79 +38,69 @@ export function ProductDetail({
   storeTypeId: string;
   shippingInfo: string | null;
   whatsapp: string | null;
-  /** Priceless mode (reseller share links) — data carries no prices either. */
+  salonId: string;
+  itemId: string;
+  /** Detail-link base — reseller links use `/s/<token>` so the salonId never leaks. */
+  basePath?: string;
+  /** Priceless mode (reseller share links) — the data has no prices either. */
   hidePrices?: boolean;
 }) {
   const fmt = new Intl.NumberFormat("es", { style: "currency", currency });
-  const [variantId, setVariantId] = useState<string>(
-    item.variants.length === 1 ? item.variants[0].id : ALL_VARIANTS,
-  );
-  const [active, setActive] = useState(0);
+  const [selectedIndexes, setSelectedIndexes] = useState<Set<number>>(new Set());
   const isService = item.measureType === "duration";
   const perHour = isService && item.priceMode === "per_unit";
   const template = getStoreType(storeTypeId);
 
-  const selected = item.variants.find((v) => v.id === variantId);
-  // Gallery always includes the item's main photos: with a variant selected
-  // (incl. single-variant auto-select), its photos come first and the main
-  // ones follow; with "Todas", main photos plus every variant's. Fallback to
-  // all variant photos so the page is never blank. Sold-out photos (stock 0)
-  // are pushed to the end but stay visible.
-  const variantImages = item.variants.flatMap((v) => v.images);
-  const gallery = orderGallery(
-    selected
-      ? selected.images.length > 0 || item.images.length > 0
-        ? [...selected.images, ...item.images]
-        : variantImages
-      : [...item.images, ...variantImages],
-  );
+  // Flat, numbered gallery ("Modelo #1..#N") — main photos plus every
+  // variant's, no filter by variant name. Items with 0-1 combined photos
+  // (most services) get the minimal fallback instead of the selector.
+  const gallery = buildModelGallery(item);
+  const hasSelector = gallery.length > 1;
+  const cover = gallery[0] ?? null;
+  const showFixedBar = hasSelector && !!whatsapp;
 
-  function pickVariant(id: string) {
-    setVariantId(id);
-    setActive(0);
+  function toggleIndex(i: number) {
+    setSelectedIndexes((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
   }
 
-  // With "Todas" active the chosen photo may still belong to one variant —
-  // the detail rows then show that variant's exact price, not "desde".
-  const activePhoto = gallery[active];
-  const photoVariant =
-    !selected && activePhoto
-      ? item.variants.find((v) =>
-          v.images.some((img) => img.url === activePhoto.url),
-        )
-      : undefined;
-  const summaryVariant = selected ?? photoVariant;
+  function sendOrder() {
+    if (!whatsapp) return;
+    const sorted = [...selectedIndexes].sort((a, b) => a - b);
+    const previewUrl = `${window.location.origin}${
+      basePath ?? `/store/${salonId}`
+    }/${itemId}/preview/${sorted.join(",")}`;
+    const message = buildOrderMessage({
+      item,
+      gallery,
+      selectedIndexes: sorted,
+      previewUrl,
+      currency,
+      hidePrices,
+    });
+    window.open(waHref(whatsapp, message), "_blank", "noopener");
+  }
 
-  // Effective price: an active variant discount replaces the regular price,
-  // which then shows struck through next to it.
-  const variantDiscount =
-    summaryVariant?.discountPrice && Number(summaryVariant.discountPrice) > 0
-      ? summaryVariant.discountPrice
-      : null;
-  const shownPrice = summaryVariant
-    ? (variantDiscount ?? summaryVariant.price)
-    : item.price;
-  const compareAt = summaryVariant
-    ? variantDiscount && Number(variantDiscount) < Number(summaryVariant.price)
-      ? summaryVariant.price
-      : null
-    : item.compareAtPrice;
-  const discountPct = compareAt
-    ? Math.round((1 - Number(shownPrice) / Number(compareAt)) * 100)
+  // Item-level price/availability — no longer reactive to the selection:
+  // with multi-select there's no single "chosen" variant to react to, so
+  // this always shows the same base info as the listing card. Each model's
+  // own price still appears in its own line of the WhatsApp message.
+  const soldOut = item.tracksStock && item.totalStock === 0;
+  const discountPct = item.compareAtPrice
+    ? Math.round((1 - Number(item.price) / Number(item.compareAtPrice)) * 100)
     : 0;
-  const shownStock = summaryVariant ? summaryVariant.stock : item.totalStock;
-  const lowStock = item.tracksStock && shownStock >= 1 && shownStock <= 5;
-  // Availability reflects the selected variant (or the item total) — never
-  // the active photo — so it stays coherent with the low-stock line below.
-  // A sold-out photo still shows its own "Agotado" overlay in the gallery.
-  const soldOut = item.tracksStock && shownStock === 0;
 
   const categoryText = item.categoryId
     ? categoryLabel(categoryPath, item.categoryId) ||
       categoryPath.map((c) => c.name).join(" > ")
     : null;
 
-  // text-kind attributes become detail rows; longtext ones become tabs.
+  // text-kind attributes become chips (header) + detail rows; longtext ones
+  // become their own tab.
   const textAttrs = template.attributes.filter(
     (a) => a.kind === "text" && item.attributes[a.key],
   );
@@ -112,11 +108,21 @@ export function ProductDetail({
     (a) => a.kind === "longtext" && item.attributes[a.key],
   );
 
+  // A single variant's identity never depends on which photo got picked, so
+  // it's still safe to show as a static row. With several, "the" variant is
+  // ambiguous under multi-select — see the WhatsApp message for the
+  // per-model breakdown instead.
+  const soleVariant = item.variants.length === 1 ? item.variants[0] : undefined;
+
   const detailRows: { label: string; value: React.ReactNode }[] = [
-    {
-      label: isService ? "Tarifa" : "Variante",
-      value: summaryVariant ? summaryVariant.name : "Todas",
-    },
+    ...(isService || soleVariant
+      ? [
+          {
+            label: isService ? "Tarifa" : "Variante",
+            value: soleVariant?.name ?? "—",
+          },
+        ]
+      : []),
     ...textAttrs.map((a) => ({
       label: a.label,
       value: item.attributes[a.key],
@@ -125,7 +131,7 @@ export function ProductDetail({
       label: "Ref / SKU",
       value: (
         <span className="font-mono text-xs">
-          {summaryVariant?.sku ?? item.sku ?? "—"}
+          {soleVariant?.sku ?? item.sku ?? "—"}
         </span>
       ),
     },
@@ -185,158 +191,130 @@ export function ProductDetail({
         </p>
       ),
     })),
-    // ...(shippingInfo
-    //   ? [
-    //       {
-    //         id: "envios",
-    //         label: "Envíos",
-    //         content: (
-    //           <p className="whitespace-pre-line text-sm leading-relaxed">
-    //             {shippingInfo}
-    //           </p>
-    //         ),
-    //       },
-    //     ]
-    //   : []),
   ];
 
   return (
-    <div className="space-y-8 rounded-lg">
-      {/* minmax(0,1fr): grid items default to min-width auto, so the
-          thumbnail strip would otherwise stretch the page sideways. */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] bg-white p-4 rounded-lg shadow">
-        <ProductGallery
-          images={gallery}
-          alt={item.name}
-          active={active}
-          onSelect={setActive}
-        />
-
-        <div className="min-w-0 space-y-4">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold leading-tight capitalize">
-                {item.name}
-              </h1>
-              {isNew(item.createdAt) && (
-                <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
-                  Nuevo
-                </Badge>
-              )}
-            </div>
-
-            <div className="">
-              <span className="flex items-center gap-1 text-xs">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <StarIcon key={i} className="text-neutral-400" size={14} />
-                ))}
-                (0)
-              </span>
-              <span className="text-muted-foreground text-xs w-full">
-                Reseñas no disponibles
-              </span>
-            </div>
-          </div>
-
-          {!hidePrices && (
-            <p className="flex flex-wrap items-baseline gap-2 text-2xl font-bold">
-              <span>
-                {!summaryVariant && item.variants.length > 1 ? "Desde " : ""}
-                {fmt.format(Number(shownPrice))}
-              </span>
-              {compareAt && (
-                <span className="text-muted-foreground text-base font-normal line-through">
-                  {fmt.format(Number(compareAt))}
-                </span>
-              )}
-              {compareAt && discountPct > 0 && (
-                <Badge className="bg-pink-600 text-white">-{discountPct}%</Badge>
-              )}
-              {perHour ? (
-                <span className="text-muted-foreground text-base font-normal">
-                  {" "}
-                  /hora
-                </span>
-              ) : null}
-            </p>
+    <div className={showFixedBar ? "space-y-8 rounded-lg pb-24" : "space-y-8 rounded-lg"}>
+      <div className="space-y-4 rounded-lg bg-white p-4 shadow">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-semibold leading-tight capitalize">
+            {item.name}
+          </h1>
+          {isNew(item.createdAt) && (
+            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
+              Nuevo
+            </Badge>
           )}
-
-          {item.tracksStock && (
-            <div className="flex flex-wrap items-center gap-2">
-              {soldOut ? (
-                <Badge variant="destructive">Agotado</Badge>
-              ) : (
-                <>
-                  <Badge className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
-                    Disponible
-                  </Badge>
-                  <span className="text-muted-foreground text-sm">
-                    {shownStock === 1
-                      ? "1 unidad disponible"
-                      : `${shownStock} unidades disponibles`}
-                  </span>
-                </>
-              )}
-            </div>
-          )}
-
-          {lowStock && !soldOut && (
-            <p className="text-sm font-medium text-amber-600 dark:text-amber-500">
-              ¡Solo{" "}
-              {shownStock === 1
-                ? "queda 1 unidad"
-                : `quedan ${shownStock} unidades`}
-              !
-            </p>
-          )}
-
-          {item.summary && (
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              {item.summary}
-            </p>
-          )}
-
-          <dl className="grid gap-2 border-t pt-4 text-sm">
-            {detailRows.map((r) => (
-              <div
-                key={r.label}
-                className="flex items-start justify-between gap-4"
-              >
-                <dt className="text-muted-foreground">{r.label}</dt>
-                <dd className="text-right font-medium">{r.value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <div className="space-y-1.5 border-t pt-4">
-            <p
-              className={
-                item.variants.length > 1
-                  ? "text-sm font-medium"
-                  : "text-muted-foreground text-xs font-medium uppercase tracking-wide"
-              }
-            >
-              {item.variants.length > 1
-                ? `Toca ${isService ? "una tarifa" : "una opción"} para ver fotos y detalles`
-                : isService
-                  ? "Tarifa"
-                  : "Variante"}
-            </p>
-            <VariantPicker
-              variants={item.variants}
-              tracksStock={item.tracksStock}
-              value={variantId}
-              onChange={pickVariant}
-            />
-          </div>
         </div>
+
+        {!hidePrices && (
+          <p className="flex flex-wrap items-baseline gap-2 text-2xl font-bold">
+            <span>
+              {item.variants.length > 1 ? "Desde " : ""}
+              {fmt.format(Number(item.price))}
+            </span>
+            {item.compareAtPrice && (
+              <span className="text-muted-foreground text-base font-normal line-through">
+                {fmt.format(Number(item.compareAtPrice))}
+              </span>
+            )}
+            {item.compareAtPrice && discountPct > 0 && (
+              <Badge className="bg-pink-600 text-white">-{discountPct}%</Badge>
+            )}
+            {perHour ? (
+              <span className="text-muted-foreground text-base font-normal">
+                {" "}
+                /hora
+              </span>
+            ) : null}
+          </p>
+        )}
+
+        {item.tracksStock &&
+          (soldOut ? (
+            <Badge variant="destructive">Agotado</Badge>
+          ) : (
+            <Badge className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
+              Disponible
+            </Badge>
+          ))}
+
+        {textAttrs.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {textAttrs.map((a) => (
+              <span
+                key={a.key}
+                className="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700"
+              >
+                <Tag className="size-3" />
+                {a.label}: {item.attributes[a.key]}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {item.summary && (
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            {item.summary}
+          </p>
+        )}
+
+        {hasSelector ? (
+          <>
+            <div className="rounded-lg border border-pink-200 bg-pink-50 p-3 text-sm text-pink-800">
+              ✨ Selecciona tus diseños favoritos. Cuando termines, escríbenos
+              por WhatsApp y confirmaremos disponibilidad.
+            </div>
+            <ModelSelector
+              images={gallery}
+              selected={selectedIndexes}
+              onToggle={toggleIndex}
+            />
+          </>
+        ) : (
+          cover && (
+            <div className="bg-muted relative aspect-square max-w-sm overflow-hidden rounded-lg border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={cover.url}
+                alt={item.name}
+                className="size-full object-contain"
+              />
+            </div>
+          )
+        )}
       </div>
 
-      <div className="flex gap-4 justify-between items-stretch flex-col md:flex-row">
+      <div className="flex flex-col items-stretch justify-between gap-4 md:flex-row">
         <DetailTabs tabs={tabs} />
 
         <ShareButtons whatsapp={whatsapp} itemName={item.name} />
       </div>
+
+      {showFixedBar && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-white p-3 shadow-lg">
+          <div className="mx-auto max-w-6xl px-2 sm:px-4">
+            {selectedIndexes.size === 0 ? (
+              <button
+                type="button"
+                disabled
+                className="w-full rounded-lg bg-neutral-200 py-3 text-center text-sm font-semibold text-neutral-500"
+              >
+                SELECCIONA UN MODELO
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={sendOrder}
+                className="w-full rounded-lg bg-green-600 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-green-700"
+              >
+                PEDIR {selectedIndexes.size} MODELO
+                {selectedIndexes.size > 1 ? "S" : ""} POR WHATSAPP
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
