@@ -3,6 +3,7 @@
 import { LayoutGrid } from "lucide-react";
 import { isNew } from "@/lib/utils";
 import type { PublicVariant } from "@/services/public";
+import { PhotoBadges } from "./photo-badges";
 
 export const ALL_VARIANTS = "__all__";
 
@@ -50,7 +51,7 @@ export function VariantPicker({
         </button>
       )}
       {variants.map((v) => {
-        const photo = v.images[0]?.url;
+        const photo = v.images[0];
         const soldOut = tracksStock && v.stock <= 0;
         const selected = value === v.id;
         return (
@@ -66,22 +67,17 @@ export function VariantPicker({
             <span className="bg-muted relative size-16 overflow-hidden rounded-md border">
               {photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={photo} alt="" className="size-full object-cover" />
+                <img src={photo.url} alt="" className="size-full object-cover" />
               ) : (
                 <span className="text-muted-foreground grid size-full place-items-center text-lg font-semibold">
                   {v.name.charAt(0).toUpperCase()}
                 </span>
               )}
-              {isNew(v.createdAt) && (
-                <span className="absolute -right-1 -top-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-[8px] font-semibold leading-none text-white shadow">
-                  Nuevo
-                </span>
-              )}
-              {soldOut && (
-                <span className="bg-destructive/90 absolute inset-x-0 bottom-0 text-center text-[8px] font-semibold leading-tight text-white">
-                  Agotado
-                </span>
-              )}
+              <PhotoBadges
+                soldOut={soldOut}
+                isNewPhoto={isNew(v.createdAt)}
+                aiKind={photo?.aiKind}
+              />
             </span>
             <span
               className={`line-clamp-2 text-center text-[11px] leading-tight ${

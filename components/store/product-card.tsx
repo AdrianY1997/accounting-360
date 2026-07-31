@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { aiKindDisclosures } from "@/lib/ai-images";
 import type { PublicItem } from "@/services/public";
 import type { StoreView } from "./view-toggle";
 import { cn, isNew } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { PhotoBadges } from "./photo-badges";
 
 /**
  * Store listing card linking to the item detail page. `view` switches between
@@ -39,19 +37,7 @@ export function ProductCard({
   const perHour = isService && item.priceMode === "per_unit";
   const href = `${basePath ?? `/store/${salonId}`}/${item.id}`;
   const isNewItem = isNew(item.createdAt);
-  const aiBadge = item.coverAiKind ? (
-    <Tooltip>
-      <TooltipTrigger>
-        <span className="absolute bottom-1.5 left-1.5 inline-flex cursor-help items-center gap-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-medium text-white">
-          <Sparkles className="size-3" />
-          IA
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>
-        {aiKindDisclosures[item.coverAiKind]}
-      </TooltipContent>
-    </Tooltip>
-  ) : null;
+  const aiBadge = <PhotoBadges aiKind={item.coverAiKind} />;
 
   const discountPct = item.compareAtPrice
     ? Math.round(

@@ -1,9 +1,8 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-import { aiKindDisclosures } from "@/lib/ai-images";
 import { isNew } from "@/lib/utils";
 import type { PublicVariantImage } from "@/services/public";
+import { PhotoBadges } from "./photo-badges";
 
 /** Sold-out photos (stock === 0) move to the end, in-stock/untracked first. */
 export function orderGallery(images: PublicVariantImage[]): PublicVariantImage[] {
@@ -42,24 +41,13 @@ export function ProductGallery({
             className={`size-full object-contain ${current.stock === 0 ? "opacity-40" : ""}`}
           />
         ) : null}
-        {current?.stock === 0 && (
-          <span className="bg-destructive text-destructive-foreground absolute right-2 top-2 rounded px-2 py-1 text-sm font-semibold shadow">
-            Agotado
-          </span>
-        )}
-        {current && current.stock !== 0 && isNew(current.createdAt) && (
-          <span className="absolute right-2 top-2 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow">
-            Nuevo
-          </span>
-        )}
-        {current?.aiKind && (
-          <span
-            title={aiKindDisclosures[current.aiKind]}
-            className="absolute bottom-2 left-2 inline-flex cursor-help items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-xs font-medium text-white"
-          >
-            <Sparkles className="size-3.5" />
-            IA
-          </span>
+        {current && (
+          <PhotoBadges
+            soldOut={current.stock === 0}
+            isNewPhoto={isNew(current.createdAt)}
+            aiKind={current.aiKind}
+            size="md"
+          />
         )}
       </div>
 
@@ -80,24 +68,11 @@ export function ProductGallery({
                 alt=""
                 className={`size-full object-cover ${img.stock === 0 ? "opacity-40" : ""}`}
               />
-              {img.stock === 0 && (
-                <span className="bg-destructive/90 absolute inset-x-0 bottom-0 text-center text-[9px] font-semibold leading-tight text-white">
-                  Agotado
-                </span>
-              )}
-              {img.stock !== 0 && isNew(img.createdAt) && (
-                <span className="absolute right-0.5 top-0.5 rounded bg-blue-600 px-1 text-[9px] font-semibold leading-tight text-white">
-                  N
-                </span>
-              )}
-              {img.aiKind && (
-                <span
-                  title={aiKindDisclosures[img.aiKind]}
-                  className="absolute bottom-0.5 left-0.5 rounded bg-black/60 p-0.5 text-white"
-                >
-                  <Sparkles className="size-3" />
-                </span>
-              )}
+              <PhotoBadges
+                soldOut={img.stock === 0}
+                isNewPhoto={isNew(img.createdAt)}
+                aiKind={img.aiKind}
+              />
             </button>
           ))}
         </div>
