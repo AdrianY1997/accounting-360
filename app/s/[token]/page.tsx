@@ -7,8 +7,9 @@ type Props = { params: Promise<{ token: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token } = await params;
-  const store = await publicStoreByResellerToken(token);
-  if (!store) return {};
+  const result = await publicStoreByResellerToken(token);
+  if (!result) return {};
+  const { store } = result;
   return {
     title: `${store.company} — Catálogo`,
     description: `Catálogo de ${store.company} · ${store.salon}`,
@@ -18,8 +19,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ResellerStorePage({ params }: Props) {
   const { token } = await params;
-  const store = await publicStoreByResellerToken(token);
-  if (!store) notFound();
+  const result = await publicStoreByResellerToken(token);
+  if (!result) notFound();
+  const { store, showPrices } = result;
 
   if (store.items.length === 0) {
     return (
@@ -36,7 +38,7 @@ export default async function ResellerStorePage({ params }: Props) {
       currency={store.currency}
       salonId=""
       basePath={`/s/${token}`}
-      hidePrices
+      hidePrices={!showPrices}
     />
   );
 }

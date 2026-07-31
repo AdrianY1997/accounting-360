@@ -10,24 +10,32 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token, itemId } = await params;
-  const store = await publicStoreByResellerToken(token);
-  const item = store?.items.find((i) => i.id === itemId);
-  if (!store || !item) return {};
+  const result = await publicStoreByResellerToken(token);
+  const item = result?.store.items.find((i) => i.id === itemId);
+  if (!result || !item) return {};
   return {
-    title: `Selección · ${item.name} · ${store.company}`,
+    title: `Selección · ${item.name} · ${result.store.company}`,
     robots: { index: false, follow: false },
   };
 }
 
 export default async function ResellerModelPreviewPage({ params }: Props) {
   const { token, itemId, indexes } = await params;
-  const store = await publicStoreByResellerToken(token);
-  const item = store?.items.find((i) => i.id === itemId);
-  if (!store || !item) notFound();
+  const result = await publicStoreByResellerToken(token);
+  const item = result?.store.items.find((i) => i.id === itemId);
+  if (!result || !item) notFound();
+  const { store, showPrices } = result;
 
   const gallery = buildModelGallery(item);
   const selected = parsePreviewIndexes(indexes, gallery.length);
   if (selected.length === 0) redirect(`/s/${token}/${itemId}`);
 
-  return <ModelPreview store={store} item={item} selected={selected} hidePrices />;
+  return (
+    <ModelPreview
+      store={store}
+      item={item}
+      selected={selected}
+      hidePrices={!showPrices}
+    />
+  );
 }

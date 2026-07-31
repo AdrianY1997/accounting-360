@@ -6,10 +6,11 @@ import { requireSalonContext } from "@/lib/tenant";
 
 const inputSchema = z.object({
   clientId: z.string().trim().min(1),
+  showPrices: z.boolean().default(false),
   rotate: z.boolean().optional(),
 });
 
-/** Gets (or creates/rotates) the priceless catalog link for a reseller. */
+/** Gets (or creates/rotates) a reseller's catalog link for the given price mode. */
 export async function POST(req: Request) {
   const ctx = await requireSalonContext();
   if (!can(ctx, "catalog:write")) {
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
   const link = await getResellerLink(
     ctx,
     parsed.data.clientId,
+    parsed.data.showPrices,
     parsed.data.rotate ?? false,
   );
   if (!link) {

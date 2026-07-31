@@ -14,10 +14,16 @@ import {
 
 const NONE = "__none__";
 
+const modes = [
+  { showPrices: false, label: "Sin precios" },
+  { showPrices: true, label: "Con precios" },
+] as const;
+
 /**
- * Copies a reseller's priceless catalog link (`/s/<token>`): pick the
- * intermediario, copy (creates the link on first use) or rotate it (the old
- * URL stops working).
+ * Copies a reseller's catalog link (`/s/<token>`): pick the intermediario,
+ * then copy (creates the link on first use) or rotate (the old URL stops
+ * working) either its priceless or priced link — each mode is its own
+ * independent link/token, so rotating one never touches the other.
  */
 export function ResellerLinkCopier({
   resellers,
@@ -27,7 +33,7 @@ export function ResellerLinkCopier({
   const [clientId, setClientId] = useState(NONE);
   const [loading, setLoading] = useState(false);
 
-  async function copyLink(rotate: boolean) {
+  async function copyLink(showPrices: boolean, rotate: boolean) {
     if (clientId === NONE) {
       toast.error("Selecciona un intermediario");
       return;
@@ -36,7 +42,7 @@ export function ResellerLinkCopier({
     const res = await fetch("/api/reseller-links", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientId, rotate }),
+      body: JSON.stringify({ clientId, showPrices, rotate }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -46,12 +52,13 @@ export function ResellerLinkCopier({
     }
     const { token } = await res.json();
     const url = `${window.location.origin}/s/${token}`;
+    const label = showPrices ? "Link con precios" : "Link sin precios";
     try {
       await navigator.clipboard.writeText(url);
       toast.success(
         rotate
-          ? "Link regenerado y copiado (el anterior dejó de funcionar)"
-          : "Link sin precios copiado",
+          ? `${label} regenerado y copiado (el anterior dejó de funcionar)`
+          : `${label} copiado`,
       );
     } catch {
       toast.error(`No se pudo copiar — el link es: ${url}`);
@@ -61,7 +68,7 @@ export function ResellerLinkCopier({
   if (resellers.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3">
       <Select value={clientId} onValueChange={setClientId}>
         <SelectTrigger className="w-52">
           <SelectValue placeholder="Link intermediario…" />
@@ -75,28 +82,37 @@ export function ResellerLinkCopier({
           ))}
         </SelectContent>
       </Select>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={loading || clientId === NONE}
-        onClick={() => copyLink(false)}
-        title="Copiar catálogo sin precios para este intermediario"
-      >
-        <Link2 className="size-4" />
-        Copiar
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        disabled={loading || clientId === NONE}
-        onClick={() => copyLink(true)}
-        aria-label="Regenerar link (el anterior deja de funcionar)"
-        title="Regenerar link (el anterior deja de funcionar)"
-      >
-        <RefreshCw className="size-4" />
-      </Button>
+      {clientId !== NONE && (
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+          {modes.map((m) => (
+            <div key={m.label} className="flex items-center gap-1">
+              <span className="text-muted-foreground text-xs">{m.label}:</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={loading}
+                onClick={() => copyLink(m.showPrices, false)}
+                title={`Copiar catálogo ${m.label.toLowerCase()} para este intermediario`}
+              >
+                <Link2 className="size-4" />
+                Copiar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={loading}
+                onClick={() => copyLink(m.showPrices, true)}
+                aria-label={`Regenerar link ${m.label.toLowerCase()} (el anterior deja de funcionar)`}
+                title={`Regenerar link ${m.label.toLowerCase()} (el anterior deja de funcionar)`}
+              >
+                <RefreshCw className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -36,10 +36,12 @@ export const client = pgTable(
 );
 
 /**
- * Priceless-catalog share links for reseller clients: `/s/<id>` renders the
- * salón's store with all prices stripped server-side and the reseller's phone
- * as the WhatsApp contact. The id IS the opaque token (regenerating replaces
- * the row, killing the old URL). One link per reseller.
+ * Catalog share links for reseller clients: `/s/<id>` renders the salón's
+ * store with the reseller's phone as the WhatsApp contact. The id IS the
+ * opaque token (regenerating replaces the row, killing the old URL). Up to
+ * two links per reseller — one per `showPrices` mode — so a reseller who
+ * should see cost prices and one who shouldn't can each get their own URL
+ * without the other's rotating.
  */
 export const resellerLink = pgTable(
   "reseller_link",
@@ -56,9 +58,13 @@ export const resellerLink = pgTable(
     clientId: text("client_id")
       .notNull()
       .references(() => client.id, { onDelete: "cascade" }),
+    /** false = prices stripped server-side (the original/default behavior). */
+    showPrices: boolean("show_prices").notNull().default(false),
     ...timestamps,
   },
-  (t) => [uniqueIndex("reseller_link_client_uidx").on(t.clientId)],
+  (t) => [
+    uniqueIndex("reseller_link_client_prices_uidx").on(t.clientId, t.showPrices),
+  ],
 );
 
 export const clientRelations = relations(client, ({ one }) => ({

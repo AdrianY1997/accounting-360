@@ -19,22 +19,23 @@ type Props = { params: Promise<{ token: string; itemId: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { token, itemId } = await params;
-  const store = await publicStoreByResellerToken(token);
-  const item = store?.items.find((i) => i.id === itemId);
-  if (!store || !item) return {};
+  const result = await publicStoreByResellerToken(token);
+  const item = result?.store.items.find((i) => i.id === itemId);
+  if (!result || !item) return {};
   return {
-    title: `${item.name} · ${store.company}`,
+    title: `${item.name} · ${result.store.company}`,
     description:
-      item.summary ?? item.description ?? `${item.name} — ${store.company}`,
+      item.summary ?? item.description ?? `${item.name} — ${result.store.company}`,
     robots: { index: false, follow: false },
   };
 }
 
 export default async function ResellerStoreItemPage({ params }: Props) {
   const { token, itemId } = await params;
-  const store = await publicStoreByResellerToken(token);
-  const item = store?.items.find((i) => i.id === itemId);
-  if (!store || !item) notFound();
+  const result = await publicStoreByResellerToken(token);
+  const item = result?.store.items.find((i) => i.id === itemId);
+  if (!result || !item) notFound();
+  const { store, showPrices } = result;
   const path = item.categoryId
     ? categoryPath(store.categories, item.categoryId)
     : [];
@@ -89,7 +90,7 @@ export default async function ResellerStoreItemPage({ params }: Props) {
         salonId=""
         itemId={itemId}
         basePath={base}
-        hidePrices
+        hidePrices={!showPrices}
       />
 
       <Recommendations
@@ -97,7 +98,7 @@ export default async function ResellerStoreItemPage({ params }: Props) {
         item={item}
         salonId=""
         basePath={base}
-        hidePrices
+        hidePrices={!showPrices}
       />
     </div>
   );

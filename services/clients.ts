@@ -44,13 +44,15 @@ export async function listClients(ctx: SalonContext, q?: string) {
 }
 
 /**
- * Gets (or creates) the priceless share link for a reseller client; `rotate`
- * replaces the token so the previous URL stops working. Returns null when the
+ * Gets (or creates) a reseller client's share link for the given price mode
+ * (`showPrices`); `rotate` replaces that mode's token so its previous URL
+ * stops working — the other mode's link is untouched. Returns null when the
  * client isn't an active reseller of this salón.
  */
 export async function getResellerLink(
   ctx: SalonContext,
   clientId: string,
+  showPrices: boolean,
   rotate = false,
 ) {
   const [reseller] = await db
@@ -69,7 +71,12 @@ export async function getResellerLink(
   const [existing] = await db
     .select({ id: resellerLink.id })
     .from(resellerLink)
-    .where(eq(resellerLink.clientId, clientId));
+    .where(
+      and(
+        eq(resellerLink.clientId, clientId),
+        eq(resellerLink.showPrices, showPrices),
+      ),
+    );
   if (existing && !rotate) return existing;
   if (existing) {
     await db.delete(resellerLink).where(eq(resellerLink.id, existing.id));
@@ -80,6 +87,7 @@ export async function getResellerLink(
       organizationId: ctx.organizationId,
       salonId: ctx.salonId,
       clientId,
+      showPrices,
     })
     .returning({ id: resellerLink.id });
   return created;

@@ -18,8 +18,9 @@ export default async function ResellerStoreLayout({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const store = await publicStoreByResellerToken(token);
-  if (!store) notFound();
+  const result = await publicStoreByResellerToken(token);
+  if (!result) notFound();
+  const { store } = result;
 
   return (
     <TooltipProvider>

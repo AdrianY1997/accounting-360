@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { type AiKind, isAiKind } from "@/lib/ai-images";
 import { categoryPath, familyIds } from "@/lib/categories";
 import { env } from "@/lib/env";
+import { effectivePrice } from "@/lib/model-gallery";
 import {
   client,
   organization,
@@ -176,8 +177,11 @@ export const publicStore = cache(
           .map((v) => {
             const regular = Number(v.price);
             const disc = v.discountPrice ? Number(v.discountPrice) : 0;
-            const effective = disc > 0 ? disc : regular;
-            return { effective, regular, hasDiscount: disc > 0 && disc < regular };
+            return {
+              effective: effectivePrice(v),
+              regular,
+              hasDiscount: disc > 0 && disc < regular,
+            };
           })
           .filter((p) => p.effective > 0)
           .sort((a, b) => a.effective - b.effective);
@@ -260,21 +264,30 @@ export async function publicStoreItem(
   };
 }
 
+export type PublicResellerStore = {
+  store: PublicStore;
+  /** This link's mode: true keeps real prices, false strips them below. */
+  showPrices: boolean;
+};
+
 /**
- * Priceless storefront for a reseller share link (`/s/<token>`). Prices are
- * stripped SERVER-SIDE — they never reach the HTML/RSC payload, so the link
- * recipient can't uncover them. WhatsApp contact becomes the reseller's own
- * phone (null = hide the buttons); the salón's number is never exposed here.
+ * Storefront for a reseller share link (`/s/<token>`). Each reseller can have
+ * up to two independent links (one per `showPrices` mode). When `showPrices`
+ * is false, prices are stripped SERVER-SIDE — they never reach the HTML/RSC
+ * payload, so the link recipient can't uncover them. WhatsApp contact always
+ * becomes the reseller's own phone (null = hide the buttons); the salón's
+ * number is never exposed here.
  */
 export async function publicStoreByResellerToken(
   token: string,
-): Promise<PublicStore | null> {
+): Promise<PublicResellerStore | null> {
   const [link] = await db
     .select({
       salonId: resellerLink.salonId,
       phone: client.phone,
       type: client.type,
       active: client.active,
+      showPrices: resellerLink.showPrices,
     })
     .from(resellerLink)
     .innerJoin(client, eq(client.id, resellerLink.clientId))
@@ -283,20 +296,23 @@ export async function publicStoreByResellerToken(
 
   const store = await publicStore(link.salonId);
   if (!store) return null;
-  return {
-    ...store,
-    whatsapp: link.phone?.trim() || null,
-    items: store.items.map((it) => ({
-      ...it,
-      price: "",
-      compareAtPrice: null,
-      variants: it.variants.map((v) => ({
-        ...v,
-        price: "",
-        discountPrice: null,
-      })),
-    })),
-  };
+  const withWhatsapp = { ...store, whatsapp: link.phone?.trim() || null };
+  const priced: PublicStore = link.showPrices
+    ? withWhatsapp
+    : {
+        ...withWhatsapp,
+        items: withWhatsapp.items.map((it) => ({
+          ...it,
+          price: "",
+          compareAtPrice: null,
+          variants: it.variants.map((v) => ({
+            ...v,
+            price: "",
+            discountPrice: null,
+          })),
+        })),
+      };
+  return { store: priced, showPrices: link.showPrices };
 }
 
 /**
