@@ -42,3 +42,8 @@ yarn-error.log*
 next-env.d.ts
 
 .claude
+
+# recall (derived + personal layer)
+.recall/local/
+.recall/index.json
+.recall/usage.json

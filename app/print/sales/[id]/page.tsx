@@ -81,7 +81,7 @@ export default async function ReceiptPage({
         <tbody className="text-xs">
           {items.map((it) => (
             <tr key={it.id} className="align-top">
-              <td className="py-1 max-w-[100px] truncate">{it.description}</td>
+              <td className="py-1 max-w-25 truncate">{it.description}</td>
               <td className="py-1 text-right">
                 {it.measureType === "duration"
                   ? `${it.durationMinutes ?? 0}m`
